@@ -1,0 +1,412 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useWeb3 } from '../context/Web3Context';
+import { useNiche } from '../context/NicheContext';
+import { useToast } from '../context/ToastContext';
+import { isUserRejection, walletErrorMessage } from '../lib/walletErrors';
+import { ethers } from 'ethers';
+import { ESCROW_ABI, TOKEN_ADDRESSES, ERC20_ABI } from '../config/contract';
+import { buildCreateData, REF_MAX_LENGTH, REF_PATTERN } from '../lib/escrowReference';
+import { buildCreateDataWithKol } from '../lib/escrowReference';
+import { kolFromStorage, KOL_STORAGE_KEY } from '../lib/kolFlag';
+import kolProgram from '../config/kolProgram.json';
+import { gasHelp } from '../config/gas';
+import { tierForUnits, FEE_MIN_USD, FEE_MAX_USD, FEE_RANGE_MESSAGE, PAID_TOKENS } from '../config/feeTiers';
+import { checkTierOnChain, TIER_CHECK_MESSAGES } from '../lib/feeTierCheck';
+import './CreateEscrowModal.css';
+
+// Montant saisi -> unites du token (bigint), ou null si invalide. USDT et USDC BEP-20 : 18 decimales.
+const TOKEN_DECIMALS = 18;
+function toUnits(value) {
+  try {
+    const u = ethers.parseUnits(String(value).trim(), TOKEN_DECIMALS);
+    return u > 0n ? u : null;
+  } catch {
+    return null;
+  }
+}
+const fmt = (units) => Number(ethers.formatUnits(units, TOKEN_DECIMALS)).toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+export default function CreateEscrowModal({ onClose, onSuccess, prefilledProvider = '', prefilledAmount = '' }) {
+  const { account, signer, ensureCorrectChain, readProvider } = useWeb3();
+  const niche = useNiche();
+  const { showToast } = useToast();
+  const [providerAddr, setProviderAddr] = useState(prefilledProvider);
+  const [amount, setAmount] = useState(prefilledAmount);
+  const [timeoutDays, setTimeoutDays] = useState(3);
+  // Reference facultative gravee dans la transaction (lisible par tous, non modifiable).
+  const [reference, setReference] = useState('');
+  // Jetons proposes : grille par montant = USDT ou USDC (config/feeTiers.js) ; demo = ses propres jetons.
+  const tokenChoices = niche.isDemo ? (niche.tokens || ['USDT']) : PAID_TOKENS;
+  const [tokenSym, setTokenSym] = useState(tokenChoices[0]);
+  const tokenAddr = TOKEN_ADDRESSES[tokenSym];
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1); // 1: input, 2: approve, 3: create
+  const [allowanceSufficient, setAllowanceSufficient] = useState(false);
+
+  const [shareableLink, setShareableLink] = useState(null);
+
+  // Grille par montant (contrats payants) : le contrat cible depend du montant, pas de la categorie.
+  // La demo garde son contrat et ses bornes.
+  const isPaid = !niche.isDemo;
+  const amountUnits = toUnits(amount);
+  const tier = isPaid && amountUnits ? tierForUnits(amountUnits, TOKEN_DECIMALS) : null;
+  // Resultat du controle on-chain du palier : { key, ok, bps?, reason? } ; key = palier + token + montant.
+  const tierKey = tier ? `${tier.contract}|${tokenAddr}|${amountUnits}` : null;
+  const [tierCheck, setTierCheck] = useState(null);
+  const tierChecked = tierCheck && tierCheck.key === tierKey ? tierCheck : null;
+  const targetContract = isPaid ? (tierChecked?.ok ? tier.contract : null) : niche.contractAddress;
+
+  useEffect(() => {
+    if (!tier || !tierKey) return;
+    const reader = readProvider || signer;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const res = await checkTierOnChain(tier, tokenAddr, amountUnits, reader);
+      if (!cancelled) setTierCheck({ key: tierKey, ...res });
+    }, 400);
+    return () => { cancelled = true; clearTimeout(timer); };
+    // tierKey resume tier, tokenAddr et amountUnits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tierKey, readProvider, signer]);
+
+  // Aide au gas : si le prestataire n'a pas de BNB, proposer de lui en envoyer apres la creation
+  // (transaction separee, facultative ; montant reduit en demo, ou le 2e wallet du testeur est souvent vide).
+  const { topup: gasTopup, low: gasLow } = gasHelp(niche.isDemo);
+  // Adresse dont le solde BNB est trop bas (l'option ne s'affiche que pour l'adresse saisie actuelle).
+  const [lowGasAddr, setLowGasAddr] = useState(null);
+  const [sendGas, setSendGas] = useState(true);
+  const providerTrim = providerAddr.trim();
+  const providerLowGas = Boolean(lowGasAddr) && lowGasAddr === providerTrim.toLowerCase();
+  useEffect(() => {
+    if (!readProvider || !ethers.isAddress(providerTrim)) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const bal = await readProvider.getBalance(providerTrim);
+        if (!cancelled) setLowGasAddr(bal < ethers.parseEther(gasLow) ? providerTrim.toLowerCase() : null);
+      } catch {
+        if (!cancelled) setLowGasAddr(null);
+      }
+    }, 400);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [providerTrim, readProvider, gasLow]);
+
+  // Verification reactive de l'allowance ERC-20 existante pour cocher l'etape 1 si suffisante.
+  useEffect(() => {
+    let cancelled = false;
+    const num = parseFloat(amount);
+    const reader = readProvider || signer;
+    if (!account || !reader || !tokenAddr || !targetContract || !(num > 0)) {
+      return () => { cancelled = true; };
+    }
+    (async () => {
+      try {
+        const erc20 = new ethers.Contract(tokenAddr, ERC20_ABI, reader);
+        let decimals = 18;
+        try {
+          decimals = Number(await erc20.decimals());
+        } catch {
+          decimals = 18;
+        }
+        const parsedAmount = ethers.parseUnits(amount.toString(), decimals);
+        const currentAllowance = await erc20.allowance(account, targetContract);
+        if (!cancelled) {
+          setAllowanceSufficient(currentAllowance >= parsedAmount);
+        }
+      } catch {
+        if (!cancelled) setAllowanceSufficient(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [account, readProvider, signer, tokenAddr, targetContract, amount]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!signer) return;
+    if (isPaid && !tier) {
+      showToast('error', FEE_RANGE_MESSAGE);
+      return;
+    }
+
+    if (!ethers.isAddress(providerAddr)) {
+      showToast('error', "Invalid provider address format.");
+      return;
+    }
+    if (parseFloat(amount) <= 0) {
+      showToast('error', "Amount must be greater than 0.");
+      return;
+    }
+    if (account && providerAddr.toLowerCase() === account.toLowerCase()) {
+      showToast('error', niche.isDemo
+        ? "Use your second wallet's address as provider: the contract refuses the same wallet on both sides."
+        : "The provider must be a different wallet than yours.");
+      return;
+    }
+    if (!REF_PATTERN.test(reference)) {
+      showToast('error', "Reference: letters, numbers, spaces, '-', '_' and '.' only.");
+      return;
+    }
+    if (niche.minAmount && (parseFloat(amount) < niche.minAmount || parseFloat(amount) > niche.maxAmount)) {
+      showToast('error', `Demo amount must be between ${niche.minAmount} and ${niche.maxAmount} ${tokenSym}.`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await ensureCorrectChain();
+
+      // Contrat cible : relu on-chain juste avant d'envoyer quoi que ce soit (palier payant), sinon la demo.
+      let escrowAddr = niche.contractAddress;
+      if (isPaid) {
+        const check = await checkTierOnChain(tier, tokenAddr, amountUnits, readProvider || signer);
+        setTierCheck({ key: tierKey, ...check });
+        if (!check.ok) {
+          showToast('error', TIER_CHECK_MESSAGES[check.reason] || TIER_CHECK_MESSAGES.read);
+          setLoading(false);
+          return;
+        }
+        escrowAddr = tier.contract;
+      }
+      if (!escrowAddr) throw new Error('No escrow contract');
+
+      const usdtRead = new ethers.Contract(tokenAddr, ERC20_ABI, readProvider || signer);
+      let decimals = 18;
+      try {
+        decimals = Number(await usdtRead.decimals());
+      } catch (err) {
+        console.warn("Could not read decimals, defaulting to 18", err);
+      }
+      
+      const parsedAmount = ethers.parseUnits(amount.toString(), decimals);
+      
+      const usdt = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
+      const currentAllowance = await usdt.allowance(account, escrowAddr);
+
+      if (currentAllowance < parsedAmount) {
+        setStep(2);
+        const approveTx = await usdt.approve(escrowAddr, parsedAmount);
+        await approveTx.wait();
+        setAllowanceSufficient(true);
+      }
+
+      setStep(3);
+      const contract = new ethers.Contract(escrowAddr, ESCROW_ABI, signer);
+      // Flag KOL : seulement sur les contrats payants (la demo a 0 % est exclue), pour un clic valide,
+      // actif et de moins de 30 jours. Sans KOL, l'appel d'origine ci-dessous reste inchange.
+      let kolHandle = null;
+      if (isPaid) {
+        try { kolHandle = kolFromStorage(localStorage.getItem(KOL_STORAGE_KEY), kolProgram); } catch {}
+      }
+      const data = kolHandle
+        ? buildCreateDataWithKol(contract.interface, [providerAddr, tokenAddr, parsedAmount, parseInt(timeoutDays) || 7], reference, kolHandle)
+        : buildCreateData(contract.interface, [providerAddr, tokenAddr, parsedAmount, parseInt(timeoutDays) || 7], reference);
+      const tx = await signer.sendTransaction({ to: escrowAddr, data });
+      const receipt = await tx.wait();
+      
+      let newEscrowId = null;
+      for (const log of receipt.logs) {
+        try {
+          const parsed = contract.interface.parseLog({ topics: log.topics, data: log.data });
+          if (parsed && parsed.name === 'EscrowCreated') {
+            newEscrowId = parsed.args.escrowId.toString();
+          }
+        } catch(e) {}
+      }
+
+      // Envoi facultatif du gas au prestataire : un echec ne remet pas en cause l'escrow deja cree.
+      if (providerLowGas && sendGas) {
+        try {
+          const gasTx = await signer.sendTransaction({ to: providerTrim, value: ethers.parseEther(gasTopup) });
+          await gasTx.wait();
+          showToast('success', `${gasTopup} BNB sent to the ${niche.lexicon.provider.toLowerCase()} for network fees.`);
+        } catch (gasErr) {
+          console.error(gasErr);
+          if (!isUserRejection(gasErr)) showToast('error', 'Escrow created, but sending BNB failed. You can send it later from the escrow card.');
+        }
+      }
+
+      if (newEscrowId) {
+        // Build from the niche slug (always valid) rather than window.location.pathname,
+        // which could be "/undefined" and produce a broken 404 link.
+        // Page publique /deal : lisible sans wallet, avec un bouton pour ouvrir l'escrow dans l'app.
+        // Les ids sont propres a chaque contrat : un escrow payant porte son contrat dans le lien (?c=).
+        const base = `${window.location.origin}/deal/${niche.slug}/${newEscrowId}`;
+        const link = isPaid ? `${base}?c=${escrowAddr}` : base;
+        setShareableLink(link);
+      } else {
+        showToast('success', "Escrow created successfully!");
+        onSuccess();
+        onClose();
+      }
+
+    } catch (err) {
+      console.error(err);
+      const reason = walletErrorMessage(err);
+      if (!isUserRejection(err)) {
+        showToast('error', `Transaction Failed: ${reason}`);
+      }
+    }
+    setLoading(false);
+    setStep(1);
+  };
+
+  const copyLinkAndClose = () => {
+    navigator.clipboard.writeText(shareableLink);
+    showToast('success', "Link copied!");
+    onSuccess();
+    onClose();
+  };
+
+  const numAmount = parseFloat(amount);
+  const hasValidAmount = amountUnits !== null;
+  // Taux affiche = taux lu on-chain sur le contrat reellement utilise (0 pour la demo).
+  const feeBps = isPaid ? (tierChecked?.ok ? tierChecked.bps : null) : 0;
+  const feePct = feeBps == null ? null : feeBps / 100;
+  const feeUnits = hasValidAmount && feeBps != null ? (amountUnits * BigInt(feeBps)) / 10000n : 0n;
+  const netUnits = hasValidAmount ? amountUnits - feeUnits : 0n;
+  // Etat du palier pour l'affichage (contrats payants uniquement).
+  let tierNote = null;
+  if (isPaid && amount !== '') {
+    if (!tier) tierNote = { error: true, text: FEE_RANGE_MESSAGE };
+    else if (!tierChecked) tierNote = { error: false, text: 'Checking the fee on-chain...' };
+    else if (!tierChecked.ok) tierNote = { error: true, text: TIER_CHECK_MESSAGES[tierChecked.reason] || TIER_CHECK_MESSAGES.read };
+    else tierNote = { error: false, text: `Fee ${feePct}% (${tier.label}), provider receives ${fmt(netUnits)} ${tokenSym}` };
+  }
+  const canSubmit = !isPaid || Boolean(tierChecked?.ok);
+
+  const step1Done = (hasValidAmount && allowanceSufficient) || step === 3;
+  const step1Active = !step1Done && (step === 1 || step === 2);
+  const step2Active = step === 3 || (step1Done && step === 1);
+
+  if (shareableLink) {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content is-form">
+          <h2>Escrow created and funded</h2>
+          <div className="modal-body">
+            <p className="text-gray-400 mb-4 text-sm">
+              Your escrow is now locked on BNB Smart Chain. Send this link to the {niche.lexicon.provider.toLowerCase()} so they can review and accept the deal.
+            </p>
+            <div className="bg-black/50 border border-gray-700 p-3 rounded text-sm text-white mb-2 break-all" style={{ fontFamily: 'monospace' }}>
+              {shareableLink}
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button className="btn btn-app-primary w-full" onClick={copyLinkAndClose}>
+              Copy Link &amp; Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content is-form">
+        <h2>Create {niche.lexicon.escrow}</h2>
+        <form onSubmit={handleSubmit}>
+          {/* Corps defilant : le titre et les boutons restent toujours visibles */}
+          <div className="modal-body">
+          <div className="form-group">
+            <label>{niche.lexicon.provider} Address</label>
+            <input type="text" value={providerAddr} onChange={e=>setProviderAddr(e.target.value)} required placeholder="0x..." />
+          </div>
+          <div className="flex gap-4">
+            <div className="form-group flex-1">
+              <label>Amount ({tokenSym})</label>
+              {tokenChoices.length > 1 && (
+                <select value={tokenSym} onChange={e=>setTokenSym(e.target.value)} aria-label="Token" style={{ marginBottom: '8px', width: '100%' }}>
+                  {tokenChoices.map(t => <option key={t} value={t}>{t} (BEP-20)</option>)}
+                </select>
+              )}
+              <input type="number" step="0.01" min={isPaid ? FEE_MIN_USD : niche.minAmount} max={isPaid ? FEE_MAX_USD : niche.maxAmount} value={amount} onChange={e=>setAmount(e.target.value)} required placeholder={niche.isDemo ? '1.00' : '100.00'} />
+              {niche.isDemo && (
+                <p className="form-hint">Demo: {niche.minAmount} to {niche.maxAmount} {tokenSym}, 0% fee.</p>
+              )}
+              {tierNote && (
+                <p className={`form-hint ${tierNote.error ? 'is-error' : 'is-fee'}`} aria-live="polite">{tierNote.text}</p>
+              )}
+            </div>
+            <div className="form-group flex-1">
+              <label>Delivery Deadline (Days)</label>
+              <input type="number" min="3" max="365" step="1" value={timeoutDays} onChange={e=>setTimeoutDays(e.target.value)} required title="Minimum 3 days as per smart contract rules" />
+              <p className="form-hint">
+                Min. 3 days enforced by the smart contract to guarantee a fair dispute window.
+              </p>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Reference (optional)</label>
+            <input type="text" value={reference} onChange={e=>setReference(e.target.value)} maxLength={REF_MAX_LENGTH} placeholder="e.g. Escrow_Joob_Deal_01" />
+            <p className="form-hint">
+              Stored on-chain and public — do not include private data.
+            </p>
+          </div>
+
+          {hasValidAmount && feePct != null && (
+            <div className="create-summary-box">
+              <div className="create-summary-row">
+                <span>Amount to lock</span>
+                <strong>{numAmount.toFixed(2)} {tokenSym}</strong>
+              </div>
+              {feePct > 0 && (
+                <div className="create-summary-row">
+                  <span>Provider fee ({feePct}%)</span>
+                  <strong>-{fmt(feeUnits)} {tokenSym}</strong>
+                </div>
+              )}
+              <div className="create-summary-row is-net">
+                <span>Provider receives (on standard release)</span>
+                <strong>{fmt(netUnits)} {tokenSym}</strong>
+              </div>
+              <div className="create-summary-note">
+                {feePct === 0
+                  ? '0% fee for the client and the provider (demo)'
+                  : `0% fee for the client. In case of a dispute, the ${feePct}% fee applies to the share awarded to the provider.`}
+              </div>
+            </div>
+          )}
+
+          {providerLowGas && (
+            <label className="create-gas-option">
+              <input type="checkbox" checked={sendGas} onChange={(e) => setSendGas(e.target.checked)} />
+              <span>
+                This {niche.lexicon.provider.toLowerCase()} has no BNB for network fees. Also send them {gasTopup} BNB so they can accept and claim (one extra transaction, optional).
+              </span>
+            </label>
+          )}
+
+          <div className="create-stepper" aria-label="Transaction steps">
+            <div className={`create-step ${step1Done ? 'is-done' : step1Active ? 'is-active' : ''}`}>
+              <span className="create-step-badge" aria-hidden="true">
+                {step1Done ? '✓' : '1'}
+              </span>
+              <span>
+                1. Approve {tokenSym} (no funds leave your wallet yet)
+                {step1Done ? ' — Approved' : ''}
+              </span>
+            </div>
+            <div className={`create-step ${step2Active ? 'is-active' : ''}`}>
+              <span className="create-step-badge" aria-hidden="true">2</span>
+              <span>2. Lock funds in escrow</span>
+            </div>
+          </div>
+          </div>
+
+          <div className="modal-actions">
+            <button type="button" className="btn btn-app-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+            <button type="submit" className="btn btn-app-primary" disabled={loading || !canSubmit}>
+              {loading
+                ? (step === 2 ? `1/2 Approving ${tokenSym}...` : '2/2 Locking funds...')
+                : (step1Done ? 'Lock funds in escrow' : `Approve & Lock ${tokenSym}`)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

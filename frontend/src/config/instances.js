@@ -1,0 +1,212 @@
+// IMPORTANT: In production (Vercel), NEXT_PUBLIC_ESCROW_ADDRESS SHOULD NOT BE DEFINED.
+// If defined, it acts as a local sandbox fallback collapsing all tiers to one address.
+const SANDBOX_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_ADDRESS;
+
+export const CONTRACT_10_PERCENT = SANDBOX_ADDRESS || "0xD5B180580D183A7A9278118312207bc8a9C9f89E";
+export const CONTRACT_8_PERCENT = SANDBOX_ADDRESS || "0xa45f887b938a08B295A5b96b6559600632F09Ab0";
+export const CONTRACT_5_PERCENT = SANDBOX_ADDRESS || "0x56c2227E06dBC16062179Be397839b101a8e58c7";
+export const CONTRACT_3_PERCENT = SANDBOX_ADDRESS || "0x3EEEA456daCF2247CB0023a70923E60C3E13D6C3";
+export const CONTRACT_2_PERCENT = SANDBOX_ADDRESS || "0x7986Bd37C4DA6d1822958fCB97E7a284b40DD7Cc";
+
+export const instances = {
+  influence: {
+    name: "Influence",
+    slug: "influence",
+    lexicon: {
+      client: "Brand",
+      provider: "Influencer",
+      action: "Campaign",
+      escrow: "Influence Escrow"
+    },
+    theme: {
+      primary: "#22c55e", // Green
+      bg: "bg-gray-900"
+    },
+    contractAddress: CONTRACT_10_PERCENT,
+    feeTier: 10
+  },
+  talent: {
+    name: "Talent",
+    slug: "talent",
+    lexicon: {
+      client: "Company",
+      provider: "Freelancer",
+      action: "Mission",
+      escrow: "Freelance Escrow"
+    },
+    theme: {
+      primary: "#a3e635", // Lime
+      bg: "bg-gray-900"
+    },
+    contractAddress: CONTRACT_8_PERCENT,
+    feeTier: 8
+  },
+  pro: {
+    name: "Pro Services",
+    slug: "pro",
+    lexicon: {
+      client: "Client",
+      provider: "Expert",
+      action: "Service",
+      escrow: "Pro Escrow"
+    },
+    theme: {
+      primary: "#eab308", // Yellow
+      bg: "bg-gray-900"
+    },
+    contractAddress: CONTRACT_5_PERCENT,
+    feeTier: 5
+  },
+  trade: {
+    name: "Trade",
+    slug: "trade",
+    lexicon: {
+      client: "Buyer",
+      provider: "Seller",
+      action: "Transaction",
+      escrow: "Trade Escrow"
+    },
+    theme: {
+      primary: "#eab308", // Yellow
+      bg: "bg-gray-900"
+    },
+    contractAddress: CONTRACT_3_PERCENT,
+    feeTier: 3
+  },
+  prime: {
+    name: "Prime",
+    slug: "prime",
+    lexicon: {
+      client: "Principal",
+      provider: "Agent",
+      action: "Agreement",
+      escrow: "Prime Escrow"
+    },
+    theme: {
+      primary: "#a3e635", // Lime
+      bg: "bg-gray-900"
+    },
+    contractAddress: CONTRACT_2_PERCENT,
+    feeTier: 2
+  },
+  audit: {
+    name: "Audit & Security",
+    slug: "audit",
+    lexicon: { client: "Project", provider: "Auditor", action: "Audit", escrow: "Audit Escrow" },
+    theme: { primary: "#22c55e", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_5_PERCENT,
+    feeTier: 5 // Uses the 5% contract
+  },
+  dev: {
+    name: "Development",
+    slug: "dev",
+    lexicon: { client: "Founder", provider: "Developer", action: "Code Delivery", escrow: "Dev Escrow" },
+    theme: { primary: "#a3e635", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_5_PERCENT,
+    feeTier: 5 // Uses the 5% contract
+  },
+  art: {
+    name: "Art & Commission",
+    slug: "art",
+    lexicon: { client: "Collector", provider: "Artist", action: "Commission", escrow: "Art Escrow" },
+    theme: { primary: "#bef264", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_8_PERCENT,
+    feeTier: 8 // Uses the 8% contract
+  },
+  gaming: {
+    name: "Gaming Assets",
+    slug: "gaming",
+    lexicon: { client: "Buyer", provider: "Player", action: "Transfer", escrow: "Gaming Escrow" },
+    theme: { primary: "#84cc16", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_3_PERCENT,
+    feeTier: 3 // Uses the 3% contract
+  },
+  realestate: {
+    name: "Real Estate (OTC)",
+    slug: "realestate",
+    lexicon: { client: "Buyer", provider: "Broker", action: "Closing", escrow: "Estate Escrow" },
+    theme: { primary: "#eab308", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_2_PERCENT,
+    feeTier: 2 // Uses the 2% contract
+  },
+  music: {
+    name: "Music Rights",
+    slug: "music",
+    lexicon: { client: "Label", provider: "Producer", action: "Clearance", escrow: "Music Escrow" },
+    theme: { primary: "#22c55e", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_5_PERCENT,
+    feeTier: 5 // Uses the 5% contract
+  },
+  cm: {
+    name: "Community Mgmt",
+    slug: "cm",
+    lexicon: { client: "Project", provider: "Manager", action: "Animation", escrow: "CM Escrow" },
+    theme: { primary: "#a3e635", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_8_PERCENT,
+    feeTier: 8 // Uses the 8% contract (Talent)
+  },
+  domain: {
+    name: "Domain Names",
+    slug: "domain",
+    lexicon: { client: "Buyer", provider: "Owner", action: "Transfer", escrow: "Domain Escrow" },
+    theme: { primary: "#22c55e", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_3_PERCENT,
+    feeTier: 3 // Uses the 3% contract
+  },
+  mergers: {
+    name: "M&A Deals",
+    slug: "mergers",
+    lexicon: { client: "Acquirer", provider: "Target", action: "Acquisition", escrow: "M&A Escrow" },
+    theme: { primary: "#eab308", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_2_PERCENT,
+    feeTier: 2 // Uses the 2% contract
+  },
+  bounty: {
+    name: "Bug Bounties",
+    slug: "bounty",
+    lexicon: { client: "Protocol", provider: "Hacker", action: "Disclosure", escrow: "Bounty Escrow" },
+    theme: { primary: "#facc15", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_8_PERCENT,
+    feeTier: 8 // Uses the 8% contract
+  },
+  // Ajoutee le 07/11/2026 (grille par montant) : le prix suit config/feeTiers.js ;
+  // contractAddress ne sert que de contrat de reference (liens sans ?c=).
+  otc: {
+    name: "OTC Token Deals",
+    slug: "otc",
+    lexicon: { client: "Buyer", provider: "Seller", action: "OTC Trade", escrow: "OTC Escrow" },
+    theme: { primary: "#a3e635", bg: "bg-gray-900" },
+    contractAddress: CONTRACT_5_PERCENT,
+    feeTier: 5
+  }
+};
+
+export const defaultInstance = "influence";
+
+// Instance DEMO "Try it with $1" : meme contrat V4 audite, USDT/USDC de 0,5 a 1 (limites contrat du 17/10), commission 0 %.
+// Volontairement HORS de `instances` : jamais comptee dans les statistiques, le hub ni la page Securite.
+export const CONTRACT_DEMO = SANDBOX_ADDRESS || "0x28b80688749958241E14Fa8181274AE0E649eC0B";
+
+export const demoInstance = {
+  name: "Demo",
+  slug: "demo",
+  lexicon: {
+    client: "Client wallet",
+    provider: "Provider wallet",
+    action: "Demo escrow",
+    escrow: "Demo Escrow"
+  },
+  theme: {
+    primary: "#a3e635",
+    bg: "bg-gray-900"
+  },
+  contractAddress: CONTRACT_DEMO,
+  feeTier: 0,
+  isDemo: true,
+  tokens: ["USDT", "USDC"],
+  minAmount: 0.5,
+  maxAmount: 1
+};
+
+// Toutes les routes /[niche] (y compris la demo).
+export const allInstances = { ...instances, demo: demoInstance };

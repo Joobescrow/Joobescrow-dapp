@@ -1,0 +1,183 @@
+'use client';
+
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { ethers } from 'ethers';
+import { createAppKit, useAppKit, useAppKitProvider, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react';
+import { EthersAdapter } from '@reown/appkit-adapter-ethers';
+import { bsc, bscTestnet, hardhat, mainnet, arbitrum, base, polygon, optimism, avalanche } from '@reown/appkit/networks';
+import { MAX_TX_GAS } from '../config/gas';
+import { FEATURED_WALLET_IDS } from '../config/wallets';
+
+// Projet Reown dedie a JoobEscrow (cloud.reown.com, equipe JoobEscrow). ID public par nature.
+const projectId = '63a257b332dae1f848b7dab85c8f0880';
+
+// BSC par defaut ; les autres reseaux EVM servent au paiement de la presale depuis
+// une autre chaine (LI.FI) : le wallet doit pouvoir y basculer, WalletConnect compris.
+const networks = [bsc, mainnet, arbitrum, base, polygon, optimism, avalanche, bscTestnet, hardhat];
+
+// RPC de lecture BSC, par ordre de priorite (le principal peut etre remplace via NEXT_PUBLIC_BSC_RPC_URL).
+const READ_RPC_URLS = [
+  process.env.NEXT_PUBLIC_BSC_RPC_URL || 'https://bnb-mainnet.g.alchemy.com/v2/mxiTTJDhhn7xwK4cXUdE2',
+  'https://bsc-rpc.publicnode.com',
+  'https://bsc-dataseed.bnbchain.org',
+];
+
+const metadata = {
+  name: 'JoobEscrow',
+  description: 'The universal non-custodial escrow platform',
+  url: 'https://www.joobescrow.com',
+  icons: ['https://www.joobescrow.com/logo.png']
+};
+
+const ethersAdapter = new EthersAdapter();
+
+createAppKit({
+  adapters: [ethersAdapter],
+  networks,
+  defaultNetwork: bsc,
+  projectId,
+  metadata,
+  // Wallets BNB Chain en tete de la fenetre de connexion (ordre de config/wallets.js).
+  featuredWalletIds: FEATURED_WALLET_IDS,
+  features: {
+    analytics: true,
+    // Wallets uniquement : pas de wallet heberge cree par email ou reseau social.
+    email: false,
+    socials: false,
+    // Pas d'achat par carte ni de swap/envoi/reception dans la modale du wallet.
+    onramp: false,
+    swaps: false,
+    send: false,
+    receive: false
+  }
+});
+
+const Web3Context = createContext();
+
+export const GAS_ERROR = 'Not enough BNB to pay the network fee. Add a little BNB on BNB Smart Chain to this wallet (about $0.50 is plenty), or ask the other party to send you some, then try again.';
+
+// Reseau de nos contrats (escrow, presale) : BNB Smart Chain.
+const BSC_CHAIN_ID = 56;
+const BSC_CHAIN_ID_HEX = '0x38';
+
+export function Web3Provider({ children }) {
+  const [account, setAccount] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [balance, setBalance] = useState(null);
+  const [error, setError] = useState(null);
+  const [isTestnet, setIsTestnet] = useState(false);
+
+  const { address, isConnected } = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider('eip155');
+  const { chainId } = useAppKitNetwork();
+  const { open } = useAppKit();
+
+  // Lecture blockchain : RPC principal puis relais publics si une requete echoue ou traine (> 1,5 s),
+  // pour que le site reste lisible en cas d'afflux (limite de debit partagee par tous les visiteurs).
+  const readProvider = useMemo(() => {
+    const network = ethers.Network.from(56);
+    return new ethers.FallbackProvider(
+      READ_RPC_URLS.map((url, i) => ({
+        provider: new ethers.JsonRpcProvider(url, network, { staticNetwork: network, batchMaxCount: 1 }),
+        priority: i + 1,
+        stallTimeout: 1500,
+        weight: 1,
+      })),
+      network,
+      { quorum: 1 },
+    );
+  }, []);
+
+  useEffect(() => {
+    async function syncConnection() {
+      if (isConnected && walletProvider) {
+        try {
+          const ethersProvider = new ethers.BrowserProvider(walletProvider, 'any');
+          setProvider(ethersProvider);
+          const tempSigner = await ethersProvider.getSigner();
+          setSigner(tempSigner);
+          setAccount(address);
+          
+          if (chainId) {
+            setIsTestnet(chainId === 97);
+          }
+
+          const bal = await ethersProvider.getBalance(address);
+          setBalance(ethers.formatEther(bal));
+          setError(null);
+        } catch (err) {
+          console.error("Error setting up provider from Reown:", err);
+          setError("Failed to setup provider from Reown.");
+        }
+      } else {
+        setProvider(null);
+        setSigner(null);
+        setAccount(null);
+        setBalance(null);
+      }
+    }
+    syncConnection();
+  }, [isConnected, walletProvider, address, chainId]);
+
+  // Avant toute ecriture sur l'escrow ou la presale : le wallet doit etre sur BNB Smart Chain.
+  // Depuis l'ajout des reseaux LI.FI, un wallet reste souvent sur Arbitrum/Base apres un achat
+  // cross-chain ; une transaction partirait alors sur ce reseau, ou nos contrats n'existent pas.
+  // Reseau actuel du wallet. eth_chainId renvoie normalement "0x38", mais certains wallets mobiles
+  // (WalletConnect) renvoient 56 en nombre ou en texte decimal : lu en hexadecimal, 56 donnait 86
+  // et bloquait a tort les utilisateurs deja sur BSC. On accepte donc les trois formats.
+  const readWalletChainId = async () => {
+    const raw = await walletProvider.request({ method: 'eth_chainId' });
+    try { return Number(BigInt(raw)); } catch { return NaN; }
+  };
+
+  // Solde BNB insuffisant pour le gas : certains wallets (ex. Phantom) renvoient alors une erreur
+  // illisible (« could not coalesce error »). On previent avant d'envoyer la transaction.
+  const ensureGas = async () => {
+    if (!address) return;
+    try {
+      const [bal, fee] = await Promise.all([readProvider.getBalance(address), readProvider.getFeeData()]);
+      const gasPrice = fee.gasPrice ?? ethers.parseUnits('1', 'gwei');
+      if (bal < gasPrice * MAX_TX_GAS) {
+        throw new Error(GAS_ERROR);
+      }
+    } catch (err) {
+      // Lecture du solde impossible : on laisse le wallet decider plutot que de bloquer.
+      if (err.message === GAS_ERROR) throw err;
+    }
+  };
+
+  const ensureCorrectChain = async () => {
+    if (!walletProvider) throw new Error('Connect your wallet first.');
+    if (await readWalletChainId() === BSC_CHAIN_ID) { await ensureGas(); return true; }
+    try {
+      await walletProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID_HEX }] });
+    } catch (err) {
+      console.error('Network switch failed:', err);
+    }
+    // Certains wallets mobiles mettent un instant a repercuter le changement de reseau.
+    for (let i = 0; i < 6; i++) {
+      if (await readWalletChainId() === BSC_CHAIN_ID) { await ensureGas(); return true; }
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    throw new Error('Please switch your wallet to BNB Smart Chain, then try again.');
+  };
+
+  const connectWallet = async () => {
+    try {
+      await open();
+    } catch (err) {
+      console.error("Failed to open Reown AppKit:", err);
+    }
+  };
+
+  return (
+    <Web3Context.Provider value={{ account, provider, signer, readProvider, balance, error, isTestnet, connectWallet, ensureCorrectChain, ensureGas, chainId: chainId ? Number(String(chainId).split(':').pop()) : null }}>
+      {children}
+    </Web3Context.Provider>
+  );
+}
+
+export function useWeb3() {
+  return useContext(Web3Context);
+}

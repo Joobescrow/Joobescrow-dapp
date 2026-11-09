@@ -1,0 +1,294 @@
+'use client';
+
+import Link from 'next/link';
+import WalletConnect from '../../../components/WalletConnect';
+import EscrowCard from '../../../components/EscrowCard';
+import CreateEscrowModal from '../../../components/CreateEscrowModal';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useWeb3 } from '../../../context/Web3Context';
+import { useNiche } from '../../../context/NicheContext';
+import { useToast } from '../../../context/ToastContext';
+import { useAppKit } from '@reown/appkit/react';
+import { ethers } from 'ethers';
+import { TOKEN_ADDRESSES, ERC20_ABI, ESCROW_ABI } from '../../../config/contract';
+import { isUserRejection, walletErrorMessage } from '../../../lib/walletErrors';
+import { resolveEscrowContract, contractsForNiche, symbolForToken, escrowKey } from '../../../lib/escrowContract';
+import { FEE_RANGE_TEXT } from '../../../config/feeTiers';
+import './page.css';
+
+const DEMO_STEPS = [
+  { who: 'Wallet A', title: 'Create & fund', text: 'Click "+ Create Secure Transaction", paste wallet B as provider and lock 1 USDT or USDC.' },
+  { who: 'Wallet B', title: 'Accept', text: 'Switch to wallet B and accept the escrow. No spending approval is ever asked from B.' },
+  { who: 'Wallet A', title: 'Release', text: 'Switch back to wallet A and release the funds, as you would once the work is delivered.' },
+  { who: 'Wallet B', title: 'Withdraw', text: 'On wallet B, click "Claim": the exact amount arrives, 0% fee.' },
+];
+
+function DashboardContent() {
+  const { account, provider, signer, readProvider, ensureCorrectChain } = useWeb3();
+  const niche = useNiche();
+  const { showToast } = useToast();
+  const { open } = useAppKit();
+  const [invitedEscrow, setInvitedEscrow] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  // Montants par jeton de la niche (USDT par defaut ; USDT + USDC pour la demo).
+  const [pending, setPending] = useState({});
+  const [balances, setBalances] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const highlightedId = searchParams?.get('escrow');
+  const highlightedContract = searchParams?.get('c');
+
+  const fetchPending = useCallback(async () => {
+    const currentProvider = readProvider || provider;
+    if (!currentProvider || !account) return;
+    try {
+      // Soldes a retirer sur tous les contrats de la niche (les 5 contrats payants, ou la demo) :
+      // un escrow payant vit sur le contrat de son palier, pas forcement sur celui de la categorie.
+      // Cle = contrat + jeton ; seuls les montants > 0 sont affiches.
+      const nextPending = {};
+      const nextBalances = {};
+      const syms = niche.isDemo ? (niche.tokens || ['USDT']) : Object.keys(TOKEN_ADDRESSES);
+      for (const addr of contractsForNiche(niche)) {
+        const contract = new ethers.Contract(addr, ESCROW_ABI, currentProvider);
+        for (const sym of syms) {
+          const amount = await contract.withdrawable(account, TOKEN_ADDRESSES[sym]);
+          if (amount > 0n) nextPending[`${addr}|${sym}`] = { contract: addr, sym, amount: ethers.formatEther(amount) };
+        }
+      }
+      for (const sym of syms) {
+        const erc20 = new ethers.Contract(TOKEN_ADDRESSES[sym], ERC20_ABI, currentProvider);
+        nextBalances[sym] = ethers.formatEther(await erc20.balanceOf(account));
+      }
+      setPending(nextPending);
+      setBalances(nextBalances);
+    } catch (e) {
+      console.error("Error fetching withdrawable/balance:", e);
+    }
+  }, [account, provider, readProvider, niche]);
+
+  // Load the single escrow referenced by ?escrow=N (works read-only, even when
+  // disconnected) so the recipient of a share link always sees a focused card.
+  const fetchInvited = useCallback(async () => {
+    const currentProvider = readProvider || provider;
+    if (!currentProvider || !highlightedId) { setInvitedEscrow(null); return; }
+    // ?c=<contrat> : contrat reel de l'escrow (grille par montant) ; sans c, contrat historique de la categorie.
+    const escrowAddr = resolveEscrowContract(niche, highlightedContract);
+    if (!escrowAddr) { setInvitedEscrow(null); return; }
+    try {
+      const contract = new ethers.Contract(escrowAddr, ESCROW_ABI, currentProvider);
+      const [e, rawEscrow] = await Promise.all([
+        contract.getEscrowDetails(highlightedId),
+        contract.escrows(highlightedId),
+      ]);
+      const statusEnum = Number(e.status);
+      const isAccepted = Boolean(e.accepted);
+      const isClient = account && e.client.toLowerCase() === account.toLowerCase();
+      const isProvider = account && e.provider.toLowerCase() === account.toLowerCase();
+
+      let disputeOpenedAt = 0;
+      if (statusEnum === 3) disputeOpenedAt = Number(await contract.disputeOpenedAt(highlightedId));
+      const staleTimeoutNumber = Number(await contract.staleDisputeTimeout());
+
+      let actionRequired = null;
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (statusEnum === 1) {
+        if (!isAccepted && isProvider) actionRequired = "Action required: Accept escrow";
+        else if (isAccepted && isClient) actionRequired = "Action required: Release or open dispute";
+        else if (isAccepted && isProvider && Number(e.timeoutDate) > 0 && nowSec > Number(e.timeoutDate)) actionRequired = "Action required: Claim timeout";
+      }
+
+      setInvitedEscrow({
+        id: highlightedId.toString(),
+        client: e.client,
+        provider: e.provider,
+        amount: ethers.formatEther(e.amount),
+        status: ['FUNDED', 'RELEASED', 'DISPUTED', 'RESOLVED', 'CANCELLED'][statusEnum - 1] || 'UNKNOWN',
+        tokenSymbol: symbolForToken(e.token, e.sym),
+        contract: escrowAddr,
+        key: escrowKey(escrowAddr, highlightedId),
+        feeBPS: Number(e.feeBPS),
+        actionRequired,
+        highlighted: true,
+        createdAt: Number(rawEscrow.createdAt),
+        timeoutDate: Number(e.timeoutDate),
+        accepted: isAccepted,
+        disputeOpenedAt,
+        staleDisputeTimeout: staleTimeoutNumber
+      });
+    } catch (err) {
+      console.error("Invited escrow not found:", err);
+      setInvitedEscrow(null);
+    }
+  }, [highlightedId, highlightedContract, readProvider, provider, account, niche]);
+
+  useEffect(() => {
+    if (readProvider || provider) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchPending();
+      fetchInvited();
+    }
+  }, [fetchPending, fetchInvited, readProvider, provider, highlightedId]);
+
+  const handleClaim = async ({ contract: addr, sym }) => {
+    if (!signer) return;
+    try {
+      await ensureCorrectChain();
+      const contract = new ethers.Contract(addr, ESCROW_ABI, signer);
+      const tx = await contract.withdraw(TOKEN_ADDRESSES[sym]);
+      showToast('success', 'Withdrawal transaction sent!');
+      await tx.wait();
+      showToast('success', 'Withdrawal successful!');
+      fetchPending();
+    } catch (err) {
+      console.error(err);
+      if (!isUserRejection(err)) showToast('error', 'Withdrawal failed: ' + walletErrorMessage(err));
+    }
+  };
+
+  return (
+    <div className="dashboard">
+      <header className="dashboard-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <img src="/logo.svg" alt="JoobEscrow Logo" style={{ width: '48px', height: '48px' }} />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h1 className="text-gradient">{niche.isDemo ? 'Demo' : 'Create an escrow'}</h1>
+              <span className="category-pill tabular-nums">
+                {niche.name} · {niche.isDemo ? '0% fee' : `${FEE_RANGE_TEXT} fee, by deal size`}
+              </span>
+              <Link href="/app" className="change-category-link">
+                Change category →
+              </Link>
+            </div>
+            <p className="subtitle">{niche.isDemo ? 'Test a real on-chain escrow with $1, between two of your wallets' : `${niche.name}: secure payments between ${niche.lexicon.client.toLowerCase()} and ${niche.lexicon.provider.toLowerCase()}`}</p>
+          </div>
+        </div>
+        <WalletConnect />
+      </header>
+
+      {niche.isDemo && (
+        <div className="demo-banner">
+          <div className="demo-banner-text">
+            <div className="demo-banner-title">
+              <span className="demo-pill">DEMO</span>
+              Try JoobEscrow with $1
+            </div>
+            <p>
+              A full escrow between <strong>two of your own wallets</strong>, with $1 in USDT or USDC.
+              0% fee: you get back exactly what you deposited. Demo escrows are not counted in JoobEscrow statistics.
+            </p>
+          </div>
+          <Link href="/try" className="demo-guide-link">Step-by-step guide →</Link>
+        </div>
+      )}
+
+      <div className="dashboard-controls" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Link href={`/${niche.slug}/all`} className="tab" style={{ flex: '1 1 auto', textDecoration: 'none' }}>Your escrows are in <strong style={{ color: '#bef264' }}>My escrows →</strong></Link>
+        <div className="controls-right">
+          {Object.entries(pending).map(([key, p]) => (
+            <div key={key} className="claim-box">
+              <span>Funds available to withdraw</span>
+              <button className="btn btn-primary tabular-nums" onClick={() => handleClaim(p)}>
+                Claim {p.amount} {p.sym}
+              </button>
+            </div>
+          ))}
+          {account && (
+            <div className="balance-badge tabular-nums">
+              {balances ? Object.entries(balances).map(([sym, v]) => `${Number(v).toFixed(2)} ${sym}`).join(' · ') : 'Loading...'}
+            </div>
+          )}
+          <button className="btn btn-primary" disabled={!account} onClick={() => setShowModal(true)}>+ Create Secure Transaction</button>
+        </div>
+      </div>
+
+      {highlightedId && invitedEscrow && (() => {
+        const short = (a) => a ? `${a.substring(0, 6)}...${a.substring(a.length - 4)}` : '';
+        const meProvider = account && invitedEscrow.provider.toLowerCase() === account.toLowerCase();
+        const meClient = account && invitedEscrow.client.toLowerCase() === account.toLowerCase();
+        let banner;
+        if (!account) {
+          banner = (
+            <div className="invite-body">
+              <p>
+                You&apos;ve been invited to <strong>Escrow #{invitedEscrow.id}</strong> ({invitedEscrow.amount} {invitedEscrow.tokenSymbol}).
+                Connect the wallet <strong style={{ fontFamily: 'monospace', color: '#a3e635' }}>{short(invitedEscrow.provider)}</strong> ({niche.lexicon.provider}) to review and accept it.
+              </p>
+              <button className="btn btn-primary" onClick={() => open()} style={{ padding: '10px 20px' }}>
+                Connect Wallet
+              </button>
+            </div>
+          );
+        } else if (meProvider) {
+          banner = <p style={{ color: '#22c55e' }}>You are connected as the recipient ({niche.lexicon.provider}). Review and accept this escrow below.</p>;
+        } else if (meClient) {
+          banner = <p>You created this escrow ({niche.lexicon.client}). Waiting for the {niche.lexicon.provider.toLowerCase()} to accept.</p>;
+        } else {
+          banner = (
+            <p style={{ color: '#eab308' }}>
+              This escrow is addressed to <strong style={{ fontFamily: 'monospace' }}>{short(invitedEscrow.provider)}</strong>, but you&apos;re connected as <strong style={{ fontFamily: 'monospace' }}>{short(account)}</strong>. Switch to the correct wallet to accept it.
+            </p>
+          );
+        }
+        return (
+          <div className="glass-panel invite-panel" style={{ borderColor: 'rgba(163, 230, 53, 0.4)' }}>
+            <h3 style={{ color: '#a3e635' }}>Escrow Invitation</h3>
+            {banner}
+            <div className="invite-card">
+              <EscrowCard escrow={invitedEscrow} isOwner={isOwner} isDisputeView={invitedEscrow.status === 'DISPUTED'} defaultExpanded={true} onUpdate={() => { fetchInvited(); fetchPending(); }} />
+            </div>
+          </div>
+        );
+      })()}
+
+      <div className="glass-panel empty-panel">
+           {account ? (
+             <>
+               <h2>How it works</h2>
+               {niche.isDemo && <p className="empty-sub">4 steps, about 10 minutes, two wallets you own.</p>}
+               <div className="steps-grid">
+                 {(niche.isDemo ? DEMO_STEPS : [
+                   { title: 'Create & Fund', text: `Click "+ Create Secure Transaction" to lock funds in the smart contract. Share the link with your ${niche.lexicon.provider.toLowerCase()}.` },
+                   { title: 'Work & Deliver', text: `The ${niche.lexicon.provider.toLowerCase()} accepts the contract and completes the task securely.` },
+                   { title: 'Release or Dispute', text: 'Satisfied? Release funds instantly. Issue? Open a dispute for fair resolution.' },
+                 ]).map((s, i) => (
+                   <div key={s.title} className="step-card">
+                     <span className="step-num">{i + 1}</span>
+                     {s.who && <span className="step-who">{s.who}</span>}
+                     <h3>{s.title}</h3>
+                     <p>{s.text}</p>
+                   </div>
+                 ))}
+               </div>
+               <button className="btn btn-primary empty-cta" onClick={() => setShowModal(true)}>
+                 {niche.isDemo ? 'Start the demo with wallet A' : 'Create an escrow'}
+               </button>
+             </>
+           ) : (
+             <div className="connect-empty">
+               <div className="lock" aria-hidden="true">
+                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+               </div>
+               <h3>Secure Web3 Escrow</h3>
+               <p>Connect your wallet to view or create contracts.</p>
+               <div style={{ transform: 'scale(1.1)' }}>
+                 <WalletConnect />
+               </div>
+             </div>
+           )}
+        </div>
+
+      {showModal && <CreateEscrowModal onClose={() => setShowModal(false)} onSuccess={() => router.push(`/${niche.slug}/all`)} />}
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="glass-panel text-center p-8 m-8">Loading Dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}

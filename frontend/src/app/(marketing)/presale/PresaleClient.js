@@ -1,0 +1,1001 @@
+'use client';
+
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import Link from 'next/link';
+import { ethers } from 'ethers';
+import { useAppKitNetwork, useAppKitProvider, useAppKitState, useDisconnect } from '@reown/appkit/react';
+import { bsc, mainnet, arbitrum, base, polygon, optimism, avalanche } from '@reown/appkit/networks';
+import { useWeb3 } from '../../../context/Web3Context';
+import RecentBuys from './RecentBuys';
+import {
+  PRESALE_ADDRESSES, PRESALE_ABI, ERC20_ABI, PRESALE_STATE, PRESALE_CHAIN_ID, BSCSCAN,
+  priceAt, nextStepAt, volumeTierBps, readableError, maxPurchasablePayment, isSoldOut, closingTime,
+  PLANNED_LISTING_PRICE, LISTING_TARGET_USD,
+} from '../../../config/presale';
+import styles from './presale.module.css';
+import { activePromo, activeSalesBonus } from '../../../config/promo';
+import PromoBanner from '../../../components/PromoBanner';
+import { lockedTotal } from '../../../config/liquidityLock';
+import kolProgram from '../../../config/kolProgram.json';
+import { KOL_STORAGE_KEY, kolPresaleReferrer, activeKolHandle, kolClickValue } from '../../../lib/kolFlag';
+import TokenPicker, { TokenLogo } from '../../../components/TokenPicker';
+import { useCatalog, NATIVE } from '../../../lib/crosschain/sources';
+import { useRouteQuote, useSourceBalance } from '../../../lib/crosschain/hooks';
+import { makeLifiClient, quote as lifiQuote, quoteCost, contractCalls, runRoute, progressOf } from '../../../lib/crosschain/lifi';
+
+const SLIPPAGE_BPS = 50n;
+// Paiement depuis un autre reseau : le prix peut monter pendant le bridge (1-3 min).
+const CROSS_SLIPPAGE_BPS = 100n;
+const NETWORKS_BY_ID = Object.fromEntries([bsc, mainnet, arbitrum, base, polygon, optimism, avalanche].map((n) => [n.id, n]));
+const REFRESH_INTERVAL_MS = 15_000;
+const shortAddr = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+const REF_PARAM = 'referrer';
+const REF_STORAGE_KEY = 'joob_presale_referrer';
+
+function readStored(k) {
+  try { return typeof window === 'undefined' ? null : localStorage.getItem(k); } catch { return null; }
+}
+
+// Horodatage du dernier lien de parrainage d'acheteur (pour l'arbitrer avec un clic KOL plus recent).
+const REF_TS_STORAGE_KEY = 'joob_presale_referrer_ts';
+
+/**
+ * Parrain initial. Ordre : lien ?referrer= de la page (le plus recent par definition), puis le plus
+ * recent entre le parrain d'acheteur memorise et le clic KOL (30 jours, adresse dediee du KOL).
+ * Le parrain KOL n'est jamais memorise durablement : il expire avec le clic.
+ */
+function readInitialReferral() {
+  if (typeof window === 'undefined') return { address: null, fromKol: false };
+  const fromUrl = new URLSearchParams(window.location.search).get(REF_PARAM);
+  if (fromUrl && ethers.isAddress(fromUrl)) return { address: ethers.getAddress(fromUrl), fromKol: false, fromUrl: true };
+  const stored = readStored(REF_STORAGE_KEY);
+  const storedAddr = stored && ethers.isAddress(stored) ? ethers.getAddress(stored) : null;
+  const storedTs = Number(readStored(REF_TS_STORAGE_KEY)) || 0;
+  const kol = kolPresaleReferrer(readStored(KOL_STORAGE_KEY), kolProgram);
+  if (kol && (!storedAddr || kol.ts > storedTs)) return { address: ethers.getAddress(kol.referrer), fromKol: true };
+  return { address: storedAddr, fromKol: false };
+}
+
+function readInitialReferrer() {
+  return readInitialReferral().address;
+}
+
+const EMPTY_USER = {
+  allocation: 0n, purchased: 0n, volumeBonus: 0n, claimed: 0n, claimable: 0n,
+  contribution: 0n, contributionUSDC: 0n, contributionUSDT: 0n,
+  balanceUSDC: 0n, balanceUSDT: 0n, allowanceUSDC: 0n, allowanceUSDT: 0n,
+};
+
+const fmtNum = (n, max = 2) => n.toLocaleString('en-US', { maximumFractionDigits: max });
+const fmtToken = (v, d, max = 2) => fmtNum(Number(ethers.formatUnits(v, d)), max);
+const fmtUsd = (v, d, max = 4) => Number(ethers.formatUnits(v, d)).toLocaleString('en-US', { minimumFractionDigits: Math.min(2, max), maximumFractionDigits: max });
+const fmtDate = (s) => new Date(Number(s) * 1000).toLocaleString('en-GB', { timeZone: 'UTC', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' UTC';
+
+// Compte a rebours sur 2 chiffres partout : 01d 05h 08m 12s.
+const pad2 = (n) => String(n).padStart(2, '0');
+const fmtDhms = (t) => `${pad2(Math.floor(t / 86400))}d ${pad2(Math.floor((t % 86400) / 3600))}h ${pad2(Math.floor((t % 3600) / 60))}m ${pad2(t % 60)}s`;
+
+function useNow() {
+  const [now, setNow] = useState(() => BigInt(Math.floor(Date.now() / 1000)));
+  useEffect(() => {
+    const id = setInterval(() => setNow(BigInt(Math.floor(Date.now() / 1000))), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function Countdown({ seconds }) {
+  const s = seconds > 0n ? Number(seconds) : 0;
+  const days = Math.floor(s / 86400);
+  const hours = Math.floor((s % 86400) / 3600);
+  const mins = Math.floor((s % 3600) / 60);
+  const secs = s % 60;
+  return (
+    <span className={styles.countdownMono}>
+      {String(days).padStart(2, '0')}d {String(hours).padStart(2, '0')}h {String(mins).padStart(2, '0')}m {String(secs).padStart(2, '0')}s
+    </span>
+  );
+}
+
+function usePresale(account, readProvider) {
+  const presale = useMemo(() => new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, readProvider), [readProvider]);
+  const [config, setConfig] = useState(null);
+  const [global, setGlobal] = useState(null);
+  const [userData, setUserData] = useState({ account: null, data: EMPTY_USER });
+  const [loadError, setLoadError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          const [presaleName, tokenDecimals, paymentDecimals, cap, basePrice, priceIncreaseBps, priceIncreasePeriod,
+            tgeBps, vestingDuration, referralBps, maxExtensions, extensionDuration, startTime, tiers] = await Promise.all([
+            presale.presaleName(), presale.tokenDecimals(), presale.paymentTokenDecimals(), presale.presaleTokensCap(),
+            presale.basePrice(), presale.priceIncreaseBps(), presale.priceIncreasePeriod(), presale.tgeBps(),
+            presale.vestingDuration(), presale.referralBps(), presale.maxExtensions(), presale.extensionDuration(),
+            presale.startTime(), presale.getVolumeBonusTiers(),
+          ]);
+          if (cancelled) return;
+          setConfig({
+            presaleName, tokenDecimals: Number(tokenDecimals), paymentDecimals: Number(paymentDecimals),
+            cap, basePrice, priceIncreaseBps, priceIncreasePeriod, tgeBps, vestingDuration, referralBps,
+            maxExtensions: Number(maxExtensions), extensionDuration, startTime,
+            tierThresholds: [...tiers[0]], tierBps: [...tiers[1]],
+          });
+          return;
+        } catch (err) {
+          console.error('[Presale] config:', err);
+          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        }
+      }
+      if (!cancelled) setLoadError('Unable to load the presale contract. Please refresh the page.');
+    })();
+    return () => { cancelled = true; };
+  }, [presale]);
+
+  const refreshGlobal = useCallback(async () => {
+    try {
+      const [state, paused, endTime, extensionsUsed, tgeTimestamp, totalRaised, totalTokensOwed,
+        depositedTokens, remainingTokens, currentPrice] = await Promise.all([
+        presale.state(), presale.paused(), presale.endTime(), presale.extensionsUsed(), presale.tgeTimestamp(),
+        presale.totalRaised(), presale.totalTokensOwed(), presale.depositedTokens(), presale.remainingTokens(),
+        presale.getCurrentPrice(),
+      ]);
+      setGlobal({
+        state: Number(state), paused: Boolean(paused), endTime, extensionsUsed: Number(extensionsUsed),
+        tgeTimestamp, totalRaised, totalTokensOwed, depositedTokens, remainingTokens, currentPrice,
+      });
+    } catch (err) {
+      console.error('[Presale] global:', err);
+    }
+  }, [presale]);
+
+  const refreshUser = useCallback(async () => {
+    if (!account) return;
+    try {
+      const usdc = new ethers.Contract(PRESALE_ADDRESSES.USDC, ERC20_ABI, readProvider);
+      const usdt = new ethers.Contract(PRESALE_ADDRESSES.USDT, ERC20_ABI, readProvider);
+      const [allocation, purchased, volumeBonus, claimed, claimable, cUSDC, cUSDT,
+        balanceUSDC, balanceUSDT, allowanceUSDC, allowanceUSDT] = await Promise.all([
+        presale.allocations(account), presale.purchasedTokens(account), presale.volumeBonusPaid(account),
+        presale.claimed(account), presale.claimable(account), presale.contributionsUSDC(account),
+        presale.contributionsUSDT(account), usdc.balanceOf(account), usdt.balanceOf(account),
+        usdc.allowance(account, PRESALE_ADDRESSES.PRESALE), usdt.allowance(account, PRESALE_ADDRESSES.PRESALE),
+      ]);
+      setUserData({ account, data: {
+        allocation, purchased, volumeBonus, claimed, claimable,
+        contribution: cUSDC + cUSDT, contributionUSDC: cUSDC, contributionUSDT: cUSDT,
+        balanceUSDC, balanceUSDT, allowanceUSDC, allowanceUSDT,
+      } });
+    } catch (err) {
+      console.error('[Presale] user:', err);
+    }
+  }, [account, presale, readProvider]);
+
+  useEffect(() => {
+    const first = setTimeout(refreshGlobal, 0);
+    const id = setInterval(() => { if (!document.hidden) refreshGlobal(); }, REFRESH_INTERVAL_MS);
+    return () => { clearTimeout(first); clearInterval(id); };
+  }, [refreshGlobal]);
+
+  useEffect(() => {
+    const first = setTimeout(refreshUser, 0);
+    const id = setInterval(() => { if (!document.hidden) refreshUser(); }, REFRESH_INTERVAL_MS);
+    return () => { clearTimeout(first); clearInterval(id); };
+  }, [refreshUser]);
+
+  const user = account && userData.account === account ? userData.data : EMPTY_USER;
+  const refreshAll = useCallback(() => Promise.all([refreshGlobal(), refreshUser()]), [refreshGlobal, refreshUser]);
+
+  return { config, global, user, loadError, refreshAll };
+}
+
+// Consultation d'une allocation sans connecter de wallet : lecture seule sur le contrat.
+function AllocationLookup({ readProvider, td, pd }) {
+  const [addr, setAddr] = useState('');
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const lookup = async (e) => {
+    e.preventDefault();
+    const v = addr.trim();
+    setResult(null);
+    if (!ethers.isAddress(v)) { setError('Paste a valid 0x… wallet address.'); return; }
+    setError(null);
+    setLoading(true);
+    try {
+      const c = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, readProvider);
+      const a = ethers.getAddress(v);
+      const [allocation, purchased, volumeBonus, cUSDC, cUSDT, claimed] = await Promise.all([
+        c.allocations(a), c.purchasedTokens(a), c.volumeBonusPaid(a), c.contributionsUSDC(a), c.contributionsUSDT(a), c.claimed(a),
+      ]);
+      setResult({ address: a, allocation, purchased, volumeBonus, referral: allocation - purchased - volumeBonus, contribution: cUSDC + cUSDT, claimed });
+    } catch (err) {
+      console.error('[Presale] lookup:', err);
+      setError('Could not read the contract right now. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.lookup}>
+      <div className={styles.lookupTitle}>Already bought? <span>Check your JOOB with your address, no need to reconnect your wallet.</span></div>
+      <form onSubmit={lookup} className={styles.lookupForm}>
+        <input value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Paste your 0x… address" className={styles.lookupInput} spellCheck={false} autoComplete="off" />
+        <button type="submit" className={styles.lookupBtn} disabled={loading}>{loading ? '…' : 'Check'}</button>
+      </form>
+      {error && <p className={styles.lookupError}>{error}</p>}
+      {result && (
+        <div className={styles.lookupResult}>
+          <a href={`${BSCSCAN}/address/${result.address}`} target="_blank" rel="noopener noreferrer" className={styles.walletAddr}>
+            {result.address.slice(0, 6)}…{result.address.slice(-4)} ↗
+          </a>
+          {result.allocation === 0n ? (
+            <p className={styles.lookupEmpty}>No JOOB allocated to this address yet.</p>
+          ) : (
+            <ul className={styles.lookupList}>
+              <li><span>Total JOOB</span><b>{fmtToken(result.allocation, td)}</b></li>
+              <li><span>Purchased</span><b>{fmtToken(result.purchased, td)}</b></li>
+              <li><span>Volume bonus</span><b>{fmtToken(result.volumeBonus, td)}</b></li>
+              <li><span>Referral rewards</span><b>{fmtToken(result.referral > 0n ? result.referral : 0n, td)}</b></li>
+              <li><span>Contributed</span><b>${fmtUsd(result.contribution, pd, 2)}</b></li>
+              <li><span>Claimed</span><b>{fmtToken(result.claimed, td)}</b></li>
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Feedback({ status, step, success, error }) {
+  if (status === 'loading' && step) return <div className={`${styles.feedback} ${styles.feedbackInfo}`}>{step}</div>;
+  if (status === 'success' && success) return <div className={`${styles.feedback} ${styles.feedbackOk}`}>{success}</div>;
+  if (status === 'error' && error) return <div className={`${styles.feedback} ${styles.feedbackErr}`}>{error}</div>;
+  return null;
+}
+
+export default function PresaleClient() {
+  const { account, provider, readProvider, connectWallet, ensureGas } = useWeb3();
+  const { disconnect } = useDisconnect();
+  const { chainId, switchNetwork } = useAppKitNetwork();
+  const { walletProvider } = useAppKitProvider('eip155');
+  const { config, global, user, loadError, refreshAll } = usePresale(account, readProvider);
+  const now = useNow();
+
+  const [paymentToken, setPaymentToken] = useState('USDT');
+  const [amount, setAmount] = useState('');
+  const [status, setStatus] = useState('idle');
+  const [step, setStep] = useState('');
+  const [txError, setTxError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [referrer, setReferrer] = useState(readInitialReferrer);
+  const [refInput, setRefInput] = useState(() => readInitialReferrer() ?? '');
+  const [refError, setRefError] = useState(null);
+  // Paiement depuis un autre token ou reseau (null = USDT/USDC sur BSC, achat direct).
+  const [source, setSource] = useState(null);
+  const [picking, setPicking] = useState(false);
+  const [balanceTick, setBalanceTick] = useState(0);
+
+  const isCorrectNetwork = Number(chainId) === PRESALE_CHAIN_ID;
+
+  // Memorise un parrain d'acheteur (lien ?referrer= ou saisie), jamais le parrain KOL du clic (30 jours).
+  const [kolReferrer, setKolReferrer] = useState(() => {
+    const r = readInitialReferral();
+    return r.fromKol ? r.address : null;
+  });
+  useEffect(() => {
+    if (!referrer || referrer === kolReferrer) return;
+    try {
+      if (localStorage.getItem(REF_STORAGE_KEY) !== referrer) localStorage.setItem(REF_TS_STORAGE_KEY, String(Date.now()));
+      localStorage.setItem(REF_STORAGE_KEY, referrer);
+    } catch { /* ignore */ }
+  }, [referrer, kolReferrer]);
+
+  const applyReferral = useCallback(() => {
+    const v = refInput.trim();
+    if (!v) {
+      setReferrer(null);
+      try { localStorage.removeItem(REF_STORAGE_KEY); } catch { /* ignore */ }
+      return;
+    }
+    // Code KOL (handle actif de kolProgram.json) : meme effet qu'un clic sur son lien (30 jours).
+    const handle = activeKolHandle(v, kolProgram);
+    const kolAddr = handle ? kolProgram[handle]?.referrer : null;
+    if (kolAddr && ethers.isAddress(kolAddr)) {
+      const checksum = ethers.getAddress(kolAddr);
+      try { localStorage.setItem(KOL_STORAGE_KEY, kolClickValue(handle, kolProgram)); } catch { /* ignore */ }
+      setKolReferrer(checksum);
+      setReferrer(checksum);
+      setRefError(null);
+      return;
+    }
+    if (!ethers.isAddress(v)) { setRefError('Unknown referral code: enter a valid code or 0x… wallet address.'); return; }
+    const checksum = ethers.getAddress(v);
+    if (account && checksum.toLowerCase() === account.toLowerCase()) { setRefError('You cannot refer yourself.'); return; }
+    setReferrer(checksum);
+    setRefError(null);
+    try {
+      localStorage.setItem(REF_STORAGE_KEY, checksum);
+      localStorage.setItem(REF_TS_STORAGE_KEY, String(Date.now()));
+    } catch { /* ignore */ }
+  }, [refInput, account]);
+
+  const effectiveReferrer = useMemo(
+    () => (referrer && account && referrer.toLowerCase() !== account.toLowerCase() ? referrer : null),
+    [referrer, account],
+  );
+
+  const pd = config?.paymentDecimals ?? 18;
+  const td = config?.tokenDecimals ?? 18;
+  const state = global?.state ?? PRESALE_STATE.PENDING;
+  const beforeStart = !!config && now < config.startTime;
+  const isLive = state === PRESALE_STATE.ACTIVE && !!global && !global.paused && now <= global.endTime;
+  const isEnded = state === PRESALE_STATE.ENDED;
+  const awaitingFinalize = state === PRESALE_STATE.ACTIVE && !!global && now > global.endTime;
+
+  const currentPrice = global?.currentPrice ?? config?.basePrice ?? 0n;
+  const nextStep = config ? nextStepAt(config, now) : 0n;
+  const nextPrice = config ? priceAt(config, nextStep) : 0n;
+  // Vente close (fin passee ou finalisee) : on affiche le prix du dernier palier, pas un prix calcule sur l'horloge.
+  const finalPrice = config && global ? priceAt(config, closingTime(global)) : 0n;
+  const nextStepRemaining = config && nextStep > now ? nextStep - now : 0n;
+
+  const balance = paymentToken === 'USDT' ? user.balanceUSDT : user.balanceUSDC;
+  const allowance = paymentToken === 'USDT' ? user.allowanceUSDT : user.allowanceUSDC;
+
+  const amountWei = useMemo(() => {
+    try { return amount && Number(amount) > 0 ? ethers.parseUnits(amount, pd) : 0n; } catch { return 0n; }
+  }, [amount, pd]);
+
+  const estimate = useMemo(() => {
+    if (!config || amountWei === 0n || currentPrice === 0n) return { tokens: 0n, bonus: 0n };
+    const tokens = (amountWei * 10n ** BigInt(td)) / currentPrice;
+    const bonusBps = volumeTierBps(config, user.contribution + amountWei);
+    const owed = ((user.purchased + tokens) * bonusBps) / 10_000n;
+    const bonus = owed > user.volumeBonus ? owed - user.volumeBonus : 0n;
+    return { tokens, bonus };
+  }, [config, amountWei, currentPrice, td, user]);
+
+  // Bonus temporaire hors contrat (config/promo.js) : +bonusBps des JOOB achetes, au-dela de minUsd.
+  const promo = isLive ? activePromo(now) : null;
+  const promoBonus = promo && amountWei >= ethers.parseUnits(String(promo.minUsd), pd)
+    ? (estimate.tokens * BigInt(promo.bonusBps)) / 10_000n : 0n;
+
+  // Bonus Fair Share (config/promo.js) : JOOB fixes par dollar, jusqu'a l'objectif de levee.
+  const raisedUsd = global ? Number(ethers.formatUnits(global.totalRaised, pd)) : 0;
+  const fairShare = isLive ? activeSalesBonus(now, raisedUsd) : null;
+  const fairShareJoob = fairShare ? Math.floor(Number(ethers.formatUnits(amountWei, pd)) * fairShare.joobPerUsd) : 0;
+
+  const nextTier = useMemo(() => {
+    if (!config) return null;
+    const cumulative = user.contribution + amountWei;
+    const idx = config.tierThresholds.findIndex((t) => cumulative < t);
+    if (idx === -1) return null;
+    return { threshold: config.tierThresholds[idx], bps: config.tierBps[idx], missing: config.tierThresholds[idx] - cumulative };
+  }, [config, user.contribution, amountWei]);
+
+  const maxPurchasable = useMemo(() => maxPurchasablePayment(config, global, currentPrice), [config, global, currentPrice]);
+
+  const soldOut = isLive && currentPrice > 0n && isSoldOut(config, global, currentPrice);
+  const referralLink = account && typeof window !== 'undefined' ? `${window.location.origin}/presale?${REF_PARAM}=${account}` : '';
+
+  const crossChain = !!source && !source.direct;
+  const amountError = useMemo(() => {
+    if (amountWei === 0n) return null;
+    if (!crossChain && account && amountWei > balance) return `Insufficient ${paymentToken} balance.`;
+    if (maxPurchasable > 0n && amountWei > maxPurchasable) return `Above maximum purchasable (~$${fmtUsd(maxPurchasable, pd, 2)}).`;
+    return null;
+  }, [amountWei, balance, account, paymentToken, maxPurchasable, pd, crossChain]);
+
+  // ── Autre token / reseau : devis LI.FI en direct et solde du token choisi ──
+  const catalog = useCatalog();
+  const directRow = catalog?.rows.find((r) => r.direct === paymentToken);
+  const crossParams = crossChain && isLive && !soldOut && amountWei > 0n && !amountError
+    ? {
+        fromChainId: source.chainId,
+        fromToken: source.address,
+        useUSDT: paymentToken === 'USDT',
+        amountWei,
+        minTokens: (estimate.tokens * (10_000n - CROSS_SLIPPAGE_BPS)) / 10_000n,
+        buyer: account,
+        referrer: effectiveReferrer ?? ethers.ZeroAddress,
+      }
+    : undefined;
+  const route = useRouteQuote(crossParams);
+  const cost = route.status === 'ok' ? quoteCost(route.step) : null;
+  const sourceBalance = useSourceBalance(crossChain ? source : null, account, balanceTick);
+
+  // MAX hors chemin direct : valeur en dollars du solde, moins une reserve. Token
+  // natif (ETH, BNB...) : il paie aussi le gas et le wallet en reserve davantage ;
+  // autres tokens : 3 % pour les frais de bridge.
+  const maxCrossUsd = (bal, s) => {
+    if (!s.priceUSD) return '';
+    const usd = Number(ethers.formatUnits(bal, s.decimals)) * s.priceUSD;
+    const reserve = s.address.toLowerCase() === NATIVE ? Math.max(usd * 0.08, 0.5) : usd * 0.03;
+    const capped = Math.min(usd - reserve, maxPurchasable > 0n ? Number(ethers.formatUnits(maxPurchasable, pd)) : Infinity);
+    return Math.max(0, Math.floor(capped * 100) / 100).toString();
+  };
+
+  const pickSource = (s) => {
+    setPicking(false);
+    if (s.direct) { setPaymentToken(s.direct); setSource(null); } else setSource(s);
+    if (status !== 'loading') { setStatus('idle'); setTxError(null); }
+  };
+
+  const canBuy = isLive && !soldOut && (crossChain ? route.status === 'ok' : isCorrectNetwork) && amountWei > 0n && !amountError && status !== 'loading';
+
+  const doSwitch = async () => { try { await switchNetwork(bsc); } catch { /* ignore */ } };
+  const switchToChain = async (id) => {
+    const network = NETWORKS_BY_ID[id];
+    if (!network) throw new Error(`Unsupported network ${id}`);
+    await switchNetwork(network);
+  };
+
+  // Achat enchaine : un clic sur « Connect Wallet » ou « Switch » avec un montant valide memorise
+  // l'intention d'acheter ; l'achat part tout seul des que le wallet est connecte et sur BSC.
+  // Annule si la fenetre de connexion est fermee sans connexion ou si le changement de reseau echoue.
+  const [pendingBuy, setPendingBuy] = useState(false);
+  const switchAsked = useRef(false);
+  const isCorrectNetworkRef = useRef(isCorrectNetwork);
+  useEffect(() => { isCorrectNetworkRef.current = isCorrectNetwork; }, [isCorrectNetwork]);
+  const { open: walletModalOpen } = useAppKitState();
+  // Montant valide sur une vente ouverte : on peut memoriser l'intention d'achat.
+  const canQueueBuy = isLive && !soldOut && amountWei > 0n && !amountError;
+
+  const switchThenBuy = async () => {
+    switchAsked.current = true;
+    await doSwitch();
+    // Changement refuse ou impossible : on abandonne l'achat en attente (le wallet a la main).
+    setTimeout(() => { if (!isCorrectNetworkRef.current) setPendingBuy(false); }, 2000);
+  };
+
+  const startConnect = () => {
+    if (canQueueBuy && !crossChain) setPendingBuy(true);
+    connectWallet();
+  };
+
+  const runDirectBuy = async () => {
+    setStatus('loading');
+    try {
+      // Pas assez de BNB pour le gas : message clair avant toute signature.
+      await ensureGas();
+      const signer = await provider.getSigner();
+      const tokenAddr = paymentToken === 'USDT' ? PRESALE_ADDRESSES.USDT : PRESALE_ADDRESSES.USDC;
+      const erc20 = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
+      const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
+
+      // USDT et USDC sur BSC acceptent un nouvel approve sans remise a zero (verifie sur fork le 08/11/2026) :
+      // 2 signatures au plus (approve puis achat), y compris pour un acheteur qui revient.
+      if (allowance < amountWei) {
+        setStep(`1/2: Approving ${paymentToken}…`);
+        await (await erc20.approve(PRESALE_ADDRESSES.PRESALE, amountWei)).wait();
+      }
+
+      setStep('2/2: Buying JOOB…');
+      const expected = await presale.estimateTokens(amountWei);
+      if (expected === 0n) throw new Error('Presale: no tokens available');
+      const minTokens = (expected * (10_000n - SLIPPAGE_BPS)) / 10_000n;
+      const tx = await presale.buy(amountWei, minTokens, paymentToken === 'USDT', effectiveReferrer ?? ethers.ZeroAddress);
+      await tx.wait();
+
+      setStatus('success');
+      setSuccessMsg(`Purchase confirmed! ~${fmtToken(expected + estimate.bonus, td)} JOOB added to your allocation.`);
+      setAmount('');
+      await refreshAll();
+    } catch (err) {
+      console.error('[Presale] buy:', err);
+      setStatus('error');
+      setTxError(readableError(err));
+    } finally {
+      setStep('');
+    }
+  };
+
+  const handleBuy = async (e) => {
+    e.preventDefault();
+    setTxError(null); setSuccessMsg(null);
+    if (crossChain) { await handleCrossBuy(); return; }
+    if (!account || !provider) { startConnect(); return; }
+    if (!isCorrectNetwork) {
+      if (canQueueBuy) { setPendingBuy(true); await switchThenBuy(); } else { await doSwitch(); }
+      return;
+    }
+    if (!canBuy || !config) return;
+    await runDirectBuy();
+  };
+
+  // Reprise de l'achat en attente une fois connecte, puis sur BSC.
+  useEffect(() => {
+    if (!pendingBuy) return;
+    if (!account || !provider) {
+      if (!walletModalOpen) {
+        // Fenetre fermee sans connexion : on laisse un court delai (la connexion peut arriver juste apres).
+        const t = setTimeout(() => setPendingBuy(false), 1500);
+        return () => clearTimeout(t);
+      }
+      return;
+    }
+    if (!isCorrectNetwork) {
+      if (!switchAsked.current) switchThenBuy();
+      return;
+    }
+    // Consomme l'intention une seule fois avant de lancer l'achat.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPendingBuy(false);
+    switchAsked.current = false;
+    if (canBuy && config) runDirectBuy();
+    // runDirectBuy et switchThenBuy lisent l'etat courant ; on ne relance que sur ces changements.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingBuy, account, provider, isCorrectNetwork, walletModalOpen, canBuy, config]);
+
+  // ── Achat depuis un autre token / reseau ─────────────────────────────────
+  // LI.FI convertit et appelle buyFor() sur BSC au nom de l'acheteur, sans aucun
+  // ecran LI.FI : la progression s'affiche dans le bouton.
+  const progressLabel = (p) => ({
+    approve: `Approve ${source?.symbol ?? ''} in your wallet…`,
+    confirm: 'Confirm in your wallet…',
+    bridging: 'Bridging to BNB Smart Chain… (1–3 min)',
+    finalizing: 'Finalizing your purchase…',
+  })[p];
+
+  const handleCrossBuy = async () => {
+    if (!account || !walletProvider) { await connectWallet(); return; }
+    if (!crossParams || !canBuy) return;
+    setStatus('loading');
+    try {
+      if (Number(chainId) !== source.chainId) {
+        setStep(`Switch to ${source.chainName} in your wallet…`);
+        await switchToChain(source.chainId);
+      }
+      setStep('Getting the best route…');
+      const params = { ...crossParams, buyer: account };
+      const client = makeLifiClient(walletProvider, account, switchToChain);
+      const quoted = await lifiQuote(client, params);
+      setStep('Confirm in your wallet…');
+      await runRoute(client, quoted, contractCalls(params), (r) => setStep(progressLabel(progressOf(r))));
+      setStatus('success');
+      setSuccessMsg(`Purchase confirmed! ~${fmtToken(estimate.tokens + estimate.bonus, td)} JOOB added to your allocation.`);
+      setAmount('');
+      setBalanceTick((n) => n + 1);
+      await refreshAll();
+    } catch (err) {
+      console.error('[Presale] cross-chain buy:', err);
+      setStatus('error');
+      setTxError(readableError(err));
+    } finally {
+      setStep('');
+    }
+  };
+
+  const handleFinalize = async () => {
+    if (!provider || !account) return;
+    if (!isCorrectNetwork) { await doSwitch(); return; }
+    setTxError(null); setSuccessMsg(null); setStatus('loading'); setStep('Finalizing the sale…');
+    try {
+      const signer = await provider.getSigner();
+      const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
+      await (await presale.finalize()).wait();
+      setStatus('success'); setSuccessMsg('Sale finalized: claims are open.');
+      await refreshAll();
+    } catch (err) {
+      console.error('[Presale] finalize:', err);
+      setStatus('error'); setTxError(readableError(err));
+    } finally { setStep(''); }
+  };
+
+  const handleClaim = async () => {
+    if (!provider || !account) return;
+    if (!isCorrectNetwork) { await doSwitch(); return; }
+    setTxError(null); setSuccessMsg(null); setStatus('loading'); setStep('Claiming JOOB…');
+    try {
+      const signer = await provider.getSigner();
+      const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
+      await (await presale.claim()).wait();
+      setStatus('success'); setSuccessMsg('Tokens claimed to your wallet.');
+      await refreshAll();
+    } catch (err) {
+      console.error('[Presale] claim:', err);
+      setStatus('error'); setTxError(readableError(err));
+    } finally { setStep(''); }
+  };
+
+  // Tweet pre-rempli pour le lien de parrainage : faits verifiables seulement, aucune promesse de gain.
+  const SHARE_TEXT = 'I joined the $JOOB presale: the token behind @JoobEscrow, the audited non-custodial escrow live on BNB Chain. The price rises every 2 days.';
+
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(referralLink); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* ignore */ }
+  };
+
+  if (loadError) return <div className={styles.center}><p className={styles.feedbackErr}>{loadError}</p></div>;
+  if (!config || !global) return <div className={styles.center}><p style={{ color: '#94a3b8' }}>Loading presale data from BNB Smart Chain…</p></div>;
+
+  const badge = isLive ? (soldOut ? ['Sold out', styles.badgeMuted] : ['Live', styles.badgeLive])
+    : isEnded ? ['Sale ended', styles.badgeMuted]
+      : awaitingFinalize ? ['Finalization pending', styles.badgeMuted]
+      : beforeStart ? ['Opening Oct 15', styles.badgePending]
+        : global.paused ? ['Paused', styles.badgePending]
+          : ['Opening shortly', styles.badgePending];
+
+  const buyLabel = status === 'loading' ? (step || 'Processing…')
+    : !isLive ? (isEnded || awaitingFinalize ? 'Sale ended' : 'Sale not open yet')
+      : soldOut ? 'Sold out'
+        : amountWei === 0n ? 'Enter an amount'
+          : crossChain && route.status === 'loading' ? 'Getting the best route…'
+          : crossChain && route.status === 'error' ? 'Amount too low from this network'
+          : !crossChain && allowance < amountWei ? `Approve & buy with ${paymentToken}` : 'Buy JOOB';
+
+  const tierPct = nextTier ? Math.min(100, Number(((user.contribution + amountWei) * 10_000n) / nextTier.threshold) / 100) : 100;
+
+  return (
+    <>
+      {/* ── Hero Section ────────────────────────────────────────── */}
+      <header className={styles.hero}>
+        <h1 className={styles.heroTitle}>
+          <span className={styles.titleGradient}>JOOB Presale</span>
+        </h1>
+        {/* Bonus Fair Share (config/promo.js), affiche tant que le plafond n'est pas atteint. */}
+        {fairShare && (
+          <p style={{ margin: '10px auto 0', maxWidth: 720, textAlign: 'center', color: '#a3e635', fontWeight: 700, fontSize: '1.05rem', lineHeight: 1.5 }}>
+            {fairShare.name}: +{fairShare.joobPerUsd} JOOB for every $1 you buy, until ${fmtNum(fairShare.capRaisedUsd / 1000, 0)}K is raised (${fmtNum(fairShare.leftUsd, 0)} left)
+          </p>
+        )}
+      </header>
+
+      <RecentBuys />
+      {promo && <PromoBanner className={styles.promoAligned} />}
+
+      {/* ── Presale Hero Grid (Buy Card + Side Column) ───────────── */}
+      <div className={styles.presaleGrid}>
+        {/* Left: Glass Buy Card */}
+        <form onSubmit={handleBuy} className={styles.glassBuyCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardBrand}>
+              <img src="/logo.svg" alt="" width={24} height={24} />
+              <span>JOOB · Presale</span>
+            </div>
+            <span className={`${styles.stateBadge} ${badge[1]}`}>
+              {badge[0]}
+            </span>
+          </div>
+
+          <Feedback status={status} step={step} success={successMsg} error={txError} />
+
+          {/* Amount and Currency Selection */}
+          <div className={styles.formSection}>
+            <div className={styles.fieldLabelRow}>
+              <span>{crossChain ? 'Sell ($)' : 'Sell'}</span>
+              <span className={styles.balanceRow}>
+                Balance: {!account ? '—'
+                  : crossChain ? (sourceBalance !== undefined ? `${fmtNum(Number(ethers.formatUnits(sourceBalance, source.decimals)), 4)} ${source.symbol}` : '…')
+                  : fmtUsd(balance, pd, 2)}
+                {account && (!crossChain || sourceBalance !== undefined) && (
+                  <button type="button" className={styles.maxPillBtn} onClick={() => {
+                    if (crossChain && sourceBalance !== undefined) { setAmount(maxCrossUsd(sourceBalance, source)); return; }
+                    const cap = maxPurchasable > 0n && maxPurchasable < balance ? maxPurchasable : balance;
+                    setAmount(ethers.formatUnits(cap, pd));
+                  }}>MAX</button>
+                )}
+              </span>
+            </div>
+
+            {/* Le bouton du token ouvre le choix du token et du reseau */}
+            <div className={styles.inputGroup}>
+              <div className={styles.tokenBtnWrap}>
+                <button type="button" onClick={() => setPicking(true)} aria-label="Change token or network" className={styles.tokenBtn}>
+                  <TokenLogo src={crossChain ? source.logoURI : directRow?.logoURI ?? `/logos/${paymentToken.toLowerCase()}.svg`}
+                    badge={crossChain ? source.chainLogoURI : directRow?.chainLogoURI} size={22} />
+                  <span>{crossChain ? source.symbol : paymentToken}</span>
+                  <span className={styles.tokenBtnChevron}>▾</span>
+                </button>
+                <span role="tooltip" className={styles.tokenTip}>Change token or network</span>
+              </div>
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="any"
+                placeholder="0.00"
+                value={amount}
+                aria-label="Amount to pay"
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  if (status !== 'loading') { setStatus('idle'); setTxError(null); }
+                }}
+                className={`${styles.inputField} ${styles.inputRight}`}
+              />
+            </div>
+            {crossChain && route.status === 'loading' && <div className={styles.quoteLine}>Getting the best route…</div>}
+            {crossChain && cost && (
+              <div className={styles.quoteLine}>
+                ≈ {cost.fromAmount.toLocaleString('en-US', { maximumSignificantDigits: 4 })} {source.symbol} · ${cost.usd.toFixed(2)} incl. fees
+              </div>
+            )}
+            {crossChain && route.status === 'error' && (
+              <div className={`${styles.feedback} ${styles.feedbackErr}`}>Amount too low from this network: bridges need a minimum of about $2–3. Try a higher amount, or pay in USDT/USDC on BNB Smart Chain.</div>
+            )}
+
+            <div className={styles.swapArrow} aria-hidden="true">↓</div>
+
+            {/* "You Receive" Highlight */}
+            <div className={styles.receiveBox}>
+              <div className={styles.receiveHeader}>
+                <span>Buy</span>
+                <span>BNB Chain</span>
+              </div>
+              <div className={styles.receiveAmount}>
+                {fmtToken(estimate.tokens + estimate.bonus, td)} JOOB
+              </div>
+              {estimate.bonus > 0n && (
+                <div className={styles.receiveBonusNote}>
+                  ✓ Includes +{fmtToken(estimate.bonus, td)} volume bonus
+                </div>
+              )}
+              {promoBonus > 0n && (
+                <div className={styles.receiveBonusNote}>
+                  + {fmtToken(promoBonus, td)} JOOB weekend bonus, delivered at TGE
+                </div>
+              )}
+              {fairShare && (
+                <div className={fairShareJoob > 0 ? styles.receiveBonusNote : styles.promoHint}>
+                  {fairShareJoob > 0
+                    ? <>+ {fairShareJoob.toLocaleString('en-US')} JOOB Fair Share bonus ({fairShare.joobPerUsd} per $1), delivered at TGE</>
+                    : <>Fair Share bonus: {fairShare.joobPerUsd} JOOB for every $1, from $1</>}
+                </div>
+              )}
+              {promo && promoBonus === 0n && (
+                <div className={styles.promoHint}>
+                  Buy {promo.minUsd} USDT or more to get +{promo.bonusBps / 100}% weekend bonus
+                </div>
+              )}
+            </div>
+
+            {/* Relance visible du prochain palier ; barre et liste des paliers repliees */}
+            <div className={styles.bonusNudge}>
+              {nextTier
+                ? <>Add <b>${fmtUsd(nextTier.missing, pd, 0)}</b> more to get a <b>+{Number(nextTier.bps) / 100}%</b> volume bonus</>
+                : <>Maximum volume bonus reached (+{Number(config.tierBps[config.tierBps.length - 1] ?? 0n) / 100}%)</>}
+            </div>
+            <details className={styles.bonusDetails}>
+              <summary>All bonus tiers</summary>
+            <div className={styles.tierWrap}>
+              <div className={styles.tierBarRow}>
+                <span className={styles.tierPill}>{Number(volumeTierBps(config, user.contribution + amountWei)) / 100}%</span>
+                <div className={styles.tierBar}>
+                  <div className={styles.tierFill} style={{ width: `${tierPct}%` }} />
+                </div>
+                <span className={styles.tierPill}>{nextTier ? `+${Number(nextTier.bps) / 100}%` : 'MAX'}</span>
+              </div>
+              <div id="tiers-tip" className={styles.tierList}>
+                <span className={styles.tierTipTitle}>Volume bonus tiers (cumulative purchases)</span>
+                {config.tierThresholds.map((th, i) => {
+                  const reached = user.contribution + amountWei >= th;
+                  return (
+                    <span key={i} className={`${styles.tierTipRow} ${reached ? styles.tierTipReached : ''}`}>
+                      <span>{reached ? '✓ ' : ''}≥ ${fmtUsd(th, pd, 0)}</span>
+                      <b>+{Number(config.tierBps[i]) / 100}%</b>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+            </details>
+
+            {/* Code de parrainage : adresse 0x ou code KOL */}
+            <details className={styles.bonusDetails}>
+              <summary>{referrer ? `✓ Referral applied (${shortAddr(referrer)})` : 'Do you have a referral code?'}</summary>
+              <div className={styles.refInputRow}>
+                <input
+                  value={refInput}
+                  onChange={(e) => { setRefInput(e.target.value); setRefError(null); }}
+                  onBlur={applyReferral}
+                  placeholder="Code or 0x… address"
+                  aria-label="Referral code or address"
+                  className={styles.refInput}
+                />
+                <button type="button" onClick={applyReferral} className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
+                  Apply
+                </button>
+              </div>
+              {refError && <div style={{ color: '#f87171', fontSize: '0.76rem', marginTop: '4px' }}>{refError}</div>}
+            </details>
+
+            {amountError && <div className={`${styles.feedback} ${styles.feedbackErr}`}>{amountError}</div>}
+
+            {/* Action Button */}
+            {!account ? (
+              <>
+                <button type="button" onClick={startConnect} className="btn btn-primary" style={{ width: '100%', padding: '16px' }}>
+                  {canQueueBuy && !crossChain ? `Connect Wallet & Buy` : 'Connect Wallet'}
+                </button>
+                <div className={styles.poweredBy}>
+                  <img src="/logos/reown.svg" alt="" width={18} height={12} />
+                  Powered by Reown · 700+ wallets
+                </div>
+              </>
+            ) : !isCorrectNetwork && !crossChain ? (
+              <button type={canQueueBuy ? 'submit' : 'button'} onClick={canQueueBuy ? undefined : doSwitch} disabled={pendingBuy || status === 'loading'} className="btn btn-primary" style={{ width: '100%', padding: '16px' }}>
+                {pendingBuy ? 'Switch network in your wallet…' : canQueueBuy ? 'Switch to BNB Smart Chain & Buy' : 'Switch to BNB Smart Chain'}
+              </button>
+            ) : awaitingFinalize ? (
+              <button type="button" onClick={handleFinalize} disabled={status === 'loading'} className="btn btn-primary" style={{ width: '100%', padding: '16px' }}>
+                {status === 'loading' ? (step || 'Processing…') : 'Finalize the sale (open to anyone)'}
+              </button>
+            ) : (
+              <button type="submit" disabled={!canBuy} className="btn btn-primary" style={{ width: '100%', padding: '16px' }}>
+                {buyLabel}
+              </button>
+            )}
+            {isLive && !soldOut && (
+              <p className={styles.termsNotice}>
+                By buying, you accept the <Link href="/presale-terms">Presale Terms</Link>. Read the <Link href="/risks">Risks</Link> first.
+                {' · '}<a href={`${BSCSCAN}/address/${PRESALE_ADDRESSES.PRESALE}#code`} target="_blank" rel="noopener noreferrer">Verify on BscScan ↗</a>
+              </p>
+            )}
+            {picking && <TokenPicker onClose={() => setPicking(false)} onPick={pickSource} />}
+          </div>
+        </form>
+
+        {/* Colonne de statut : a gauche sur ordinateur, sous la carte d'achat sur mobile */}
+        <aside className={styles.sideColumn}>
+          <div className={styles.statusCard}>
+            <div className={styles.sideCardTitle}>Buy now, before the next price step</div>
+            {beforeStart && (
+              <div className={styles.raisedBox}>
+                <div className={styles.raisedLabel}>Presale Opens In</div>
+                <Countdown seconds={config.startTime - now} />
+              </div>
+            )}
+            {!beforeStart && (
+              <div className={styles.raisedBox}>
+                <div className={styles.raisedLabel}>Total raised</div>
+                <div className={styles.raisedValue}>${fmtNum(Number(ethers.formatUnits(global.totalRaised, pd)), 0)}</div>
+                {/* Objectif minimal pour lister au prix prevu (config/presale.js). */}
+                <div className={styles.targetBar} aria-hidden="true">
+                  <i style={{ width: `${Math.min(100, Math.max(2, (Number(ethers.formatUnits(global.totalRaised, pd)) / LISTING_TARGET_USD) * 100))}%` }} />
+                </div>
+                <div className={styles.targetText}>
+                  Listing liquidity target: ${fmtNum(LISTING_TARGET_USD / 1000, 0)}K
+                  <br />
+                  <Link href="/security#liquidity-lock" style={{ color: '#a3e635', fontWeight: 700 }}>{fmtNum(lockedTotal(), 0)} USDT already locked by the team →</Link>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-cards: Price & Allocation */}
+            {/* Prix : libelle a gauche, valeur a droite */}
+            <div className={styles.metricsGrid}>
+              <div className={styles.priceTile}>
+                <span className={styles.priceTileLabel}>{isEnded || awaitingFinalize ? 'Final price' : 'Current price'}</span>
+                <span className={`${styles.priceTileVal} ${styles.priceTileAccent}`}>{soldOut ? 'Sold out' : `$${fmtUsd(isEnded || awaitingFinalize ? finalPrice : currentPrice, pd)}`}</span>
+              </div>
+              <div className={styles.priceTile}>
+                <span className={styles.priceTileLabel}>Next price</span>
+                <span className={styles.priceTileVal}>{isEnded || awaitingFinalize || soldOut ? '—' : `$${fmtUsd(nextPrice, pd)}`}</span>
+              </div>
+            </div>
+
+
+            {soldOut && (
+              <div className={`${styles.feedback} ${styles.feedbackInfo}`}>
+                The cap is reached: less than 1 JOOB is left to sell. Claims open after the end date ({fmtDate(global.endTime)}).
+              </div>
+            )}
+
+            {/* Next Price Bar */}
+            {isLive && !soldOut && (
+              <div className={styles.nextPriceBar}>
+                <span>Next price increase in:</span>
+                <span className={styles.nextPriceCountdown}>
+                  {nextStepRemaining > 0n ? fmtDhms(Number(nextStepRemaining)) : 'imminent'}
+                </span>
+              </div>
+            )}
+
+          </div>
+
+          {/* Allocation de l'acheteur : seulement pour un wallet connecte qui a deja achete. */}
+          {account && (user.allocation > 0n || isEnded || awaitingFinalize) && (
+            <div className={styles.allocCard}>
+              <div className={styles.sideCardTitle}>Your Allocation</div>
+              {account && (
+                <div className={styles.walletRow}>
+                  <span className={styles.walletDot} />
+                  <a href={`${BSCSCAN}/address/${account}`} target="_blank" rel="noopener noreferrer" className={styles.walletAddr} title={account}>
+                    {account.slice(0, 6)}…{account.slice(-4)} ↗
+                  </a>
+                  <button type="button" onClick={() => disconnect()} className={styles.walletDisconnect} title="Disconnect" aria-label="Disconnect wallet">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              <div className={styles.allocStatsGrid}>
+                <div className={styles.allocStatItem}>
+                  <div className={styles.allocStatLabel}>Total JOOB</div>
+                  <div className={`${styles.allocStatVal} ${styles.allocHighlight}`}>{account ? fmtToken(user.allocation, td) : '—'}</div>
+                </div>
+                <div className={styles.allocStatItem}>
+                  <div className={styles.allocStatLabel}>Purchased</div>
+                  <div className={styles.allocStatVal}>{account ? fmtToken(user.purchased, td) : '—'}</div>
+                </div>
+                <div className={styles.allocStatItem}>
+                  <div className={styles.allocStatLabel}>Volume Bonus</div>
+                  <div className={styles.allocStatVal}>{account ? fmtToken(user.volumeBonus, td) : '—'}</div>
+                </div>
+                <div className={styles.allocStatItem}>
+                  <div className={styles.allocStatLabel}>Contributed</div>
+                  <div className={styles.allocStatVal}>{account ? `$${fmtUsd(user.contribution, pd, 2)}` : '—'}</div>
+                </div>
+              </div>
+
+              {isEnded && account ? (
+                <button onClick={handleClaim} disabled={user.claimable === 0n || status === 'loading'} className="btn btn-primary" style={{ width: '100%' }}>
+                  {user.claimable > 0n ? `Claim ${fmtToken(user.claimable, td)} JOOB` : 'Nothing to claim yet'}
+                </button>
+              ) : awaitingFinalize && account ? (
+                <div>
+                  <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '8px' }}>The sale ended. Anyone can finalize it on-chain to open claims.</p>
+                  <button onClick={handleFinalize} disabled={status === 'loading'} className="btn btn-primary" style={{ width: '100%' }}>
+                    Finalize the sale
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {/* Parrainage replie par defaut (id="referral") */}
+          <details className={`${styles.referralCard} ${styles.sideDetails}`} id="referral">
+            <summary className={styles.referralTitle}>Share &amp; Earn <span className={styles.referralAccent}>2%</span> On-Chain</summary>
+            <p className={styles.referralSub}>
+              Referrers receive <b className={styles.referralAccent}>2% of all JOOB</b> bought through their link, with the exact same linear vesting.
+            </p>
+
+            {account ? (
+              <div className={styles.refInputRow}>
+                <input readOnly value={referralLink} aria-label="Your referral link" className={styles.refInput} />
+                <button type="button" onClick={copyLink} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.82rem' }}>
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            ) : (
+              <>
+                <button type="button" onClick={connectWallet} className="btn btn-primary" style={{ width: '100%', padding: '10px 16px', fontSize: '0.85rem' }}>
+                  Share on X
+                </button>
+                <p className={styles.referralSub} style={{ marginTop: 8, marginBottom: 0 }}>
+                  Connect your wallet to get your link. No purchase needed.
+                </p>
+              </>
+            )}
+            {account && (
+              <a
+                href={`https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(referralLink)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ display: 'block', width: '100%', marginTop: 10, padding: '10px 16px', fontSize: '0.85rem', textAlign: 'center' }}
+              >
+                Share on X
+              </a>
+            )}
+
+          </details>
+
+          <details className={`${styles.referralCard} ${styles.sideDetails}`}>
+            <summary className={styles.referralTitle}>Check an allocation</summary>
+            <AllocationLookup readProvider={readProvider} td={td} pd={pd} />
+          </details>
+        </aside>
+      </div>
+
+    </>
+  );
+}

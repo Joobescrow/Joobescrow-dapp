@@ -1,0 +1,52 @@
+// Escrows du wallet connecte sur un contrat, au format attendu par EscrowCard.
+import { ethers } from 'ethers';
+import { ESCROW_ABI } from '../config/contract';
+import { symbolForToken, escrowKey } from './escrowContract';
+
+const STATUS = ['FUNDED', 'RELEASED', 'DISPUTED', 'RESOLVED', 'CANCELLED'];
+
+export async function loadMyEscrows(contractAddress, reader, account) {
+  const contract = new ethers.Contract(contractAddress, ESCROW_ABI, reader);
+  const count = Number(await contract.escrowCounter());
+  const staleDisputeTimeout = Number(await contract.staleDisputeTimeout());
+  const me = account.toLowerCase();
+  const now = Date.now() / 1000;
+  const found = [];
+  for (let i = 1; i <= count; i++) {
+    const e = await contract.getEscrowDetails(i);
+    const isClient = e.client.toLowerCase() === me;
+    const isProvider = e.provider.toLowerCase() === me;
+    if (!isClient && !isProvider) continue;
+    // getEscrowDetails ne renvoie pas createdAt : on lit escrows(i) uniquement pour les escrows du wallet.
+    const rawEscrow = await contract.escrows(i);
+    const statusEnum = Number(e.status);
+    const accepted = Boolean(e.accepted);
+    const timeoutDate = Number(e.timeoutDate);
+    let actionRequired = null;
+    if (statusEnum === 1) {
+      if (!accepted && isProvider) actionRequired = 'Action required: Accept escrow';
+      else if (accepted && isClient) actionRequired = 'Action required: Release or open dispute';
+      else if (accepted && isProvider && timeoutDate > 0 && now > timeoutDate) actionRequired = 'Action required: Claim timeout';
+    }
+    found.push({
+      id: i.toString(),
+      client: e.client,
+      provider: e.provider,
+      amount: ethers.formatEther(e.amount),
+      status: STATUS[statusEnum - 1] || 'UNKNOWN',
+      // Symbole deduit de l'adresse du token (vide sur le contrat si le token y a ete ferme).
+      tokenSymbol: symbolForToken(e.token, e.sym),
+      contract: contractAddress,
+      key: escrowKey(contractAddress, i),
+      feeBPS: Number(e.feeBPS),
+      actionRequired,
+      role: isClient ? 'client' : 'provider',
+      createdAt: Number(rawEscrow.createdAt),
+      timeoutDate,
+      accepted,
+      disputeOpenedAt: statusEnum === 3 ? Number(await contract.disputeOpenedAt(i)) : 0,
+      staleDisputeTimeout,
+    });
+  }
+  return found;
+}

@@ -1,0 +1,1546 @@
+/* ==========================================================================
+   JOOB PRESALE STYLES
+   Visual language: Dark green background, emerald/lime/gold accents,
+   glassmorphism cards, glowing halos, refined typography.
+   ========================================================================== */
+
+.page {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  z-index: 2;
+}
+
+.page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  max-width: 1440px;
+  height: 560px;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(ellipse at 50% 0%, rgba(16, 185, 129, 0.16) 0%, rgba(163, 230, 53, 0.04) 45%, transparent 70%);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120px 24px;
+  text-align: center;
+}
+
+/* --- Hero Section --- */
+.hero {
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.heroPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  border: 1px solid rgba(163, 230, 53, 0.35);
+  background: rgba(163, 230, 53, 0.08);
+  color: #bef264;
+}
+
+.pulseDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.heroTitle {
+  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  color: #fff;
+}
+
+.titleGradient {
+  background: linear-gradient(90deg, #10b981 0%, #a3e635 50%, #facc15 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.heroSubtitle {
+  color: #94a3b8;
+  font-size: 1.12rem;
+  line-height: 1.65;
+  max-width: 700px;
+  margin: 0 auto 20px;
+}
+
+.proofLine {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a3e635;
+  margin-bottom: 24px;
+}
+
+.trustBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.trustBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(17, 24, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.trustBadge:hover {
+  border-color: rgba(163, 230, 53, 0.4);
+  color: #fff;
+  background: rgba(163, 230, 53, 0.06);
+}
+
+.trustBadgeOk {
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* --- Sticky Quick Links Bar --- */
+.quickNavWrap {
+  position: sticky;
+  top: 76px;
+  z-index: 30;
+  margin: 0 -24px 44px;
+  padding: 10px 24px;
+  background: rgba(11, 15, 20, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quickNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+
+.quickNav::-webkit-scrollbar {
+  display: none;
+}
+
+.quickPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.quickPill:hover {
+  color: #fff;
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(163, 230, 53, 0.08);
+}
+
+/* --- Presale Hero Two-Column Layout --- */
+.presaleGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+  max-width: 1024px;
+  margin: 0 auto 64px;
+}
+
+/* --- Glass Buy Card --- */
+.glassBuyCard {
+  padding: 22px 22px;
+  border-radius: 22px;
+  background: linear-gradient(165deg, rgba(16, 28, 38, 0.85) 0%, rgba(9, 15, 22, 0.95) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.8), 0 0 45px -10px rgba(16, 185, 129, 0.25);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glassBuyCard:hover {
+  border-color: rgba(163, 230, 53, 0.5);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 55px -5px rgba(16, 185, 129, 0.35);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cardBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.stateBadge {
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badgeLive {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a3e635;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badgePending {
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+}
+
+.badgeMuted {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Big Hero Value inside Card */
+.raisedBox {
+  text-align: center;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.raisedLabel {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.raisedValue {
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(1.3rem, 3.5vw, 1.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #10b981 0%, #a3e635 60%, #facc15 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.countdownMono {
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(1.15rem, 3vw, 1.35rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+/* Metric Sub-cards (Price, Allocation) */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metricCard {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metricLabel {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.metricMainVal {
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.metricSubVal {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.nextPriceHighlight {
+  color: #facc15;
+  font-weight: 600;
+}
+
+/* Cap Progress Bar with Glow Handle */
+.capProgressWrap {
+  margin-bottom: 22px;
+}
+
+.capProgressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.capProgressBar {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.capProgressFill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981 0%, #a3e635 100%);
+  transition: width 0.4s ease;
+}
+
+.capProgressHandle {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #a3e635;
+  box-shadow: 0 0 10px #a3e635, 0 0 20px rgba(163, 230, 53, 0.6);
+  border: 2px solid #0d1117;
+}
+
+/* Next Price Increase Bar */
+.nextPriceBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(163, 230, 53, 0.06);
+  border: 1px solid rgba(163, 230, 53, 0.2);
+  border-radius: 12px;
+  font-size: 0.82rem;
+  color: #bef264;
+  margin-bottom: 24px;
+}
+
+.nextPriceCountdown {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* --- Form Fields (Amount, Currency Selector, MAX button) --- */
+.formSection {
+  margin-top: 10px;
+}
+
+.fieldLabelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.balanceRow {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.maxPillBtn {
+  background: rgba(163, 230, 53, 0.15);
+  border: 1px solid rgba(163, 230, 53, 0.35);
+  color: #bef264;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.maxPillBtn:hover {
+  background: rgba(163, 230, 53, 0.25);
+  color: #fff;
+}
+
+.currencySelectorRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.currencyPill {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.currencyPillActive {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 4px 14px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.inputGroup:focus-within {
+  border-color: rgba(163, 230, 53, 0.6);
+  box-shadow: 0 0 0 2px rgba(163, 230, 53, 0.15);
+}
+
+.inputField {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding: 10px 0;
+  outline: none;
+}
+
+.inputField::placeholder {
+  color: #475569;
+}
+
+/* "You receive" Highlight Box */
+.receiveBox {
+  padding: 16px 18px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.receiveHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.receiveAmount {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #d9f99d;
+  line-height: 1.2;
+}
+
+.receiveBonusNote {
+  font-size: 0.8rem;
+  color: #a3e635;
+  margin-top: 4px;
+}
+
+/* Volume Bonus Tier Progress */
+.tierWrap {
+  margin-bottom: 20px;
+}
+
+.tierBarRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.tierPill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(163, 230, 53, 0.15);
+  color: #bef264;
+  border: 1px solid rgba(163, 230, 53, 0.3);
+}
+
+.tierBar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tierFill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #a3e635);
+  border-radius: 999px;
+}
+
+.tierHint {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.tierHint b {
+  color: #e2e8f0;
+}
+
+/* Terms Checkbox */
+.termsLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.termsLabel input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: #10b981;
+}
+
+.termsLabel a {
+  color: #a3e635;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Feedback Notifications */
+.feedback {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.feedbackInfo {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.feedbackOk {
+  background: rgba(163, 230, 53, 0.15);
+  border: 1px solid rgba(163, 230, 53, 0.4);
+  color: #d9f99d;
+}
+
+.feedbackErr {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+/* --- Right Side Column (Get USDT, Referral, Allocation) --- */
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Get USDT Tiles (PancakeSwap + Bridge) */
+.getUsdtCard {
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(17, 24, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sideCardTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.getTilesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.getTile {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.getTile:hover {
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(163, 230, 53, 0.05);
+  transform: translateY(-2px);
+}
+
+.getTileHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.getTileSub {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Referral Card (id="referral") */
+.referralCard {
+  flex: 1 1 auto;
+  padding: 22px;
+  border-radius: 22px;
+  /* Parrainage en exergue : fond vert et bordure lime. */
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.28) 0%, rgba(163, 230, 53, 0.12) 100%);
+  border: 1px solid rgba(163, 230, 53, 0.55);
+  box-shadow: 0 0 40px -12px rgba(163, 230, 53, 0.35);
+}
+
+.referralTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.referralSub {
+  font-size: 0.84rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.refInputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.refInput {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  outline: none;
+}
+
+.refInput:focus {
+  border-color: rgba(163, 230, 53, 0.6);
+}
+
+/* User Allocation Card */
+.allocCard {
+  flex: 1 1 auto;
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(17, 24, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.allocStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.allocStatItem {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.allocStatLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.allocStatVal {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.allocHighlight {
+  color: #a3e635;
+}
+
+/* Quick Guide */
+.guideBox {
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+}
+
+.guideBox summary {
+  font-weight: 700;
+  color: #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.guideBox ol {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   CONTENT SECTIONS (Tokenomics, Use of Funds, Ecosystem, Roadmap, FAQ)
+   ========================================================================== */
+.contentSection {
+  scroll-margin-top: 130px;
+  margin-bottom: 72px;
+}
+
+.sectionHead {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 44px;
+}
+
+.sectionTag {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #a3e635;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+}
+
+/* --- Tokenomics Section --- */
+.tokenomicsWrap {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 40px;
+  align-items: center;
+  background: rgba(17, 24, 31, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 24px;
+}
+
+.donutHolder {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.donutCenter {
+  position: absolute;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donutBigVal {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.donutSubLabel {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.tokenomicsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tokenomicsItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tokenomicsDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tokenomicsDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.tokenomicsRow1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.tokenomicsRow2 {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.tokenomicsTag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.tokenomicsTagOn {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* --- Use of Funds --- */
+.fundsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(17, 24, 31, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 36px 32px;
+  margin-bottom: 24px;
+}
+
+.fundsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fundsHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #fff;
+}
+
+.fundsBar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fundsFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981 0%, #a3e635 100%);
+}
+
+.fundsText {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+/* --- Ecosystem Section --- */
+.ecoCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.ecoCard {
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(17, 24, 31, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.ecoTag {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d9f99d, #a3e635);
+  color: #0d1117;
+  margin-bottom: 14px;
+}
+
+.ecoCard h3 {
+  font-size: 1.25rem;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ecoCard p {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.ecoCard a {
+  color: #a3e635;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.diagramFrame {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* --- Roadmap Vertical Timeline --- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 28px;
+  border-left: 2px solid rgba(163, 230, 53, 0.25);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.timelineStep {
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.timelineStep::before {
+  content: '';
+  position: absolute;
+  left: -35px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0d1117;
+  border: 2px solid #475569;
+}
+
+.timelineDone::before {
+  background: #10b981;
+  border-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.timelineNow::before {
+  background: #a3e635;
+  border-color: #a3e635;
+  box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.25);
+}
+
+.timelineNext::before {
+  border-color: #facc15;
+  background: #0d1117;
+}
+
+.timelineHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.timelineTitle {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.timelineTag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.tagDone {
+  background: rgba(16, 185, 129, 0.15);
+  color: #4ade80;
+}
+
+.tagNow {
+  background: #a3e635;
+  color: #0d1117;
+}
+
+.tagNext {
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+}
+
+.timelineDesc {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* --- FAQ Accordion --- */
+
+
+
+
+
+
+
+/* Fine disclaimer text */
+.fineText {
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-top: 20px;
+}
+
+.fineText a {
+  color: #a3e635;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (1024px, 768px, 640px, 375px)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .presaleGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+  .glassBuyCard, .sideColumn {
+    min-width: 0;
+  }
+  .tokenomicsWrap {
+    grid-template-columns: 1fr;
+    padding: 32px 24px;
+  }
+  .donutHolder {
+    margin-bottom: 20px;
+  }
+  .ecoCardsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 36px 16px 64px;
+  }
+  .quickNavWrap {
+    margin: 0 -16px 36px;
+    padding: 8px 16px;
+    overflow: hidden;
+  }
+  .quickNav {
+    min-width: 0;
+    width: 100%;
+  }
+  .glassBuyCard {
+    padding: 24px 18px;
+  }
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+  .fundsWrap {
+    padding: 24px 18px;
+  }
+  .getTilesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 2.1rem;
+  }
+  .raisedValue {
+    font-size: 2rem;
+  }
+  .allocStatsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulseDot {
+    animation: none;
+  }
+  .glassBuyCard, .getTile, .faqChevron, .capProgressFill {
+    transition: none;
+  }
+}
+
+/* Liens de texte (utilises aussi par /presale-terms) */
+.link { color: #a3e635; text-decoration: underline; text-underline-offset: 3px; }
+.link:hover { color: #d9f99d; }
+
+/* Mention discrete sous le bouton de connexion */
+.poweredBy { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; color: #64748b; font-size: 0.78rem; }
+.poweredBy img { opacity: 0.8; }
+
+/* --- Comment acheter (4 etapes) --- */
+
+/* Bouton du token payé : ouvre le choix du token et du réseau */
+.tokenBtnWrap {
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.tokenBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 8px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.tokenBtn:hover { border-color: rgba(163, 230, 53, 0.6); }
+
+.tokenBtnChevron {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.tokenTip {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 20;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #101c26;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tokenBtnWrap:hover .tokenTip,
+.tokenBtnWrap:focus-within .tokenTip { display: block; }
+
+.inputRight { text-align: right; min-width: 0; }
+
+.quoteLine {
+  margin: -10px 4px 14px;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.termsNotice {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.termsNotice a {
+  color: #a3e635;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Tuiles de prix */
+.priceTile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.priceTileLabel {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.priceTileVal {
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.priceTileAccent { color: #a3e635; }
+
+.capProgressStrong { color: #fff; }
+
+/* Cadres harmonises : la carte d'allocation reprend le fond et la bordure de la carte d'achat. */
+.allocCard {
+  background: linear-gradient(165deg, rgba(16, 28, 38, 0.85) 0%, rgba(9, 15, 22, 0.95) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* Paliers du bonus de volume au survol */
+.tierWrap { position: relative; cursor: help; }
+
+.tierHint { display: flex; align-items: center; gap: 6px; }
+
+.tierInfo {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(163, 230, 53, 0.6);
+  background: none;
+  color: #a3e635;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+.tierInfo:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; }
+
+.tierTip {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 20;
+  min-width: 230px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #101c26;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.9);
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.tierWrap:hover .tierTip,
+.tierWrap:focus-within .tierTip { display: flex; }
+
+.tierTipTitle { color: #fff; font-weight: 800; margin-bottom: 2px; }
+
+.tierTipRow { display: flex; justify-content: space-between; gap: 12px; }
+.tierTipRow b { color: #fff; }
+.tierTipReached, .tierTipReached b { color: #a3e635; }
+
+.referralAccent { color: #a3e635; }
+
+/* Wallet connecte dans la carte d'allocation : adresse verifiable + deconnexion. */
+.walletRow {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: -4px 0 14px; padding: 8px 12px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.walletDot { width: 8px; height: 8px; border-radius: 50%; background: #a3e635; flex-shrink: 0; }
+.walletAddr { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86rem; color: #e2e8f0; text-decoration: none; }
+.walletAddr:hover { color: #bef264; }
+.walletDisconnect {
+  margin-left: auto; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: #ef4444; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.35);
+  transition: background 0.2s ease;
+}
+.walletDisconnect:hover { background: rgba(239, 68, 68, 0.16); }
+
+/* Consultation d'une allocation sans wallet. */
+.lookup { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.lookupTitle { font-size: 0.85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
+.lookupTitle span { font-weight: 500; color: #94a3b8; }
+.lookupForm { display: flex; gap: 8px; }
+.lookupInput {
+  flex: 1 1 auto; min-width: 0; padding: 9px 12px; border-radius: 10px; font-size: 0.82rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.lookupInput:focus { outline: none; border-color: rgba(163, 230, 53, 0.5); }
+.lookupBtn {
+  flex-shrink: 0; padding: 9px 16px; border-radius: 10px; cursor: pointer; font-size: 0.82rem; font-weight: 700;
+  color: #0d1117; background: linear-gradient(135deg, #a3e635, #10b981); border: none;
+}
+.lookupBtn:disabled { opacity: 0.6; cursor: wait; }
+.lookupError { color: #fca5a5; font-size: 0.8rem; margin: 8px 0 0; }
+.lookupResult { margin-top: 10px; }
+.lookupEmpty { color: #94a3b8; font-size: 0.82rem; margin: 6px 0 0; }
+.lookupList { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+.lookupList li { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: #94a3b8; }
+.lookupList b { color: #f8fafc; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; }
+@media (max-width: 480px) { .lookupList { grid-template-columns: minmax(0, 1fr); } }
+
+/* Bonus temporaire (config/promo.js) : le bandeau est components/PromoBanner */
+.promoHint {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+}
+
+/* Details replies : bonus de volume (carte d'achat) et cartes de la colonne laterale. */
+.bonusDetails { margin: 4px 0 14px; }
+.bonusDetails > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #a3e635;
+}
+.bonusDetails > summary::-webkit-details-marker { display: none; }
+.bonusDetails > summary::after { content: ' ▾'; }
+.bonusDetails[open] > summary::after { content: ' ▴'; }
+.bonusDetails[open] > summary { margin-bottom: 10px; }
+.sideDetails { flex: 0 0 auto; }
+.sideDetails > summary { cursor: pointer; list-style: none; margin-bottom: 0; }
+.sideDetails > summary::-webkit-details-marker { display: none; }
+.sideDetails > summary::after { content: ' ▾'; color: #a3e635; font-size: 0.9rem; }
+.sideDetails[open] > summary::after { content: ' ▴'; }
+.sideDetails[open] > summary { margin-bottom: 10px; }
+.capProgressHeader { flex-wrap: wrap; gap: 4px 12px; margin-bottom: 14px; }
+
+/* Page d'achat facon app : statut a gauche (ordinateur), carte d'achat a droite et en premier sur mobile. */
+.statusCard {
+  padding: 22px;
+  border-radius: 22px;
+  background: linear-gradient(165deg, rgba(16, 28, 38, 0.85) 0%, rgba(9, 15, 22, 0.95) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@media (min-width: 1025px) {
+  .sideColumn { order: -1; }
+}
+.swapArrow {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  color: #a3e635;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.bonusNudge {
+  margin: 10px 0 6px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+.bonusNudge b { color: #a3e635; }
+.tierWrap { cursor: default; }
+.tierList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* Bandeau promo a la largeur de la grille d achat. */
+.promoAligned { max-width: 1024px; }
+
+/* Barre vers l'objectif minimal de listing (Road to $25K) */
+.targetBar { margin-top: 10px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.targetBar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #a3e635, #22c55e); box-shadow: 0 0 10px rgba(163, 230, 53, 0.6); }
+.targetText { margin-top: 6px; font-size: 0.75rem; color: #94a3b8; }
+
+/* Derniers achats (preuve sociale, donnees on-chain) */
+.recentCard { padding: 18px; border-radius: 16px; background: rgba(15, 23, 20, 0.6); border: 1px solid rgba(163, 230, 53, 0.18); }
+.recentList { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.recentRow { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); text-decoration: none; font-size: 0.82rem; }
+.recentRow:hover { background: rgba(163, 230, 53, 0.07); }
+.recentAddr { font-family: ui-monospace, monospace; color: #94a3b8; }
+.recentAmt { color: #e2e8f0; font-weight: 700; text-align: right; }
+.recentAgo { color: #64748b; font-size: 0.75rem; white-space: nowrap; }
+@media (max-width: 420px) { .recentRow { grid-template-columns: 1fr auto; } .recentAgo { grid-column: 1 / -1; } }
+
+/* Bandeau defilant des derniers achats (LIVE BUYS) */
+.ticker { display: flex; align-items: center; gap: 12px; max-width: 1024px; margin: 0 auto 18px; padding: 8px 12px; border-radius: 12px; background: rgba(15, 23, 20, 0.6); border: 1px solid rgba(163, 230, 53, 0.22); overflow: hidden; }
+.tickerLabel { flex-shrink: 0; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; color: #0a0a0a; background: #a3e635; padding: 3px 8px; border-radius: 6px; }
+.tickerViewport { overflow: hidden; flex: 1; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+.tickerTrack { display: flex; gap: 28px; width: max-content; animation: tickerScroll linear infinite; }
+.ticker:hover .tickerTrack { animation-play-state: paused; }
+.tickerItem { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 0.82rem; color: #94a3b8; text-decoration: none; }
+.tickerItem:hover .recentAmt { color: #a3e635; }
+.tickerDot { width: 6px; height: 6px; border-radius: 50%; background: #a3e635; box-shadow: 0 0 8px #a3e635; }
+@keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .tickerTrack { animation: none; } }

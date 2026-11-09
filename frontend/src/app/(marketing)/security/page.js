@@ -1,0 +1,296 @@
+import { Fragment } from 'react';
+import Link from 'next/link';
+import styles from '../marketing.module.css';
+import dict from '../../../i18n/en.json';
+import { allInstances } from '../../../config/instances';
+import GovernanceTransparency from '../../../components/GovernanceTransparency';
+import { AUDITS, KYC_URL, PRESALE_ADDRESSES } from '../../../config/presale';
+import { LIQUIDITY_LOCK, lockUrl, lockedTotal } from '../../../config/liquidityLock';
+import { TEAM, TEAM_LOCATION, SAFE_SIGNERS, OFFICIAL_ADMINS } from '../../../config/team';
+import CopyButton from '../../../components/CopyButton';
+import FeeGridTable from '../../../components/FeeGridTable';
+import { FEE_TIERS, tierAmountLabel } from '../../../config/feeTiers';
+
+// Resultats repris des rapports SpyWolf publies (relus le 2026-10-01 ; staking ajoute le 03/10).
+const AUDIT_CARDS = [
+  {
+    title: 'Escrow contract (V4)',
+    summary: '0 critical, 0 high. 1 medium and 2 low findings, all fixed and re-checked by SpyWolf. Same code on all 5 escrow contracts and the 0% public demo contract listed below.',
+    pdf: AUDITS.ESCROW_V4,
+    bscscan: '#contracts',
+    bscscanLabel: 'Contracts ↓',
+  },
+  {
+    title: 'JOOB token',
+    summary: 'Fixed supply of 1,000,000,000, no mint after deployment, no transfer tax. No critical, high or medium issue.',
+    pdf: AUDITS.TOKEN,
+    bscscan: `https://bscscan.com/address/${PRESALE_ADDRESSES.TOKEN}`,
+    bscscanLabel: 'BscScan ↗',
+  },
+  {
+    title: 'Presale vault',
+    summary: 'Sealed vault, public price schedule, on-chain vesting for every buyer. No critical, high or medium issue.',
+    pdf: AUDITS.PRESALE,
+    bscscan: `https://bscscan.com/address/${PRESALE_ADDRESSES.PRESALE}`,
+    bscscanLabel: 'BscScan ↗',
+  },
+  {
+    title: 'JOOB staking',
+    summary: 'Stake JOOB, earn JOOB in 30-day periods, 7-day withdrawal delay. Owned by the Safe multisig; opens after the TGE.',
+    pdf: AUDITS.STAKING,
+    bscscan: 'https://bscscan.com/address/0x7949528182876027b1F4B2e43E3a46eb2dADD32b',
+    bscscanLabel: 'BscScan ↗',
+  },
+];
+
+export const metadata = {
+  title: 'Security & Trust | JoobEscrow',
+  description: 'JoobEscrow security model: non-custodial escrow contracts audited by SpyWolf, admin actions approved by a 3-of-5 Safe multisig, verified contract addresses and presale permissions.',
+  alternates: { canonical: '/security' },
+};
+
+export default function SecurityPage() {
+  const d = dict.security;
+
+  return (
+    <div className={styles.section} style={{ paddingTop: '56px', paddingBottom: '90px' }}>
+      <div className={styles.container}>
+        <div className={styles.sectionHead}>
+          <div className={styles.pillBadge} style={{ margin: '0 auto 20px' }}>
+            <span className={styles.pulseDot} />
+            <span>
+              {['AUDITED', 'KYC VERIFIED', 'NON-CUSTODIAL', 'BNB SMART CHAIN'].map((t, i) => (
+                <Fragment key={t}>{i > 0 && ' · '}<span style={{ whiteSpace: 'nowrap' }}>{t}</span></Fragment>
+              ))}
+            </span>
+          </div>
+          <h1 className={styles.heroTitle} style={{ fontSize: 'clamp(2.3rem, 5.5vw, 3.4rem)', textAlign: 'center', margin: '0 auto 16px' }}>
+            Security &amp; <span className={styles.textGradient}>Transparency</span>
+          </h1>
+          <p className={styles.heroSubtitle} style={{ textAlign: 'center', margin: '0 auto', maxWidth: '720px' }}>
+            {d.subtitle}
+          </p>
+        </div>
+
+        {KYC_URL && (
+          <div id="team" className="glass-panel" style={{ marginTop: '40px', padding: 'clamp(20px, 4vw, 36px)' }}>
+            <h2 style={{ color: '#fff', margin: '0 0 10px' }}>The team</h2>
+            <p style={{ color: '#a3e635', fontWeight: 700, fontSize: '0.9rem', margin: '0 0 15px' }}>
+              {TEAM_LOCATION} · Founder KYC verified by SpyWolf · Company registration (SAS) in progress
+            </p>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
+              JoobEscrow was founded by a builder with over 20 years of experience in IT and finance, and a long-standing focus on DeFi. The founder&apos;s identity has been verified through a KYC with SpyWolf, the firm that audited our contracts. We chose to stay publicly pseudonymous and to make trust verifiable on-chain instead: audited contracts, a 3-of-5 Safe multisig, and team tokens locked in a vesting contract until January 2028.
+            </p>
+            <div className={styles.teamGrid}>
+              {TEAM.map((m) => (
+                <div key={m.name} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '14px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(163,230,53,0.18)' }}>
+                  <span aria-hidden="true" style={{ flexShrink: 0, width: 44, height: 44, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: m.initials.length > 2 ? '0.72rem' : '0.85rem', color: '#0a0a0a', background: 'linear-gradient(135deg, #a3e635, #22c55e)', boxShadow: '0 0 14px rgba(163,230,53,0.35)' }}>
+                    {m.initials}
+                  </span>
+                  <div>
+                    <div style={{ color: '#fff', fontWeight: 700 }}>{m.name}</div>
+                    <div style={{ color: '#a3e635', fontSize: '0.85rem', fontWeight: 600, margin: '2px 0 4px' }}>{m.role}</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5 }}>{m.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p style={{ color: '#fff', fontWeight: 700, margin: '0 0 4px' }}>Safe signers (3 of 5 required for any admin action)</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0 0 10px' }}>
+              No single member can move funds: every admin action needs 3 of the 5 signers below.{' '}
+              <a href={`https://app.safe.global/transactions/history?safe=bnb:${PRESALE_ADDRESSES.SAFE}`} target="_blank" rel="noopener noreferrer" style={{ color: '#a3e635', fontWeight: 700 }}>
+                See every Safe transaction ↗
+              </a>
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 22px', display: 'grid', gap: '6px' }}>
+              {SAFE_SIGNERS.map((s) => (
+                <li key={s.address} style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', alignItems: 'baseline' }}>
+                  <span style={{ color: s.holder === 'Team signer' ? 'var(--text-secondary)' : '#a3e635', fontWeight: 700, fontSize: '0.85rem', minWidth: 110 }}>{s.holder}</span>
+                  <a href={`https://bscscan.com/address/${s.address}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.85rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>{s.address} ↗</a>
+                </li>
+              ))}
+            </ul>
+            <a href={KYC_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#0b0f14', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/logos/spywolf.svg" alt="" width={15} height={15} />
+              </span>
+              KYC certificate ↗
+            </a>
+          </div>
+        )}
+
+        <section style={{ marginTop: '30px' }}>
+          <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+            <span className={styles.sectionTag}>INDEPENDENT REVIEWS</span>
+            <h2 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 800, margin: '6px 0 10px' }}>{d.auditSection.title}</h2>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '800px', margin: '0 auto' }}>{d.auditSection.desc}</p>
+          </div>
+          <div className={styles.auditGrid}>
+            {AUDIT_CARDS.map((c) => (
+              <div key={c.title} className={`glass-panel ${styles.auditCard}`}>
+                <h3>{c.title}</h3>
+                <p>{c.summary}</p>
+                <div className={styles.auditCardLinks}>
+                  <a href={c.pdf} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#0b0f14', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="/logos/spywolf.svg" alt="" width={15} height={15} />
+                    </span>
+                    SpyWolf audit ↗
+                  </a>
+                  <a href={c.bscscan} target="_blank" rel="noopener noreferrer" className="btn btn-outline">{c.bscscanLabel}</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div id="fees" className="glass-panel" style={{ marginTop: '30px', padding: 'clamp(20px, 4vw, 36px)' }}>
+          <h2 style={{ color: '#fff', marginBottom: '15px' }}>Fee grid</h2>
+          <FeeGridTable />
+        </div>
+
+        <div id="contracts" className="glass-panel" style={{ marginTop: '30px', padding: 'clamp(20px, 4vw, 36px)' }}>
+          <h2 style={{ color: '#fff', marginBottom: '15px' }}>{d.contractSection.title}</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
+            {d.contractSection.desc} All contracts are <strong>Verified on BscScan</strong> and securely managed by a <strong>Safe multisig</strong> (3 of 5 signatures required for any admin action).
+          </p>
+          <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(16, 185, 129, 0.1)', padding: '10px 15px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+            <span style={{ color: '#10b981', fontWeight: 'bold' }}>Treasury & Admin:</span>
+            <Link href={`https://app.safe.global/home?safe=bnb:${PRESALE_ADDRESSES.SAFE}`} target="_blank" className="hover:underline" style={{ color: '#fff', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              Safe ({PRESALE_ADDRESSES.SAFE.slice(0, 6)}...{PRESALE_ADDRESSES.SAFE.slice(-4)}) ↗
+            </Link>
+          </div>
+          <div style={{ padding: '15px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', color: 'var(--accent-primary)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {(() => {
+              // Liste unique des 6 contrats d'escrow V4 (5 paliers a frais + demo 0 %) triee par frais decroissants, demo en dernier.
+              const byAddress = new Map();
+              for (const inst of Object.values(allInstances)) {
+                if (!byAddress.has(inst.contractAddress)) {
+                  byAddress.set(inst.contractAddress, {
+                    addr: inst.contractAddress,
+                    feeTier: inst.feeTier,
+                    isDemo: Boolean(inst.isDemo),
+                  });
+                }
+              }
+              // Ordre : paliers de la grille (5, 3, 2 %), puis contrats retires, puis demo.
+              const rank = (c) => {
+                if (c.isDemo) return 2000;
+                const i = FEE_TIERS.findIndex((t) => t.contract.toLowerCase() === c.addr.toLowerCase());
+                return i >= 0 ? i : 1000 - c.feeTier;
+              };
+              const escrowContracts = [...byAddress.values()].sort((a, b) => rank(a) - rank(b));
+              return escrowContracts.map(({ addr, feeTier, isDemo }, idx) => {
+                // Role de chaque contrat dans la grille par montant (config/feeTiers.js) ; hors grille = retire.
+                const tier = FEE_TIERS.find((t) => t.contract.toLowerCase() === addr.toLowerCase());
+                const tierName = isDemo
+                  ? `${feeTier}% (Public Demo)`
+                  : tier
+                    ? `${tier.bps / 100}%, deals ${tierAmountLabel(tier)}`
+                    : `${feeTier}%, retired: no new escrows from the app, existing escrows run normally`;
+                const isLast = idx === escrowContracts.length - 1;
+                return (
+                  <div key={addr} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', justifyContent: 'space-between', alignItems: 'center', borderBottom: !isLast ? '1px solid rgba(255,255,255,0.1)' : 'none', paddingBottom: !isLast ? '10px' : '0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{tierName}</span>
+                      <span style={{ wordBreak: 'break-all' }}>{addr}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <CopyButton value={addr} />
+                      <Link href={`https://bscscan.com/address/${addr}`} target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>
+                        BscScan
+                      </Link>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+
+        {/* Official Protocol Addresses & Anti-Scam */}
+        <div className="glass-panel" style={{ marginTop: '30px', padding: 'clamp(20px, 4vw, 36px)' }}>
+          <h2 style={{ color: '#fff', marginBottom: '10px' }}>Official Addresses & Anti-Scam Verification</h2>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#fca5a5', fontSize: '0.9rem' }}>
+            <strong>Anti-Scam Notice:</strong> We never DM first. JoobEscrow team members will never ask for your private keys, seed phrases, or direct token transfers. Only trust addresses listed on this official page or verified on BscScan.
+          </div>
+
+          <p style={{ color: '#fff', fontWeight: 700, margin: '0 0 8px' }}>Official Telegram admins (anyone else is an impostor)</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '22px' }}>
+            {OFFICIAL_ADMINS.map((a) => (
+              <a key={a.handle} href={a.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', padding: '10px 14px', borderRadius: '10px', background: 'rgba(163,230,53,0.06)', border: '1px solid rgba(163,230,53,0.3)', textDecoration: 'none' }}>
+                <span style={{ color: '#a3e635', fontWeight: 800, fontFamily: 'ui-monospace, monospace' }}>{a.handle}</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{a.name} · {a.role}</span>
+              </a>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[
+              { label: 'JOOB Token', addr: PRESALE_ADDRESSES.TOKEN, note: 'Fixed 1B supply, no mint, no transfer tax' },
+              { label: 'Presale Vault', addr: PRESALE_ADDRESSES.PRESALE, note: 'Sealed vault, linear 180-day vesting' },
+              { label: 'Governance & Treasury Safe (3/5)', addr: PRESALE_ADDRESSES.SAFE, note: 'Safe multisig (3 signatures required)' },
+              { label: 'JOOB Staking', addr: '0x7949528182876027b1F4B2e43E3a46eb2dADD32b', note: 'Audited staking pool (opens post-TGE)' },
+              { label: 'Treasury Vesting (36m)', addr: '0x8cbac3786F61572D4571C951e9215FC289FB2ff3', note: '130M JOOB on-chain vesting' },
+              { label: 'Team Vesting (24m)', addr: '0xc430f8C4E26FFc25326C4AA84947B3e2A1328012', note: '120M JOOB locked until 2028' },
+            ].map((item) => (
+              <div key={item.addr} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 12px', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem' }}>{item.label}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>{item.addr}</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '2px' }}>{item.note}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <CopyButton value={item.addr} />
+                  <Link href={`https://bscscan.com/address/${item.addr}`} target="_blank" className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
+                    BscScan ↗
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Lock de bonne foi pour la liquidite de lancement (source : config/liquidityLock.js) */}
+        <div id="liquidity-lock" className="glass-panel" style={{ marginTop: '30px', padding: 'clamp(20px, 4vw, 36px)' }}>
+          <h2 style={{ color: '#fff', marginBottom: '10px' }}>Launch Liquidity Lock</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.6 }}>
+            The team has locked <strong style={{ color: '#bef264' }}>{lockedTotal().toLocaleString('en-US', { maximumFractionDigits: 2 })} {LIQUIDITY_LOCK.token}</strong> of its own funds on PinkLock for the PancakeSwap launch liquidity. The locks are owned by our 3-of-5 Safe, so no single person can unlock them, and they unlock on {LIQUIDITY_LOCK.unlockLabel}, right after the presale closes. We add to it over time: every lock is public and verifiable.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {LIQUIDITY_LOCK.locks.map((l) => (
+              <div key={l.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 12px', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem' }}>PinkLock #{l.id}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontVariantNumeric: 'tabular-nums' }}>{l.amount.toLocaleString('en-US', { maximumFractionDigits: 2 })} {LIQUIDITY_LOCK.token} · owner: Safe · unlocks {LIQUIDITY_LOCK.unlockLabel}</div>
+                </div>
+                <Link href={lockUrl(l.id)} target="_blank" className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
+                  View lock ↗
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Presale On-Chain Permissions */}
+        <div className="glass-panel" style={{ marginTop: '30px', padding: 'clamp(20px, 4vw, 36px)' }}>
+          <h2 style={{ color: '#fff', marginBottom: '10px' }}>Presale Smart Contract Permissions</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
+            Administrative privileges on the presale smart contract (<code>VestingPresale.sol</code>) are strictly governed by the 3-of-5 Safe multisig. Contract code is immutable and verified on BscScan:
+          </p>
+          <ul className="list-disc pl-5 text-gray-400 space-y-2 text-sm leading-relaxed">
+            <li><strong>Sale Activation (<code>start()</code>):</strong> Can only be triggered by the Safe strictly after <code>startTime</code> (15/10/2026 14:00 UTC). Any attempt prior to this exact timestamp is programmatically rejected by the contract.</li>
+            <li><strong>Emergency Pause (<code>pause() / unpause()</code>):</strong> The Safe can pause new token purchases during operational emergencies. Pausing cannot freeze existing allocations or prevent user claim withdrawals.</li>
+            <li><strong>Fund Withdrawals (<code>withdrawFunds()</code>):</strong> Raised USDT and USDC can only be withdrawn to the verified Safe multisig wallet (<code>owner()</code>). No arbitrary destination address is accepted.</li>
+            <li><strong>Unsold Tokens (<code>withdrawUnsoldTokens()</code>):</strong> Only callable once the sale has concluded (<code>State.Ended</code>). The contract subtracts the tokens still owed to buyers (allocated minus already claimed) from the deposited tokens and sends only the difference, plus any tokens sent to the contract by mistake, to the Safe, to be burned in a public transaction.</li>
+            <li><strong>Rescue Guard (<code>rescueERC20()</code>):</strong> The owner cannot withdraw deposited JOOB tokens, USDT, or USDC under the guise of stuck tokens. Those core assets are explicitly locked out of rescue functions.</li>
+            <li><strong>Public Functions (<code>finalize() & claim()</code>):</strong> Finalization is permissionless once the end date has passed. Every participant directly and independently claims their vested allocation.</li>
+          </ul>
+        </div>
+
+        <GovernanceTransparency />
+      </div>
+    </div>
+  );
+}

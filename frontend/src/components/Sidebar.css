@@ -1,0 +1,356 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 260px;
+  border-radius: 0;
+  border-left: none;
+  border-top: none;
+  border-bottom: none;
+  border-right: 1px solid var(--app-border-subtle, #1E2621);
+  background: var(--app-surface-1, #111613);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  z-index: 100;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.sidebar-brand-link {
+  text-decoration: none;
+  color: var(--app-text-primary, #F2F5F3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-brand-link h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-mobile-wallet {
+  display: none;
+}
+
+.nav-section-title {
+  padding: 2px 14px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-text-muted, #627067);
+  user-select: none;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--app-radius-md, 8px) var(--app-radius-md, 8px) 0;
+  color: var(--app-text-secondary, #9CA8A1);
+  font-weight: 500;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.nav-link:hover {
+  color: var(--app-text-primary, #F2F5F3);
+  background: var(--app-surface-2, #171E1A);
+}
+
+.nav-link.active {
+  color: var(--app-lime-hover, #BEF264);
+  border-left-color: var(--app-lime, #A3E635);
+  background: rgba(163, 230, 53, 0.06);
+  font-weight: 600;
+}
+
+/* Pastille d'onglet (ex. « NEW » ou compteur d'actions) */
+.nav-badge {
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--app-bg-canvas, #090C0A);
+  background: var(--app-lime, #A3E635);
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-badge--warn {
+  background: var(--app-yellow, #EAB308);
+  color: var(--app-bg-canvas, #090C0A);
+}
+
+.nav-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: var(--app-border-subtle, #1E2621);
+}
+
+.sidebar-back {
+  display: block;
+  margin: 8px 0 14px;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  color: var(--app-text-secondary, #9CA8A1);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.sidebar-back:hover {
+  color: var(--app-lime-hover, #BEF264);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--app-border-subtle, #1E2621);
+}
+
+.status-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--app-text-secondary, #9CA8A1);
+  font-size: 0.82rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.green {
+  background: var(--app-green, #22C55E);
+  box-shadow: 0 0 8px var(--app-green, #22C55E);
+}
+
+/* Mobile bottom bar & More sheet — hidden on desktop */
+.mobile-bottom-nav,
+.mobile-more-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
+  .main-content {
+    min-width: 0;
+    max-width: 100%;
+    padding-bottom: 96px !important;
+  }
+
+  /* Evite de dupliquer le bouton WalletConnect sous la barre haute mobile */
+  .dashboard-header .wallet-container {
+    display: none !important;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    width: 100%;
+    max-width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-right: none;
+    border-bottom: 1px solid var(--app-border-subtle, #1E2621);
+    background: #111613;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 140;
+  }
+
+  .sidebar-brand {
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+    margin-bottom: 0;
+  }
+
+  .sidebar-brand-link {
+    min-width: 0;
+    flex-shrink: 1;
+    gap: 8px;
+  }
+
+  .sidebar-brand-link img {
+    width: 30px !important;
+    height: 30px !important;
+    flex-shrink: 0;
+  }
+
+  .sidebar-brand-link h2 {
+    font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sidebar-mobile-wallet {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-mobile-wallet .btn {
+    min-height: 36px;
+    padding: 0 12px !important;
+    font-size: 0.8rem;
+  }
+
+  .nav-menu,
+  .sidebar-back,
+  .sidebar-footer {
+    display: none;
+  }
+
+  /* Fixed Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100vw;
+    height: 64px;
+    background: rgba(17, 22, 19, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--app-border-default, #2A362E);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    z-index: 160;
+    padding: 0 4px;
+  }
+
+  .mobile-nav-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 52px;
+    border-radius: var(--app-radius-md, 8px);
+    color: var(--app-text-secondary, #9CA8A1);
+    font-family: var(--font-main);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .mobile-nav-item.is-active {
+    color: var(--app-lime, #A3E635);
+    font-weight: 600;
+  }
+
+  .mobile-nav-item.is-create {
+    color: var(--app-lime, #A3E635);
+    font-weight: 600;
+  }
+
+  .mobile-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 22px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--app-yellow, #EAB308);
+    color: var(--app-bg-canvas, #090C0A);
+    font-size: 0.62rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile-more-backdrop {
+    position: fixed;
+    inset: 0;
+    bottom: 64px;
+    background: rgba(9, 12, 10, 0.72);
+    backdrop-filter: blur(4px);
+    z-index: 155;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .mobile-more-sheet {
+    width: 100%;
+    max-width: 420px;
+    background: var(--app-surface-2, #171E1A);
+    border: 1px solid var(--app-border-default, #2A362E);
+    border-radius: var(--app-radius-lg, 12px);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    /* Ecrans bas (paysage) : le menu defile au lieu de deborder */
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mobile-more-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: var(--app-radius-md, 8px);
+    color: var(--app-text-primary, #F2F5F3);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .mobile-more-link:hover,
+  .mobile-more-link.is-active {
+    background: var(--app-surface-3, #1F2923);
+    color: var(--app-lime, #A3E635);
+  }
+}
+
+/* Petits ecrans : le bouton du wallet prend la place, on garde le logo seul plutot qu'un nom tronque. */
+@media (max-width: 420px) {
+  .sidebar-brand-link h2 { display: none; }
+}

@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+contracts/node_modules/
+
+# Environment Variables (CRITICAL: Do not commit private keys!)
+.env
+contracts/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Next.js Build Output
+frontend/.next/
+frontend/out/
+
+# Hardhat Build Output
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# Misc
+.DS_Store
+*.log
+
+# Kit contrats generique (depot prive separe)
+contracts-token/
+
+# Artefacts du deploiement de l instance demo
+contracts/artifacts-demo/
+contracts/cache-demo/
+
+# Rapports de couverture generes (regeneres en local, chemins machine)
+contracts/coverage/
+contracts/coverage.json
+
+# Archives et documents hors perimetre du depot public
+*.zip
+audit_market_cahier_des_charges.docx
+
+# Foundry (artefacts locaux)
+contracts/out/
+contracts/cache_forge/
+captures_refonte/

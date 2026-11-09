@@ -1,0 +1,409 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-main: #0a0a0a;
+  --bg-panel: rgba(255, 255, 255, 0.03);
+  --bg-glass: rgba(20, 20, 20, 0.6);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-glow: rgba(163, 230, 53, 0.3);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  
+  --accent-primary: #10b981; /* Emerald Green */
+  --accent-hover: #059669;
+  --accent-purple: #facc15;
+  --accent-red: #ef4444;
+  
+  --font-main: 'Inter', -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  line-height: 1.5;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.04), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(250, 204, 21, 0.04), transparent 25%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Glassmorphism Panel Utility */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 20px rgba(163, 230, 53, 0.05);
+}
+
+/* Buttons : un seul systeme (pilule), partout sur le site.
+   .btn + .btn-primary | .btn-outline | .btn-ghost ; tailles .btn-sm / .btn-lg */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.btn:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #059669, #10b981);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, #047857, #059669);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text-primary);
+}
+.btn-outline:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--accent-primary);
+}
+.btn-ghost:hover { border-color: var(--accent-primary); }
+
+.btn-sm { min-height: 32px; padding: 0 14px; font-size: 0.8rem; }
+.btn-lg { min-height: 50px; padding: 0 30px; font-size: 1rem; }
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Typography */
+h1, h2, h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #10b981, #a3e635, #facc15);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-funded { background: rgba(16, 185, 129, 0.1); color: var(--accent-primary); border: 1px solid rgba(16, 185, 129, 0.2); }
+.status-disputed { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); }
+.status-resolved { background: rgba(250, 204, 21, 0.1); color: var(--accent-purple); border: 1px solid rgba(250, 204, 21, 0.2); }
+
+/* Layout utilities & App-scoped Design System Tokens */
+.app-container {
+  --app-bg-canvas: #090C0A;
+  --app-surface-1: #111613;
+  --app-surface-2: #171E1A;
+  --app-surface-3: #1F2923;
+  --app-border-subtle: #1E2621;
+  --app-border-default: #2A362E;
+  --app-text-primary: #F2F5F3;
+  --app-text-secondary: #9CA8A1;
+  --app-text-muted: #627067;
+  --app-lime: #A3E635;
+  --app-lime-hover: #BEF264;
+  --app-lime-subtle: rgba(163, 230, 53, 0.12);
+  --app-green: #22C55E;
+  --app-green-subtle: rgba(34, 197, 94, 0.12);
+  --app-yellow: #EAB308;
+  --app-yellow-subtle: rgba(234, 179, 8, 0.12);
+  --app-red: #EF4444;
+  --app-red-subtle: rgba(239, 68, 68, 0.12);
+  --app-radius-sm: 6px;
+  --app-radius-md: 8px;
+  --app-radius-lg: 12px;
+  --app-radius-xl: 16px;
+  --border-glow: rgba(163, 230, 53, 0.3);
+
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--app-bg-canvas);
+  color: var(--app-text-primary);
+}
+
+.app-container .glass-panel:hover {
+  border-color: rgba(163, 230, 53, 0.3);
+  box-shadow: 0 0 20px rgba(163, 230, 53, 0.06);
+}
+
+.app-container .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  margin-left: 260px; /* Sidebar width */
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
+
+/* Hub / Ecosystems Page Styles */
+.hub-container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .hub-container {
+    padding: 16px 12px;
+  }
+  .hub-title {
+    font-size: 2.1rem !important;
+  }
+}
+
+.hub-title {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.hub-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+}
+
+.hub-section-title {
+  color: #fff;
+  font-size: 2rem;
+  margin-bottom: 30px;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  justify-items: center;
+}
+
+.featured-card {
+  padding: 30px;
+  border-radius: 12px;
+  border-top-width: 4px;
+  border-top-style: solid;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+}
+
+.featured-title {
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+
+.featured-desc {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.fee-badge {
+  margin-top: 20px;
+  padding: 8px 12px;
+  background-color: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-subtle, #1E2621);
+  border-radius: var(--app-radius-md, 8px);
+  display: inline-block;
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.specialized-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.specialized-card {
+  padding: 20px;
+  border-radius: var(--app-radius-md, 8px);
+  border-left-width: 3px;
+  border-left-style: solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--app-surface-1, #111613);
+}
+
+.specialized-card:hover {
+  transform: translateX(4px);
+}
+
+.specialized-title {
+  margin: 0 0 5px 0;
+  font-size: 1.2rem;
+  text-align: left;
+}
+
+.specialized-desc {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+/* Toast notification entry animation (used by ToastProvider) */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* App security banner */
+.security-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 10px 14px;
+  border-radius: var(--app-radius-md, 8px);
+  border: 1px solid rgba(163, 230, 53, 0.25);
+  background: var(--app-surface-1, #111613);
+  color: var(--app-text-secondary, #9CA8A1);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.security-banner-icon { flex-shrink: 0; display: inline-flex; align-items: center; }
+.security-banner-body { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; flex: 1; min-width: 0; }
+.security-banner-text { color: var(--app-text-secondary, #9CA8A1); }
+.security-banner-text strong { color: var(--app-text-primary, #F2F5F3); }
+.security-banner-links { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 500; }
+.security-banner-verify { color: var(--app-text-muted, #627067); }
+.security-banner-sep { color: var(--app-text-muted, #627067); }
+.security-banner-links a { color: var(--app-lime, #A3E635); text-decoration: underline; text-underline-offset: 2px; }
+.security-banner-links a:hover { color: var(--app-lime-hover, #BEF264); }
+.security-banner-close { background: transparent; border: none; color: var(--app-text-muted, #627067); cursor: pointer; padding: 4px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: color 0.15s, background 0.15s; }
+.security-banner-close:hover { color: var(--app-text-primary, #F2F5F3); background: var(--app-surface-2, #171E1A); }
+@media (max-width: 640px) {
+  .security-banner { align-items: flex-start; padding: 10px 12px; }
+  .security-banner-body { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* Impression / export PDF (whitepaper) : fond blanc, texte sombre, sans navigation. */
+@media print {
+  header, footer, nav, button, [class*="Banner"], [class*="banner"] { display: none !important; }
+  html, body { background: #fff !important; }
+  body * { color: #111 !important; background: transparent !important; box-shadow: none !important; border-color: #ccc !important; }
+  a { color: #1d4ed8 !important; text-decoration: underline; }
+  section { break-inside: avoid; }
+  svg text { fill: #111 !important; }
+}
+
+/* --- Ecran de connexion de l'app (AppGuard) --- */
+.connect-card {
+  text-align: center; max-width: 520px; padding: 40px 36px; border-radius: var(--app-radius-xl, 16px);
+  border: 1px solid var(--app-border-default, #2A362E);
+  background: var(--app-surface-1, #111613);
+  box-shadow: 0 18px 44px -20px rgba(163, 230, 53, 0.25);
+}
+.connect-icon {
+  width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 18px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; background: rgba(163, 230, 53, 0.1); border: 1px solid rgba(163, 230, 53, 0.25);
+}
+.connect-title { font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.connect-text { color: var(--text-secondary); line-height: 1.6; margin-bottom: 18px; }
+.connect-points { list-style: none; padding: 0; margin: 0 auto 24px; display: flex; flex-direction: column; gap: 8px; text-align: left; width: fit-content; }
+.connect-points li { color: #cbd5e1; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; }
+.connect-points li::before { content: '✓'; color: #0d1117; background: #a3e635; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; flex: 0 0 auto; }
+.connect-powered { margin-top: 12px; color: #64748b; font-size: 0.78rem; }
+@media (max-width: 640px) { .connect-card { padding: 28px 20px; } .connect-card .btn { width: 100%; } }
+
+/* Mouvement reduit : coupe animations et transitions decoratives sur tout le site. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Alerte « mauvais reseau » de l'app (affichee seulement si le wallet n'est pas sur BNB Smart Chain). */
+.network-alert {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 16px; padding: 10px 14px; border-radius: 8px;
+  border: 1px solid rgba(234, 179, 8, 0.45); background: rgba(234, 179, 8, 0.1);
+  color: #fde047; font-size: 0.875rem; font-weight: 500;
+}
+.network-alert button {
+  border: none; cursor: pointer; padding: 6px 12px; border-radius: 999px;
+  background: #eab308; color: #0d1117; font-weight: 700; font-size: 0.8rem;
+}

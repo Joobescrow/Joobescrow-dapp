@@ -1,0 +1,45 @@
+{
+  "landing": {
+    "hero": {
+      "title": "Secure every payment. Pay only when the work is approved.",
+      "subtitle": "0% for the client, 2% to 5% for the provider, by deal size. Not the 20% to 30% many marketplaces keep.",
+      "ctaPrimary": "Launch App",
+      "ctaSecondary": "How it works"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "step1": {
+        "title": "1. Secure Deposit",
+        "desc": "The client deposits funds into a tamper-proof smart contract."
+      },
+      "step2": {
+        "title": "2. Work Delivered",
+        "desc": "The provider completes the mission with peace of mind, knowing the funds are locked."
+      },
+      "step3": {
+        "title": "3. Release",
+        "desc": "Upon approval, funds are released to the provider, available for withdrawal at any time."
+      }
+    },
+    "trust": {
+      "auditBadge": "Smart Contract Audited",
+      "viewAudit": "View the full report"
+    },
+    "footer": {
+      "terms": "Terms & Security",
+      "security": "Security Model"
+    }
+  },
+  "security": {
+    "title": "Security & Transparency",
+    "subtitle": "Escrows are non-custodial: the team cannot send escrowed funds to an arbitrary address. The 3-of-5 Safe multisig can pause new activity and, in a dispute, can only split the funds between client and provider. Withdrawals of credited funds keep working even when the contracts are paused.",
+    "auditSection": {
+      "title": "Verified audits",
+      "desc": "Every contract that holds or distributes funds was audited by SpyWolf before launch. An audit reduces risk but cannot rule out every bug."
+    },
+    "contractSection": {
+      "title": "Verified Public Contract",
+      "desc": "The source code of our escrow is public and verified on BscScan."
+    }
+  }
+}

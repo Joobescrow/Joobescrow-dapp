@@ -1,0 +1,294 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 12, 10, 0.82);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: var(--app-surface-1, #111613);
+  border: 1px solid var(--app-border-default, #2A362E);
+  border-top: 3px solid var(--app-lime, #A3E635);
+  border-radius: var(--app-radius-xl, 16px);
+  padding: 24px;
+  color: var(--app-text-primary, #F2F5F3);
+}
+
+/* Modale formulaire : titre et boutons fixes, seul le corps defile */
+.modal-content.is-form {
+  display: flex;
+  flex-direction: column;
+  max-height: min(92vh, 92dvh);
+  overflow: hidden;
+  padding: 0;
+}
+
+.modal-content.is-form h2 {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 20px 24px 14px;
+}
+
+.modal-content.is-form form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 24px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-border-default, #2A362E) transparent;
+}
+
+.modal-content.is-form .modal-actions {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--app-border-subtle, #1E2621);
+  background: var(--app-surface-1, #111613);
+}
+
+.modal-content.is-form .create-stepper {
+  margin-bottom: 8px;
+}
+
+.modal-content h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--app-text-primary, #F2F5F3);
+  margin: 0 0 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--app-text-secondary, #9CA8A1);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-default, #2A362E);
+  border-radius: var(--app-radius-md, 8px);
+  color: var(--app-text-primary, #F2F5F3);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--app-lime, #A3E635);
+  background: var(--app-surface-3, #1F2923);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-default, #2A362E);
+  border-radius: var(--app-radius-md, 8px);
+  color: var(--app-text-primary, #F2F5F3);
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: var(--app-lime, #A3E635);
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--app-text-secondary, #9CA8A1);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* Grille par montant : taux lu on-chain (citron vert) ou montant/palier refuse (jaune = attention) */
+.form-hint.is-fee {
+  color: var(--app-lime, #A3E635);
+  font-weight: 600;
+}
+
+.form-hint.is-error {
+  color: var(--app-yellow, #EAB308);
+}
+
+/* Fee breakdown summary box */
+.create-summary-box {
+  background: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-subtle, #1E2621);
+  border-radius: var(--app-radius-md, 8px);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.create-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--app-text-secondary, #9CA8A1);
+}
+
+.create-summary-row strong {
+  color: var(--app-text-primary, #F2F5F3);
+  font-weight: 600;
+}
+
+.create-summary-row.is-net {
+  padding-top: 6px;
+  margin-top: 2px;
+  border-top: 1px solid var(--app-border-subtle, #1E2621);
+  color: var(--app-text-primary, #F2F5F3);
+  font-weight: 600;
+}
+
+.create-summary-row.is-net strong {
+  color: var(--app-lime, #A3E635);
+  font-size: 0.9rem;
+}
+
+.create-summary-note {
+  font-size: 0.72rem;
+  color: var(--app-text-muted, #627067);
+  margin-top: 2px;
+}
+
+/* Option d'envoi de BNB au prestataire sans gas (jaune = attention) */
+.create-gas-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: var(--app-radius-md, 8px);
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--app-text-primary, #F2F5F3);
+  cursor: pointer;
+}
+
+.create-gas-option input {
+  margin-top: 2px;
+  accent-color: var(--app-yellow, #EAB308);
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* 2-step visible stepper */
+.create-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-subtle, #1E2621);
+  border-radius: var(--app-radius-md, 8px);
+  margin-bottom: 18px;
+}
+
+.create-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--app-text-secondary, #9CA8A1);
+}
+
+.create-step.is-active {
+  color: var(--app-text-primary, #F2F5F3);
+  font-weight: 600;
+}
+
+.create-step.is-done {
+  color: var(--app-green, #22C55E);
+}
+
+.create-step-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--app-border-default, #2A362E);
+  background: var(--app-surface-1, #111613);
+  flex-shrink: 0;
+}
+
+.create-step.is-active .create-step-badge {
+  border-color: var(--app-lime, #A3E635);
+  background: var(--app-lime-subtle, rgba(163, 230, 53, 0.12));
+  color: var(--app-lime, #A3E635);
+}
+
+.create-step.is-done .create-step-badge {
+  border-color: var(--app-green, #22C55E);
+  background: var(--app-green-subtle, rgba(34, 197, 94, 0.12));
+  color: var(--app-green, #22C55E);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 18px 16px;
+  }
+  .modal-content.is-form {
+    padding: 0;
+  }
+  .modal-content.is-form h2 {
+    padding: 16px 16px 12px;
+  }
+  .modal-body {
+    padding: 2px 16px 4px;
+  }
+  .modal-content.is-form .modal-actions {
+    padding: 12px 16px 14px;
+  }
+  .modal-content form > .flex,
+  .modal-body > .flex {
+    flex-direction: column;
+    gap: 0;
+  }
+}
