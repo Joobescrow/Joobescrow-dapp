@@ -2,6 +2,7 @@ name = "joob-presale-alerts"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 workers_dev = false
+account_id = "4177a644461fb16ed954dc2e7952f71f"
 
 # Fil public des derniers achats, lu par le site (domaine personnalise sur la zone Cloudflare joobescrow.com).
 routes = [ { pattern = "stats.joobescrow.com", custom_domain = true } ]
@@ -23,7 +24,7 @@ new_sqlite_classes = ["AlertsRunner"]
 # Ancien stockage du curseur, lu une fois pour reprendre ou il en etait.
 [[kv_namespaces]]
 binding = "STATE"
-id = "b4b4b9ae03864ae7a4a51dda80b5fd5e"
+id = "b36e53637ec940c5ae5f946a3958da2e"
 
 [vars]
 PRESALE_ADDRESS = "0xd3F3598Ff8efB2cF6643488e66e8df683804F63d"
