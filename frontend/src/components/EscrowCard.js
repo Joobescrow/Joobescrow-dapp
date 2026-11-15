@@ -428,7 +428,41 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
   }
 
   const feeLabel = niche.isDemo ? 'Demo · 0% fee' : `${feePctOf}% fee`;
-  const roleLabel = isClient ? 'You are the client' : isProvider ? 'You are the provider' : null;
+  // Role en clair : qui paie, qui est paye (vocabulaire de la categorie entre parentheses).
+  const roleLabel = isClient ? `You pay (${niche.lexicon.client})` : isProvider ? `You get paid (${niche.lexicon.provider})` : null;
+  const prov = niche.lexicon.provider.toLowerCase();
+  const cli = niche.lexicon.client.toLowerCase();
+
+  // Prochaine etape, selon le role et l'etat (regles du contrat V4 : seul le client libere ou annule
+  // avant acceptation ; le prestataire peut reclamer apres l'echeance s'il a accepte).
+  let nextStep = null;
+  if (isClient || isProvider) {
+    if (escrow.status === 'FUNDED' && !escrow.accepted) {
+      nextStep = isProvider
+        ? 'The funds are locked. Accept this deal to start the work.'
+        : `Waiting for the ${prov} to accept. Until then, you can cancel for a full refund.`;
+    } else if (escrow.status === 'FUNDED' && escrow.accepted && !isExpired) {
+      nextStep = isProvider
+        ? `Deliver the work. You get paid when the ${cli} releases the payment, or you can claim it after the deadline.`
+        : `Work in progress. Release the payment when you are satisfied, or open a dispute if something is wrong.`;
+    } else if (isExpired) {
+      nextStep = isProvider
+        ? 'The deadline has passed. You can claim the payment now.'
+        : `The deadline has passed: the ${prov} can now claim the payment. Release it, or open a dispute.`;
+    } else if (isDisputed) {
+      nextStep = 'In dispute. Share your evidence in the chat; the dispute is reviewed and settled on-chain.';
+    } else if (escrow.status === 'RESOLVED') {
+      nextStep = 'Dispute settled. Any amount awarded to you is in your balance: withdraw it with the Withdraw button above your escrows.';
+    } else if (isCompleted) {
+      nextStep = isProvider
+        ? 'Payment released. Withdraw it with the Withdraw button above your escrows.'
+        : 'Completed. The payment was released.';
+    } else if (isCancelled) {
+      nextStep = isClient
+        ? 'Cancelled. Your deposit was refunded: withdraw it with the Withdraw button above your escrows.'
+        : 'Cancelled by the client before acceptance.';
+    }
+  }
 
   return (
     <div className={`escrow-card ${escrow.highlighted ? 'highlight-pulse' : ''}`} id={`escrow-${escrow.id}`}>
@@ -448,12 +482,14 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           <div className="escrow-title-row">
             <h3>Escrow #{escrow.id.toString()}</h3>
             <span className="escrow-meta-tag">{feeLabel}</span>
-            {roleLabel && <span className="escrow-meta-tag">{roleLabel}</span>}
+            {roleLabel && <span className="escrow-role-tag">{roleLabel}</span>}
           </div>
           {reference && <span className="escrow-reference">{reference}</span>}
         </div>
         {getStatusBadge()}
       </div>
+
+      {nextStep && <p className="escrow-next-step">{nextStep}</p>}
 
       <div className="escrow-summary">
         <div className="escrow-amount-block">
@@ -586,10 +622,10 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           {escrow.status === 'FUNDED' && escrow.accepted && !isExpired && isClient && (
             <>
               <button className="btn btn-app-danger" onClick={handleOpenDispute} disabled={loading}>
-                {busy === 'dispute' ? 'Processing...' : 'Open dispute'}
+                {busy === 'dispute' ? 'Processing...' : 'Open a dispute'}
               </button>
               <button className="btn btn-app-primary" onClick={handleRelease} disabled={loading}>
-                {busy === 'release' ? 'Processing...' : 'Release'}
+                {busy === 'release' ? 'Processing...' : 'Release payment'}
               </button>
             </>
           )}
@@ -597,7 +633,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           {escrow.status === 'FUNDED' && escrow.accepted && !isExpired && isProvider && (
             <>
               <button className="btn btn-app-danger" onClick={handleOpenDispute} disabled={loading}>
-                {busy === 'dispute' ? 'Processing...' : 'Open dispute'}
+                {busy === 'dispute' ? 'Processing...' : 'Open a dispute'}
               </button>
               <button type="button" className="btn btn-app-secondary" onClick={handleOpenChat}>
                 Open chat
@@ -609,10 +645,10 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           {escrow.status === 'FUNDED' && escrow.accepted && isExpired && isProvider && (
             <>
               <button className="btn btn-app-danger" onClick={handleOpenDispute} disabled={loading}>
-                {busy === 'dispute' ? 'Processing...' : 'Open dispute'}
+                {busy === 'dispute' ? 'Processing...' : 'Open a dispute'}
               </button>
               <button className="btn btn-app-primary" onClick={handleClaimTimeout} disabled={loading}>
-                {busy === 'timeout' ? 'Processing...' : 'Claim timeout'}
+                {busy === 'timeout' ? 'Processing...' : 'Claim payment'}
               </button>
             </>
           )}
@@ -620,10 +656,10 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           {escrow.status === 'FUNDED' && escrow.accepted && isExpired && isClient && (
             <>
               <button className="btn btn-app-danger" onClick={handleOpenDispute} disabled={loading}>
-                {busy === 'dispute' ? 'Processing...' : 'Open dispute'}
+                {busy === 'dispute' ? 'Processing...' : 'Open a dispute'}
               </button>
               <button className="btn btn-app-primary" onClick={handleRelease} disabled={loading}>
-                {busy === 'release' ? 'Processing...' : 'Release'}
+                {busy === 'release' ? 'Processing...' : 'Release payment'}
               </button>
             </>
           )}
@@ -774,7 +810,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
               <>
                 <p className="text-gray-300 text-sm mb-6">
                   You are about to release <strong>{escrow.amount} {escrow.tokenSymbol}</strong> to <strong>{niche.lexicon.provider}</strong> ({formatAddr(escrow.provider)}).
-                  Once released, the funds are credited to their withdrawable balance and this action cannot be undone.
+                  Once released, the funds are added to their balance, ready to withdraw. This cannot be undone.
                 </p>
               </>
             ) : (
@@ -851,7 +887,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
             <div className="escrow-modal-body">
             <p className="text-gray-300 text-sm mb-6">
               {confirmAction === 'cancel'
-                ? <>The full <strong>{escrow.amount} {escrow.tokenSymbol}</strong> is credited back to your withdrawable balance and the {niche.lexicon.provider.toLowerCase()} can no longer accept. This action cannot be undone.</>
+                ? <>The full <strong>{escrow.amount} {escrow.tokenSymbol}</strong> is added back to your balance, ready to withdraw, and the {niche.lexicon.provider.toLowerCase()} can no longer accept. This action cannot be undone.</>
                 : <>The dispute has been open for more than 30 days. <strong>{escrow.amount} {escrow.tokenSymbol}</strong> is split in half: 50% to the {niche.lexicon.client.toLowerCase()}, 50% to the {niche.lexicon.provider.toLowerCase()}{feePctOf > 0 ? ` (the ${feePctOf}% fee applies to the provider's share)` : ''}. This action cannot be undone.</>}
             </p>
             </div>

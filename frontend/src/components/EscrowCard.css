@@ -659,3 +659,26 @@
 
 /* Pied de carte : les deux onglets (Details, Chat & files) sur une seule ligne */
 .escrow-footer-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* Role de l'utilisateur dans le deal (qui paie, qui est paye) */
+.escrow-role-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--app-lime, #A3E635);
+  background: var(--app-lime-subtle, rgba(163, 230, 53, 0.12));
+  border: 1px solid rgba(163, 230, 53, 0.4);
+  padding: 2px 8px;
+  border-radius: var(--app-radius-sm, 6px);
+}
+
+/* Prochaine etape, en une phrase, selon le role et l'etat */
+.escrow-next-step {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--app-text-primary, #F2F5F3);
+  background: var(--app-surface-2, #171E1A);
+  border-left: 3px solid var(--app-lime, #A3E635);
+  border-radius: var(--app-radius-sm, 6px);
+}
