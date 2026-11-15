@@ -35,12 +35,14 @@
 .file-att-dl { color: var(--app-lime, #A3E635); font-weight: 600; text-decoration: none; font-size: 0.8rem; }
 .file-att-dl:hover { text-decoration: underline; }
 .file-att-missing { font-style: italic; opacity: 0.7; }
-.chat-attach-btn {
+.chatbox-input-area .chat-attach-btn {
   display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
-  width: 38px; padding: 0; background: transparent !important; color: var(--app-text-secondary, #9CA8A1) !important;
-  border: 1px solid var(--app-border-default, #2A362E) !important; border-radius: 8px; cursor: pointer;
+  width: 42px; min-width: 42px; padding: 0;
+  background: var(--app-surface-2, #171E1A); color: var(--app-lime, #A3E635);
+  border: 1px solid rgba(163, 230, 53, 0.45); border-radius: var(--app-radius-md, 8px); cursor: pointer;
 }
-.chat-attach-btn:hover:not(:disabled) { color: var(--app-lime, #A3E635) !important; border-color: rgba(163, 230, 53, 0.5) !important; }
+.chatbox-input-area .chat-attach-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.chatbox-input-area .chat-attach-btn:hover:not(:disabled) { background: var(--app-lime-subtle, rgba(163, 230, 53, 0.12)); border-color: var(--app-lime, #A3E635); }
 .chat-files-hint {
   display: flex; flex-direction: column; gap: 6px; padding: 6px 12px 10px;
   font-size: 0.74rem; color: var(--app-text-muted, #627067);
