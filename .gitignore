@@ -47,3 +47,6 @@ captures_refonte/
 # Documents internes (prompts, plans, offres, dossiers) : jamais dans le depot public
 /*.md
 !/README.md
+/captures_ux/
+/captures_ameliorations/
+/audit/
