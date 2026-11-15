@@ -183,6 +183,14 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
     showToast('success', 'Deal link copied: viewable without a wallet');
   };
 
+  // Pied de carte : Details et Chat & files sont les deux onglets ; recliquer l'onglet ouvert le referme.
+  const toggleTab = (tab) => {
+    if (isExpanded && activeTab === tab) { setIsExpanded(false); return; }
+    if (tab === 'messages') { handleOpenChat(); return; }
+    setActiveTab(tab);
+    setIsExpanded(true);
+  };
+
   const handleOpenChat = () => {
     setIsExpanded(true);
     setActiveTab('messages');
@@ -525,24 +533,29 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
 
       {/* Footer: Details toggle + Role-based Actions */}
       <div className="escrow-footer">
+        <div className="escrow-footer-tabs" role="tablist">
         <button
           type="button"
-          className="escrow-details-toggle"
-          onClick={() => setIsExpanded((v) => !v)}
-          aria-expanded={isExpanded}
+          role="tab"
+          className={`escrow-tab-btn ${isExpanded && activeTab === 'details' ? 'is-active' : ''}`}
+          onClick={() => toggleTab('details')}
+          aria-selected={isExpanded && activeTab === 'details'}
         >
-          <span>{isExpanded ? 'Hide details ▴' : 'View details ▾'}</span>
+          Details {isExpanded && activeTab === 'details' ? '▴' : '▾'}
         </button>
         {(isClient || isProvider) && (
           <button
             type="button"
+            role="tab"
             className={`escrow-chat-cta ${isExpanded && activeTab === 'messages' ? 'is-active' : ''}`}
-            onClick={handleOpenChat}
+            onClick={() => toggleTab('messages')}
+            aria-selected={isExpanded && activeTab === 'messages'}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
             Encrypted chat &amp; files
           </button>
         )}
+        </div>
 
         <div className="escrow-actions">
           {/* 1. Awaiting acceptance */}
@@ -677,25 +690,6 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
       {/* Collapsible Drawer: Details / Messages / Files */}
       {isExpanded && (
         <div className="escrow-drawer" ref={drawerRef}>
-          {(isClient || isProvider) && (
-            <div className="escrow-tabs">
-              <button
-                type="button"
-                className={`escrow-tab-btn ${activeTab === 'details' ? 'is-active' : ''}`}
-                onClick={() => setActiveTab('details')}
-              >
-                Details
-              </button>
-              <button
-                type="button"
-                className={`escrow-tab-btn ${activeTab === 'messages' ? 'is-active' : ''}`}
-                onClick={() => setActiveTab('messages')}
-              >
-                Chat &amp; files
-              </button>
-            </div>
-          )}
-
           {(activeTab === 'details' || (!isClient && !isProvider)) && (
             <div className="escrow-details-pane">
               <div className="escrow-details-row">

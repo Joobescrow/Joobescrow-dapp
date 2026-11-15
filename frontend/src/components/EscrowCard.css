@@ -656,3 +656,6 @@
     justify-content: flex-end;
   }
 }
+
+/* Pied de carte : les deux onglets (Details, Chat & files) sur une seule ligne */
+.escrow-footer-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
