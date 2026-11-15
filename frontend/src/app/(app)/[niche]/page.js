@@ -23,7 +23,7 @@ const DEMO_STEPS = [
   { who: 'Wallet A', title: 'Create & fund', text: 'Click "+ Create Secure Transaction", paste wallet B as provider and lock 1 USDT or USDC.' },
   { who: 'Wallet B', title: 'Accept', text: 'Switch to wallet B and accept the escrow. No spending approval is ever asked from B.' },
   { who: 'Wallet A', title: 'Release', text: 'Switch back to wallet A and release the funds, as you would once the work is delivered.' },
-  { who: 'Wallet B', title: 'Withdraw', text: 'On wallet B, click "Claim": the exact amount arrives, 0% fee.' },
+  { who: 'Wallet B', title: 'Withdraw', text: 'On wallet B, click "Withdraw": the exact amount arrives, 0% fee.' },
 ];
 
 function DashboardContent() {
@@ -113,9 +113,9 @@ function DashboardContent() {
       let actionRequired = null;
       const nowSec = Math.floor(Date.now() / 1000);
       if (statusEnum === 1) {
-        if (!isAccepted && isProvider) actionRequired = "Action required: Accept escrow";
-        else if (isAccepted && isClient) actionRequired = "Action required: Release or open dispute";
-        else if (isAccepted && isProvider && Number(e.timeoutDate) > 0 && nowSec > Number(e.timeoutDate)) actionRequired = "Action required: Claim timeout";
+        if (!isAccepted && isProvider) actionRequired = "Your turn: accept this deal";
+        else if (isAccepted && isClient) actionRequired = "Your turn: release the payment or open a dispute";
+        else if (isAccepted && isProvider && Number(e.timeoutDate) > 0 && nowSec > Number(e.timeoutDate)) actionRequired = "Your turn: claim the payment (deadline passed)";
       }
 
       setInvitedEscrow({
@@ -222,9 +222,9 @@ function DashboardContent() {
         <div className="controls-right">
           {Object.entries(pending).map(([key, p]) => (
             <div key={key} className="claim-box">
-              <span>Funds available to withdraw</span>
+              <span>Ready to withdraw to your wallet</span>
               <button className="btn btn-primary tabular-nums" onClick={() => handleClaim(p)}>
-                Claim {p.amount} {p.sym}
+                Withdraw {p.amount} {p.sym}
               </button>
             </div>
           ))}

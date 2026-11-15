@@ -32,7 +32,7 @@ const STEPS = [
   {
     who: 'Wallet B (provider)',
     title: 'Withdraw',
-    text: 'Switch to wallet B and click "Claim". The exact amount you deposited arrives in wallet B: 0% fee on the demo.',
+    text: 'Switch to wallet B and click "Withdraw". The exact amount you deposited arrives in wallet B: 0% fee on the demo.',
   },
   {
     who: 'Optional',

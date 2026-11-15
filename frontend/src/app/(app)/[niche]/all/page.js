@@ -235,8 +235,8 @@ export default function MyEscrowsPage() {
             <div className="controls-right" style={{ marginBottom: 20, justifyContent: 'flex-start' }}>
               {pending.map((p) => (
                 <div key={`${p.niche.contractAddress}-${p.sym}`} className="claim-box">
-                  <span>Funds available to withdraw{p.niche.isDemo ? ' (demo)' : ''}</span>
-                  <button className="btn btn-primary tabular-nums" onClick={() => claim(p)}>Claim {p.amount} {p.sym}</button>
+                  <span>Ready to withdraw to your wallet{p.niche.isDemo ? ' (demo)' : ''}</span>
+                  <button className="btn btn-primary tabular-nums" onClick={() => claim(p)}>Withdraw {p.amount} {p.sym}</button>
                 </div>
               ))}
             </div>

@@ -24,9 +24,9 @@ export async function loadMyEscrows(contractAddress, reader, account) {
     const timeoutDate = Number(e.timeoutDate);
     let actionRequired = null;
     if (statusEnum === 1) {
-      if (!accepted && isProvider) actionRequired = 'Action required: Accept escrow';
-      else if (accepted && isClient) actionRequired = 'Action required: Release or open dispute';
-      else if (accepted && isProvider && timeoutDate > 0 && now > timeoutDate) actionRequired = 'Action required: Claim timeout';
+      if (!accepted && isProvider) actionRequired = 'Your turn: accept this deal';
+      else if (accepted && isClient) actionRequired = 'Your turn: release the payment or open a dispute';
+      else if (accepted && isProvider && timeoutDate > 0 && now > timeoutDate) actionRequired = 'Your turn: claim the payment (deadline passed)';
     }
     found.push({
       id: i.toString(),
