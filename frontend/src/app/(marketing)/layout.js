@@ -6,7 +6,7 @@ import dict from '../../i18n/en.json';
 import { Web3Provider } from '../../context/Web3Context';
 import MarketingHeader from '../../components/MarketingHeader';
 import HideOnFocusPages from '../../components/HideOnFocusPages';
-import { TELEGRAM_URL, X_URL } from '../../config/links';
+import { TELEGRAM_URL, TELEGRAM_CHANNEL_URL, X_URL } from '../../config/links';
 
 
 export default function MarketingLayout({ children }) {
@@ -64,6 +64,13 @@ export default function MarketingLayout({ children }) {
               <Link href="/roadmap">Roadmap</Link>
               <Link href="/whitepaper">Whitepaper</Link>
               <Link href="/airdrop">Airdrop</Link>
+            </div>
+
+            <div className={styles.footerCol}>
+              <h3>Community</h3>
+              <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noopener noreferrer">Telegram announcements</a>
+              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Telegram group</a>
+              <a href={X_URL} target="_blank" rel="noopener noreferrer">X (Twitter)</a>
             </div>
           </div>
 
