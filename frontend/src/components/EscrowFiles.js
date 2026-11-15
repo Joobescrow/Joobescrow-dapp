@@ -5,25 +5,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useWeb3 } from '../context/Web3Context';
 import { useToast } from '../context/ToastContext';
-import { useEscrowContract } from '../hooks/useEscrowContract';
 import { useXmtpDm, isFileMessage } from '../hooks/useXmtpDm';
+import { useRecordEvidence } from '../hooks/useRecordEvidence';
 import { prepareAttachment, sha256Bytes32 } from '../lib/evidence';
-import { isUserRejection, walletErrorMessage } from '../lib/walletErrors';
 import { CHAT_FILES } from '../config/chatFiles';
 import FileAttachment from './FileAttachment';
 import { EvidenceList, VerifyFile, useEvidence } from './EvidencePanel';
 import './EscrowFiles.css';
 
 export default function EscrowFiles({ escrow, escrowAddr, peerAddress }) {
-  const { account, ensureCorrectChain } = useWeb3();
+  const { account } = useWeb3();
   const { showToast } = useToast();
-  const contract = useEscrowContract(escrowAddr);
   const { client, conversation, messages, error, setError, activate, isInitializing, sendFile } = useXmtpDm(peerAddress);
   const fileRef = useRef(null);
   const [busy, setBusy] = useState(null);
   const [recordOnSend, setRecordOnSend] = useState(true);
   const [hashes, setHashes] = useState({});
   const { items: evidence, loading: evLoading, error: evError, refresh: loadEvidence } = useEvidence(escrowAddr, escrow.id, escrow.disputeOpenedAt);
+  const { record, recording } = useRecordEvidence(escrowAddr, escrow.id, loadEvidence);
 
   const isDisputed = escrow.status === 'DISPUTED';
   const hadDispute = Number(escrow.disputeOpenedAt) > 0;
@@ -42,23 +41,6 @@ export default function EscrowFiles({ escrow, escrowAddr, peerAddress }) {
   }, [messages]);
 
   const recorded = (h) => evidence.some((it) => it.hash.toLowerCase() === h?.toLowerCase());
-
-  const record = async (hash, label) => {
-    if (!contract) return;
-    setBusy(`rec-${hash}`);
-    try {
-      await ensureCorrectChain();
-      const tx = await contract.submitEvidence(escrow.id, hash);
-      showToast('success', 'Evidence transaction sent…');
-      await tx.wait();
-      showToast('success', `${label} recorded on-chain as evidence.`);
-      loadEvidence();
-    } catch (err) {
-      console.error(err);
-      if (!isUserRejection(err)) showToast('error', `Recording failed: ${walletErrorMessage(err)}`);
-    }
-    setBusy(null);
-  };
 
   const onPick = async (e) => {
     const f = e.target.files?.[0];
@@ -123,8 +105,8 @@ export default function EscrowFiles({ escrow, escrowAddr, peerAddress }) {
                     <FileAttachment attachment={m.content} compact />
                     {h && recorded(h) && <span className="ef-ok">Recorded on-chain</span>}
                     {h && isDisputed && !recorded(h) && (
-                      <button type="button" className="btn btn-app-secondary ef-rec" onClick={() => record(h, m.content.filename || 'File')} disabled={Boolean(busy)}>
-                        {busy === `rec-${h}` ? 'Recording…' : 'Record as evidence'}
+                      <button type="button" className="btn btn-app-secondary ef-rec" onClick={() => record(h, m.content.filename || 'File')} disabled={Boolean(busy) || Boolean(recording)}>
+                        {recording === h ? 'Recording…' : 'Record as evidence'}
                       </button>
                     )}
                   </li>

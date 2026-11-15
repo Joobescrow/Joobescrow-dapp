@@ -771,7 +771,10 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
               <p className="text-xs text-gray-500 mb-2 text-center" title="Due to browser OPFS limits, using multiple tabs can lock the database.">
                 <strong>Note:</strong> Please avoid opening the chat in multiple tabs simultaneously.
               </p>
-              <ChatBox peerAddress={isClient ? escrow.provider : escrow.client} />
+              <ChatBox
+                peerAddress={isClient ? escrow.provider : escrow.client}
+                evidence={{ escrowAddr, escrowId: escrow.id, isDisputed }}
+              />
             </div>
           )}
 

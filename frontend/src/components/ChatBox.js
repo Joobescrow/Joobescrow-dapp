@@ -2,13 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useXmtpDm, isFileMessage } from '../hooks/useXmtpDm';
-import { prepareAttachment } from '../lib/evidence';
+import { useRecordEvidence } from '../hooks/useRecordEvidence';
+import { prepareAttachment, sha256Bytes32 } from '../lib/evidence';
 import { CHAT_FILES } from '../config/chatFiles';
 import FileAttachment from './FileAttachment';
 import './ChatBox.css';
 
-export default function ChatBox({ peerAddress }) {
+// evidence (facultatif) : { escrowAddr, escrowId, isDisputed } pour proposer l'enregistrement on-chain
+// d'un fichier envoye pendant un litige, comme dans l'onglet Files.
+export default function ChatBox({ peerAddress, evidence = null }) {
   const { client, conversation, messages, error, setError, activate, isInitializing, sendText, sendFile } = useXmtpDm(peerAddress);
+  const { record, recording } = useRecordEvidence(evidence?.escrowAddr, evidence?.escrowId);
+  const [recordOnSend, setRecordOnSend] = useState(true);
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
@@ -39,7 +44,12 @@ export default function ChatBox({ peerAddress }) {
     if (!file) return;
     setIsSending(true);
     try {
-      await sendFile(await prepareAttachment(file));
+      const att = await prepareAttachment(file);
+      await sendFile(att);
+      if (evidence?.isDisputed && recordOnSend) {
+        setIsSending(false);
+        await record(await sha256Bytes32(att.content), att.filename);
+      }
     } catch (err) {
       console.error('[XMTP] Failed to send file:', err);
       setError(err.message);
@@ -129,6 +139,16 @@ export default function ChatBox({ peerAddress }) {
           {isSending ? '...' : 'Send'}
         </button>
       </form>
+      <div className="chat-files-hint">
+        <span>Files: max {CHAT_FILES.maxLabel} each. Large images are compressed automatically.</span>
+        {evidence?.isDisputed && (
+          <label className="ef-check">
+            <input type="checkbox" checked={recordOnSend} onChange={(e) => setRecordOnSend(e.target.checked)} />
+            <span>Also record files as dispute evidence on-chain (one wallet confirmation per file)</span>
+          </label>
+        )}
+        {recording && <span className="ef-ok">Confirm the evidence transaction in your wallet…</span>}
+      </div>
     </div>
   );
 }
