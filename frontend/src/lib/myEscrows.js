@@ -44,7 +44,8 @@ export async function loadMyEscrows(contractAddress, reader, account) {
       createdAt: Number(rawEscrow.createdAt),
       timeoutDate,
       accepted,
-      disputeOpenedAt: statusEnum === 3 ? Number(await contract.disputeOpenedAt(i)) : 0,
+      // DISPUTED ou RESOLVED : date d'ouverture du litige, pour retrouver les preuves on-chain.
+      disputeOpenedAt: statusEnum === 3 || statusEnum === 4 ? Number(await contract.disputeOpenedAt(i)) : 0,
       staleDisputeTimeout,
     });
   }

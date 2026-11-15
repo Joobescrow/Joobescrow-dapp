@@ -9,10 +9,14 @@ import { USDT_ADDRESS, USDC_ADDRESS } from '../../../../../config/contract';
 import styles from './deal.module.css';
 import { readEscrowReference } from '../../../../../lib/escrowReference';
 import { resolveEscrowContract } from '../../../../../lib/escrowContract';
+import EvidencePanel from '../../../../../components/EvidencePanel';
 
 // Page publique d'un escrow : lecture seule sur le contrat, sans wallet.
 // Usage principal : un prestataire verifie que les fonds sont bien bloques avant de commencer.
-const ESCROW_ABI = ['function escrows(uint256) view returns (address client, address provider, address token, uint256 amount, uint256 feeBPS, uint256 createdAt, uint256 timeoutDate, uint8 status, bool accepted)'];
+const ESCROW_ABI = [
+  'function escrows(uint256) view returns (address client, address provider, address token, uint256 amount, uint256 feeBPS, uint256 createdAt, uint256 timeoutDate, uint8 status, bool accepted)',
+  'function disputeOpenedAt(uint256) view returns (uint256)',
+];
 const BSCSCAN = 'https://bscscan.com';
 const TOKENS = { [USDT_ADDRESS.toLowerCase()]: 'USDT', [USDC_ADDRESS.toLowerCase()]: 'USDC' };
 
@@ -93,7 +97,10 @@ export default function DealClient({ niche, id, c = null }) {
         if (Number(e.status) === 0) { setState({ loading: false, error: 'not-found', data: null }); return; }
         const symbol = TOKENS[e.token.toLowerCase()] ?? 'tokens';
         const decimals = await new ethers.Contract(e.token, ['function decimals() view returns (uint8)'], readProvider).decimals();
-        if (!cancelled) setState({ loading: false, error: null, data: { ...e.toObject(), symbol, decimals: Number(decimals) } });
+        // Litige en cours ou resolu : date d'ouverture, pour afficher les preuves on-chain.
+        const st = Number(e.status);
+        const disputeOpenedAt = st === 3 || st === 4 ? Number(await ct.disputeOpenedAt(BigInt(id))) : 0;
+        if (!cancelled) setState({ loading: false, error: null, data: { ...e.toObject(), symbol, decimals: Number(decimals), disputeOpenedAt } });
         readEscrowReference(readProvider, escrowAddr, id, e.createdAt).then((r) => { if (!cancelled) setReference(r); }).catch(() => {});
       } catch (err) {
         console.error('[Deal] read:', err);
@@ -214,6 +221,11 @@ export default function DealClient({ niche, id, c = null }) {
               )}
               <li><span>Contract</span><a href={`${BSCSCAN}/address/${escrowAddr}#readContract`} target="_blank" rel="noopener noreferrer">{short(escrowAddr)} ↗</a></li>
             </ul>
+            {d.disputeOpenedAt > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <EvidencePanel contract={escrowAddr} escrowId={id} disputeOpenedAt={d.disputeOpenedAt} />
+              </div>
+            )}
             <div className={styles.actions}>
               <Link href={c && !inst.isDemo ? `/${niche}?escrow=${id}&c=${escrowAddr}` : `/${niche}?escrow=${id}`} className={`btn btn-primary ${styles.cta}`}>Open in the app</Link>
               <button type="button" className={styles.copyBtn} onClick={handleCopyLink}>

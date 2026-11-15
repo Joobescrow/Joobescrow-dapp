@@ -88,7 +88,7 @@ function DashboardContent() {
       const isProvider = account && e.provider.toLowerCase() === account.toLowerCase();
 
       let disputeOpenedAt = 0;
-      if (statusEnum === 3) disputeOpenedAt = Number(await contract.disputeOpenedAt(highlightedId));
+      if (statusEnum === 3 || statusEnum === 4) disputeOpenedAt = Number(await contract.disputeOpenedAt(highlightedId));
       const staleTimeoutNumber = Number(await contract.staleDisputeTimeout());
 
       let actionRequired = null;

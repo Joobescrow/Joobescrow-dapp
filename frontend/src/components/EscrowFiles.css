@@ -1,0 +1,44 @@
+/* Onglet Files (fichiers chiffres + preuves on-chain) et affichage des pieces jointes du chat. */
+.ef { display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; color: var(--app-text-primary, #F2F5F3); }
+.ef-muted { color: var(--app-text-secondary, #9CA8A1); font-size: 0.8rem; margin: 0; }
+.ef-ok { color: var(--app-lime, #A3E635); font-size: 0.8rem; font-weight: 600; margin: 0; }
+.ef-warn { color: var(--app-yellow, #EAB308); font-size: 0.8rem; margin: 0; }
+.ef-note { color: var(--app-text-muted, #627067); font-size: 0.75rem; margin: 4px 0 0; }
+.ef-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-text-secondary, #9CA8A1); margin: 8px 0 0; }
+.ef-activate { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.ef-send { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.ef-check { display: flex; gap: 8px; align-items: flex-start; font-size: 0.8rem; color: var(--app-text-secondary, #9CA8A1); cursor: pointer; }
+.ef-files, .ef-evidence { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ef-files li {
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
+  border: 1px solid var(--app-border-default, #2A362E); border-radius: var(--app-radius-sm, 6px);
+  background: var(--app-surface-2, #171E1A);
+}
+.ef-file-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 0.75rem; color: var(--app-text-secondary, #9CA8A1); }
+.ef-rec { align-self: flex-start; padding: 6px 12px; font-size: 0.78rem; }
+.ef-evidence li {
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 8px 10px;
+  border: 1px solid rgba(163, 230, 53, 0.25); border-radius: var(--app-radius-sm, 6px); font-size: 0.78rem;
+}
+.ef-evidence a { color: var(--app-lime, #A3E635); text-decoration: none; }
+.ef-ev-who { font-weight: 600; }
+.ef-ev-hash { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--app-text-secondary, #9CA8A1); }
+.ef-ev-date { color: var(--app-text-secondary, #9CA8A1); }
+.ef-verify { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+
+/* Piece jointe (chat et onglet Files) */
+.file-att { display: flex; flex-direction: column; gap: 6px; max-width: 100%; }
+.file-att-preview { max-width: 240px; max-height: 200px; border-radius: 6px; object-fit: contain; background: #0d1117; }
+.file-att-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.file-att-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.file-att-size { font-size: 0.75rem; opacity: 0.8; }
+.file-att-dl { color: var(--app-lime, #A3E635); font-weight: 600; text-decoration: none; font-size: 0.8rem; }
+.file-att-dl:hover { text-decoration: underline; }
+.file-att-missing { font-style: italic; opacity: 0.7; }
+.chat-attach-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 38px; padding: 0; background: transparent !important; color: var(--app-text-secondary, #9CA8A1) !important;
+  border: 1px solid var(--app-border-default, #2A362E) !important; border-radius: 8px; cursor: pointer;
+}
+.chat-attach-btn:hover:not(:disabled) { color: var(--app-lime, #A3E635) !important; border-color: rgba(163, 230, 53, 0.5) !important; }
+.chat-error-dismiss { margin-left: 8px; background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem; }

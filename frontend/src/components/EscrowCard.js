@@ -18,6 +18,7 @@ import { dealPath } from '../lib/escrowContract';
 import Link from 'next/link';
 
 const ChatBox = dynamic(() => import('./ChatBox'), { ssr: false });
+const EscrowFiles = dynamic(() => import('./EscrowFiles'), { ssr: false });
 
 export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, defaultExpanded = false, onReference }) {
   const { account, signer, readProvider, ensureCorrectChain } = useWeb3();
@@ -775,9 +776,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           )}
 
           {(isClient || isProvider) && activeTab === 'files' && (
-            <div className="text-gray-500 text-sm italic text-center py-4 border border-dashed border-gray-700 rounded-lg">
-              File attachments coming soon...
-            </div>
+            <EscrowFiles escrow={escrow} escrowAddr={escrowAddr} peerAddress={isClient ? escrow.provider : escrow.client} />
           )}
         </div>
       )}

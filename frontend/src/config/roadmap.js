@@ -1,6 +1,11 @@
 // Roadmap : source unique pour l'accueil (resume par phase), /presale et le whitepaper (detail par etape).
 // Statut d'une phase deduit de ses etapes : tout fait = done, une etape faite ou en cours = now, sinon next / a venir.
 import { PLANNED_LISTING_PRICE } from './presale';
+import { FEE_GRID_TEXT } from './feeTiers';
+import { instances } from './instances';
+
+// Nombre de categories payantes, derive de la config (16 au 08/11/2026).
+const CATEGORY_COUNT = Object.keys(instances).length;
 
 export const ROADMAP_STATUS_LABEL = { done: 'Done', now: 'In progress', next: 'Next' };
 
@@ -10,7 +15,7 @@ export const ROADMAP_PHASES = [
     title: 'Architecture & Security',
     summary: 'Escrow contracts deployed on BNB Smart Chain, SpyWolf audits, 3-of-5 Safe multisig and on-chain vesting.',
     steps: [
-      { title: 'Foundations', status: 'done', items: 'The Universal Escrow V4 contract is live on BNB Smart Chain, deployed with the same audited code on five fee tiers (2%, 3%, 5%, 8% and 10%) plus a 0% demo contract. SpyWolf found no critical or high issue, every contract is verified on BscScan and owned by a 3-of-5 Safe multisig, so no single person can act alone. Users are paid through pull payments that keep working even if the contract is paused, and any change to fees or limits sits in a public 2-day timelock. The app covers 15 categories, from freelance work to OTC deals, with an end-to-end encrypted chat between client and provider.' },
+      { title: 'Foundations', status: 'done', items: `The Universal Escrow V4 contract is live on BNB Smart Chain, deployed with the same audited code on five contracts plus a 0% demo contract. Fees depend on the deal size, the same for every category: ${FEE_GRID_TEXT}, in USDT or USDC, paid by the provider only. SpyWolf found no critical or high issue, every contract is verified on BscScan and owned by a 3-of-5 Safe multisig, so no single person can act alone. Users are paid through pull payments that keep working even if the contract is paused, and any change to fees sits in a public 2-day timelock. The app covers ${CATEGORY_COUNT} categories, from freelance work to OTC deals, with an end-to-end encrypted chat between client and provider.` },
       { title: 'JOOB token & vesting', status: 'done', items: 'JOOB has a fixed supply of 1,000,000,000 tokens, with no mint function and no transfer tax, audited by SpyWolf. Team tokens are locked until January 2028 and treasury tokens until July 2027 in OpenZeppelin vesting contracts owned by the Safe, so they cannot be sold early.' },
     ],
   },
@@ -19,7 +24,7 @@ export const ROADMAP_PHASES = [
     title: 'Trust layer & Presale',
     summary: '$1 interactive demo (/try) and shareable escrow links are live. JOOB presale live since October 15, 2026, with a sealed vault and vesting for every participant.',
     steps: [
-      { title: 'Trust layer', status: 'now', items: 'Goal: anyone can check a deal before paying or before starting work. Live today: a $1 demo that runs the full escrow cycle between two of your own wallets, and public deal pages where a provider can check that the funds are locked before starting work, even without a wallet. Next: personal Telegram alerts for your own escrows (opt-in, you link your wallet yourself), and dispute evidence submitted directly from the app, which the contract already supports.' },
+      { title: 'Trust layer', status: 'now', items: 'Goal: anyone can check a deal before paying or before starting work. Live today: a $1 demo that runs the full escrow cycle between two of your own wallets, public deal pages where a provider can check that the funds are locked before starting work, even without a wallet, and files shared in the end-to-end encrypted chat. In a dispute, either party can record the fingerprint of a file on-chain as evidence, and anyone can check that a file matches it, without the file ever being published. Next: personal Telegram alerts for your own escrows (opt-in, you link your wallet yourself).' },
       { title: 'JOOB presale', status: 'now', items: 'Live since October 15, 2026, it closes on January 13, 2027 at 13:59 UTC. The price starts at $0.001 and rises by $0.0002 every 2 days, set by the contract, not by us. You can pay in USDT or USDC on BNB Chain, or from 6 other EVM chains through LI.FI, check any allocation without connecting a wallet, and follow purchases live on Telegram. The full 163.5M JOOB allocation was deposited before opening (sealed vault), every buyer has the same vesting, and unsold tokens will be returned to the Safe and burned in a public transaction.' },
     ],
   },
