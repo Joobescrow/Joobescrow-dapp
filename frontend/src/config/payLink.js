@@ -15,6 +15,9 @@ export const PAY_PARAM_KOL = 'kol';
 
 export const DEFAULT_PAY_CATEGORY = 'talent';
 
+// Montant accepte dans un lien : entier ou 2 decimales au plus (montant en dollars).
+export const PAY_AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
+
 // Supported tokens for payment links (USDT, USDC).
 export const PAY_SUPPORTED_TOKENS = PAID_TOKENS;
 
@@ -74,7 +77,9 @@ export function parsePayParams(searchParams) {
     };
   }
 
-  const numAmount = parseFloat(String(rawAmount).trim());
+  // Format strict : refuse 100abc, 1e3 ou 0x10, que parseFloat accepterait.
+  const amountStr = String(rawAmount).trim();
+  const numAmount = PAY_AMOUNT_PATTERN.test(amountStr) ? Number(amountStr) : NaN;
   if (isNaN(numAmount) || !isFinite(numAmount) || numAmount <= 0) {
     return {
       isValid: false,

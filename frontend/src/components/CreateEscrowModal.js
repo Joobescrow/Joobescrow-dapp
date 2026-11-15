@@ -422,7 +422,7 @@ export default function CreateEscrowModal({
             <label>Reference (optional)</label>
             <input type="text" value={reference} onChange={e=>setReference(e.target.value)} maxLength={REF_MAX_LENGTH} placeholder="e.g. Escrow_Joob_Deal_01" />
             <p className="form-hint">
-              Stored on-chain and public — do not include private data.
+              Stored on-chain and public. Do not include private data.
             </p>
           </div>
 
@@ -466,7 +466,7 @@ export default function CreateEscrowModal({
               </span>
               <span>
                 1. Approve {tokenSym} (no funds leave your wallet yet)
-                {step1Done ? ' — Approved' : ''}
+                {step1Done ? ' (approved)' : ''}
               </span>
             </div>
             <div className={`create-step ${step2Active ? 'is-active' : ''}`}>

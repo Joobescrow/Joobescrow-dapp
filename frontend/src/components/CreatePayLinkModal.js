@@ -220,7 +220,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
               >
                 {generatedLink}
               </div>
-              <p className="form-hint" style={{ color: '#cbd5e1' }}>
+              <p className="form-hint" style={{ color: 'var(--app-text-secondary, #9CA8A1)' }}>
                 When your client opens this link, the escrow will be ready with your address, amount and selected token. They only need to connect their wallet and confirm.
               </p>
             </div>
