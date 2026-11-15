@@ -13,6 +13,10 @@ export const isFileMessage = (m) => {
   try { return isAttachment(m); } catch { return false; }
 };
 const keep = (m) => typeof m.content === 'string' || isFileMessage(m);
+// Meme liste (memes ids dans le meme ordre) : on garde l'ancien tableau pour eviter un re-rendu
+// (sinon les apercus d'images sont recrees toutes les 10 s et la page bouge).
+const sameList = (a, b) => a.length === b.length && a.every((m, i) => m.id === b[i].id);
+const merge = (next) => (prev) => (sameList(prev, next) ? prev : next);
 
 export function useXmtpDm(peerAddress) {
   const { signer } = useWeb3();
@@ -35,7 +39,7 @@ export function useXmtpDm(peerAddress) {
         convRef.current = merged;
         setConversation(merged);
       }
-      setMessages((await convRef.current.messages()).filter(keep));
+      setMessages(merge((await convRef.current.messages()).filter(keep)));
     } catch (e) {
       console.error('[XMTP] Failed to refresh messages:', e);
     }

@@ -17,11 +17,17 @@ export default function ChatBox({ dm, evidence = null }) {
   const [recordOnSend, setRecordOnSend] = useState(true);
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const messagesEndRef = useRef(null);
+  const listRef = useRef(null);
+  const lastCountRef = useRef(0);
   const fileRef = useRef(null);
 
+  // Defilement interne a la liste seulement (jamais la page), et seulement quand un message arrive :
+  // le rechargement periodique (10 s) ne doit pas faire bouger la fenetre.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = listRef.current;
+    if (!el || messages.length === lastCountRef.current) return;
+    lastCountRef.current = messages.length;
+    el.scrollTop = el.scrollHeight;
   }, [messages]);
 
   const handleSend = async (e) => {
@@ -95,7 +101,7 @@ export default function ChatBox({ dm, evidence = null }) {
         </div>
       )}
 
-      <div className="chatbox-messages">
+      <div className="chatbox-messages" ref={listRef}>
         {messages.length === 0 ? (
           <p className="chat-empty">No messages yet. Send a message to start!</p>
         ) : (
@@ -114,7 +120,6 @@ export default function ChatBox({ dm, evidence = null }) {
             );
           })
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       <form className="chatbox-input-area" onSubmit={handleSend}>
