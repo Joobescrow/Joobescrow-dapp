@@ -21,17 +21,25 @@ export function useXmtpDm(peerAddress) {
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState(null);
   const convRef = useRef(null);
+  const peerInboxRef = useRef(null);
 
+  // Rechargement : synchro de toutes les conversations (pas seulement la notre). Si chaque partie a
+  // cree son propre DM (cas d'un pair qui ecrit avant que l'on ait ouvert le chat), XMTP ne fusionne
+  // les deux qu'une fois les deux synchronises en local ; sinon les messages du pair restent invisibles.
   const reload = useCallback(async () => {
-    const conv = convRef.current;
-    if (!conv) return;
+    if (!convRef.current || !client) return;
     try {
-      await conv.sync();
-      setMessages((await conv.messages()).filter(keep));
+      await client.conversations.syncAll();
+      const merged = peerInboxRef.current ? await client.conversations.getDmByInboxId(peerInboxRef.current) : null;
+      if (merged && merged.id !== convRef.current.id) {
+        convRef.current = merged;
+        setConversation(merged);
+      }
+      setMessages((await convRef.current.messages()).filter(keep));
     } catch (e) {
       console.error('[XMTP] Failed to refresh messages:', e);
     }
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (!client || !peerAddress) return;
@@ -46,8 +54,9 @@ export function useXmtpDm(peerAddress) {
         if (!canMsgMap.get(peerIdentifier.identifier)) { if (isMounted) setError(NOT_ACTIVATED); return; }
         const peerInboxId = await client.fetchInboxIdByIdentifier(peerIdentifier);
         if (!peerInboxId) { if (isMounted) setError(NOT_ACTIVATED); return; }
+        peerInboxRef.current = peerInboxId;
 
-        try { await client.conversations.sync(); } catch (e) { console.error('[XMTP] Failed to sync conversations:', e); }
+        try { await client.conversations.syncAll(); } catch (e) { console.error('[XMTP] Failed to sync conversations:', e); }
         let conv;
         try {
           conv = await client.conversations.getDmByInboxId(peerInboxId);

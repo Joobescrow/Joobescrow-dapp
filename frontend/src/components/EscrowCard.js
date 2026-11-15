@@ -532,8 +532,18 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           onClick={() => setIsExpanded((v) => !v)}
           aria-expanded={isExpanded}
         >
-          <span>{isExpanded ? 'Hide details & chat ▴' : 'View details & chat ▾'}</span>
+          <span>{isExpanded ? 'Hide details ▴' : 'View details ▾'}</span>
         </button>
+        {(isClient || isProvider) && (
+          <button
+            type="button"
+            className={`escrow-chat-cta ${isExpanded && activeTab === 'messages' ? 'is-active' : ''}`}
+            onClick={handleOpenChat}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+            Encrypted chat &amp; files
+          </button>
+        )}
 
         <div className="escrow-actions">
           {/* 1. Awaiting acceptance */}
@@ -644,32 +654,6 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
         </div>
       </div>
 
-      {showDemoCta && (
-        <div className="escrow-demo-cta">
-          {DEMO_CTA.paragraphs.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
-          <div className="escrow-demo-cta-actions">
-            <Link
-              href={DEMO_CTA.primary.href}
-              className="btn btn-app-primary"
-              onClick={() => track('demo_cta_presale')}
-            >
-              {DEMO_CTA.primary.label}
-            </Link>
-            <a
-              href={DEMO_CTA.secondary.href}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-app-secondary"
-              onClick={() => track('demo_cta_staking')}
-            >
-              {DEMO_CTA.secondary.label} ↗
-            </a>
-          </div>
-        </div>
-      )}
-
       {providerLowGas && isClient && (
         <div className="escrow-gas-note">
           <span>The {niche.lexicon.provider.toLowerCase()} has no BNB to pay network fees, so they can&apos;t accept or claim yet.</span>
@@ -708,7 +692,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
                 className={`escrow-tab-btn ${activeTab === 'messages' ? 'is-active' : ''}`}
                 onClick={() => setActiveTab('messages')}
               >
-                Messages
+                Chat
               </button>
               <button
                 type="button"
@@ -781,6 +765,22 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           {(isClient || isProvider) && activeTab === 'files' && (
             <EscrowFiles escrow={escrow} escrowAddr={escrowAddr} peerAddress={isClient ? escrow.provider : escrow.client} />
           )}
+        </div>
+      )}
+
+      {showDemoCta && (
+        <div className="escrow-demo-cta">
+          {DEMO_CTA.paragraphs.map((p) => (
+            <p key={p}>{p}</p>
+          ))}
+          <div className="escrow-demo-cta-actions">
+            <Link href={DEMO_CTA.primary.href} className="escrow-demo-cta-link is-primary" onClick={() => track('demo_cta_presale')}>
+              {DEMO_CTA.primary.label} →
+            </Link>
+            <a href={DEMO_CTA.secondary.href} target="_blank" rel="noreferrer" className="escrow-demo-cta-link" onClick={() => track('demo_cta_staking')}>
+              {DEMO_CTA.secondary.label} ↗
+            </a>
+          </div>
         </div>
       )}
 
