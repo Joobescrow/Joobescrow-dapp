@@ -43,3 +43,7 @@ audit_market_cahier_des_charges.docx
 contracts/out/
 contracts/cache_forge/
 captures_refonte/
+
+# Documents internes (prompts, plans, offres, dossiers) : jamais dans le depot public
+/*.md
+!/README.md
