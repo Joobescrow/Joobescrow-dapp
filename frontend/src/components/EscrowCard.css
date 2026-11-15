@@ -422,20 +422,22 @@
   margin-bottom: 8px;
 }
 
-/* Demo terminee : appel discret, place apres le chat */
+/* Demo terminee : appel presale (citron vert = invitation, pas une alerte), place apres le chat */
 .escrow-demo-cta {
   width: 100%;
   margin-top: 4px;
-  padding: 10px 2px 2px;
-  border-top: 1px dashed var(--app-border-default, #2A362E);
-  font-size: 0.78rem;
+  padding: 12px 14px;
+  background: var(--app-lime-subtle, rgba(163, 230, 53, 0.12));
+  border: 1px solid rgba(163, 230, 53, 0.45);
+  border-radius: var(--app-radius-md, 8px);
+  font-size: 0.82rem;
   line-height: 1.5;
-  color: var(--app-text-secondary, #9CA8A1);
+  color: var(--app-text-primary, #F2F5F3);
 }
-.escrow-demo-cta p { margin: 0 0 4px; }
-.escrow-demo-cta p:first-child { font-weight: 600; color: var(--app-text-primary, #F2F5F3); }
-.escrow-demo-cta-actions { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; }
-.escrow-demo-cta-link { font-size: 0.78rem; font-weight: 600; color: var(--app-text-secondary, #9CA8A1); text-decoration: none; }
+.escrow-demo-cta p { margin: 0 0 6px; }
+.escrow-demo-cta p:first-child { font-weight: 600; color: var(--app-lime, #A3E635); }
+.escrow-demo-cta-actions { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; }
+.escrow-demo-cta-link { font-size: 0.8rem; font-weight: 600; color: var(--app-text-secondary, #9CA8A1); text-decoration: none; }
 .escrow-demo-cta-link.is-primary { color: var(--app-lime, #A3E635); }
 .escrow-demo-cta-link:hover { text-decoration: underline; }
 
