@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useXmtpDm, isFileMessage } from '../hooks/useXmtpDm';
+import { isFileMessage } from '../hooks/useXmtpDm';
 import { useRecordEvidence } from '../hooks/useRecordEvidence';
 import { prepareAttachment, sha256Bytes32 } from '../lib/evidence';
 import { CHAT_FILES } from '../config/chatFiles';
 import FileAttachment from './FileAttachment';
 import './ChatBox.css';
 
+// dm : resultat de useXmtpDm (partage avec la liste des fichiers, voir EscrowChatPanel).
 // evidence (facultatif) : { escrowAddr, escrowId, isDisputed } pour proposer l'enregistrement on-chain
-// d'un fichier envoye pendant un litige, comme dans l'onglet Files.
-export default function ChatBox({ peerAddress, evidence = null }) {
-  const { client, conversation, messages, error, setError, activate, isInitializing, sendText, sendFile } = useXmtpDm(peerAddress);
+// d'un fichier envoye pendant un litige.
+export default function ChatBox({ dm, evidence = null }) {
+  const { client, conversation, messages, error, setError, activate, isInitializing, sendText, sendFile } = dm;
   const { record, recording } = useRecordEvidence(evidence?.escrowAddr, evidence?.escrowId);
   const [recordOnSend, setRecordOnSend] = useState(true);
   const [text, setText] = useState('');
@@ -62,10 +63,10 @@ export default function ChatBox({ peerAddress, evidence = null }) {
     return (
       <div className="chatbox-container">
         <div className="chatbox-uninitialized">
-          <h4>Secure Messaging</h4>
-          <p>Sign a message with your wallet to activate end-to-end encrypted chat via XMTP V3.</p>
-          <button className="btn btn-primary" onClick={activate} disabled={isInitializing}>
-            {isInitializing ? 'Connecting...' : 'Activate Chat'}
+          <h4>Encrypted chat &amp; files</h4>
+          <p>Talk and share files with your counterparty, end-to-end encrypted. Activate it once with a free signature.</p>
+          <button type="button" className="btn btn-app-primary" onClick={activate} disabled={isInitializing}>
+            {isInitializing ? 'Connecting…' : 'Activate encrypted chat'}
           </button>
           {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </div>

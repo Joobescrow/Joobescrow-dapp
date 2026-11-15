@@ -17,8 +17,7 @@ import { DEMO_CTA } from '../config/demoCta';
 import { dealPath } from '../lib/escrowContract';
 import Link from 'next/link';
 
-const ChatBox = dynamic(() => import('./ChatBox'), { ssr: false });
-const EscrowFiles = dynamic(() => import('./EscrowFiles'), { ssr: false });
+const EscrowChatPanel = dynamic(() => import('./EscrowChatPanel'), { ssr: false });
 
 export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, defaultExpanded = false, onReference }) {
   const { account, signer, readProvider, ensureCorrectChain } = useWeb3();
@@ -64,7 +63,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
   const { showToast } = useToast();
 
   const [isExpanded, setIsExpanded] = useState(Boolean(defaultExpanded));
-  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'messages' | 'files'
+  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'messages' (chat & files)
   const drawerRef = useRef(null);
 
   const isClient = account && escrow.client && account.toLowerCase() === escrow.client.toLowerCase();
@@ -692,14 +691,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
                 className={`escrow-tab-btn ${activeTab === 'messages' ? 'is-active' : ''}`}
                 onClick={() => setActiveTab('messages')}
               >
-                Chat
-              </button>
-              <button
-                type="button"
-                className={`escrow-tab-btn ${activeTab === 'files' ? 'is-active' : ''}`}
-                onClick={() => setActiveTab('files')}
-              >
-                Files
+                Chat &amp; files
               </button>
             </div>
           )}
@@ -751,19 +743,12 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           )}
 
           {(isClient || isProvider) && activeTab === 'messages' && (
-            <div>
-              <p className="text-xs text-gray-500 mb-2 text-center" title="Due to browser OPFS limits, using multiple tabs can lock the database.">
-                <strong>Note:</strong> Please avoid opening the chat in multiple tabs simultaneously.
-              </p>
-              <ChatBox
-                peerAddress={isClient ? escrow.provider : escrow.client}
-                evidence={{ escrowAddr, escrowId: escrow.id, isDisputed }}
-              />
-            </div>
-          )}
-
-          {(isClient || isProvider) && activeTab === 'files' && (
-            <EscrowFiles escrow={escrow} escrowAddr={escrowAddr} peerAddress={isClient ? escrow.provider : escrow.client} />
+            <EscrowChatPanel
+              escrow={escrow}
+              escrowAddr={escrowAddr}
+              peerAddress={isClient ? escrow.provider : escrow.client}
+              isDisputed={isDisputed}
+            />
           )}
         </div>
       )}

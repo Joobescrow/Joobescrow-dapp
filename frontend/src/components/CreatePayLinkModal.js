@@ -99,7 +99,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
 
           <div className="form-group">
             <div className="form-label-row">
-              <label>Your Payout Address (Provider)</label>
+              <label>You receive the payment at</label>
               {isAddrValid && (
                 <a
                   href={`https://bscscan.com/address/${trimmedAddr}`}
@@ -121,8 +121,8 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
             {trimmedAddr && !isAddrValid && (
               <p className="form-hint is-error">Please enter a valid BSC wallet address.</p>
             )}
-            {!trimmedAddr && (
-              <p className="form-hint">Defaults to your connected wallet or paste any recipient address.</p>
+            {(!trimmedAddr || isAddrValid) && (
+              <p className="form-hint">Your connected wallet by default. The client who opens the link pays from their own wallet.</p>
             )}
           </div>
 
