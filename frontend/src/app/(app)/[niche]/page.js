@@ -4,7 +4,9 @@ import Link from 'next/link';
 import WalletConnect from '../../../components/WalletConnect';
 import EscrowCard from '../../../components/EscrowCard';
 import CreateEscrowModal from '../../../components/CreateEscrowModal';
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import CreatePayLinkModal from '../../../components/CreatePayLinkModal';
+import { parsePayParams } from '../../../config/payLink';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useWeb3 } from '../../../context/Web3Context';
 import { useNiche } from '../../../context/NicheContext';
@@ -30,7 +32,10 @@ function DashboardContent() {
   const { showToast } = useToast();
   const { open } = useAppKit();
   const [invitedEscrow, setInvitedEscrow] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [userOpenedModal, setUserOpenedModal] = useState(false);
+  const [modalDismissed, setModalDismissed] = useState(false);
+  const [errorDismissed, setErrorDismissed] = useState(false);
+  const [showPayLinkModal, setShowPayLinkModal] = useState(false);
   // Montants par jeton de la niche (USDT par defaut ; USDT + USDC pour la demo).
   const [pending, setPending] = useState({});
   const [balances, setBalances] = useState(null);
@@ -39,6 +44,20 @@ function DashboardContent() {
   const router = useRouter();
   const highlightedId = searchParams?.get('escrow');
   const highlightedContract = searchParams?.get('c');
+  const payParam = searchParams?.get('pay');
+
+  // Analyse reactive d'un lien de paiement entrant (?pay=...) sans declencher de re-render en boucle
+  const payLinkParsed = useMemo(() => {
+    if (!searchParams || !payParam) return null;
+    if (niche.isDemo) {
+      return { isValid: false, reason: 'Payment links are not supported in demo mode. Please select a live category.' };
+    }
+    return parsePayParams(searchParams);
+  }, [searchParams, payParam, niche.isDemo]);
+
+  const showModal = userOpenedModal || (Boolean(payLinkParsed?.isValid) && !modalDismissed);
+  const payRequest = payLinkParsed?.isValid ? payLinkParsed.data : null;
+  const payLinkError = payLinkParsed && !payLinkParsed.isValid && !errorDismissed ? payLinkParsed.reason : null;
 
   const fetchPending = useCallback(async () => {
     const currentProvider = readProvider || provider;
@@ -168,6 +187,20 @@ function DashboardContent() {
         <WalletConnect />
       </header>
 
+      {payLinkError && (
+        <div className="pay-link-error-alert" role="alert">
+          <span>Notice: {payLinkError} No fields were prefilled.</span>
+          <button
+            type="button"
+            className="pay-link-error-dismiss"
+            onClick={() => setErrorDismissed(true)}
+            aria-label="Dismiss notice"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {niche.isDemo && (
         <div className="demo-banner">
           <div className="demo-banner-text">
@@ -200,7 +233,16 @@ function DashboardContent() {
               {balances ? Object.entries(balances).map(([sym, v]) => `${Number(v).toFixed(2)} ${sym}`).join(' · ') : 'Loading...'}
             </div>
           )}
-          <button className="btn btn-primary" disabled={!account} onClick={() => setShowModal(true)}>+ Create Secure Transaction</button>
+          {!niche.isDemo && (
+            <button
+              type="button"
+              className="btn-pay-link"
+              onClick={() => setShowPayLinkModal(true)}
+            >
+              + Payment link
+            </button>
+          )}
+          <button className="btn btn-primary" disabled={!account} onClick={() => { setUserOpenedModal(true); setModalDismissed(false); }}>+ Create Secure Transaction</button>
         </div>
       </div>
 
@@ -262,7 +304,7 @@ function DashboardContent() {
                    </div>
                  ))}
                </div>
-               <button className="btn btn-primary empty-cta" onClick={() => setShowModal(true)}>
+               <button className="btn btn-primary empty-cta" onClick={() => { setUserOpenedModal(true); setModalDismissed(false); }}>
                  {niche.isDemo ? 'Start the demo with wallet A' : 'Create an escrow'}
                </button>
              </>
@@ -280,7 +322,23 @@ function DashboardContent() {
            )}
         </div>
 
-      {showModal && <CreateEscrowModal onClose={() => setShowModal(false)} onSuccess={() => router.push(`/${niche.slug}/all`)} />}
+      {showModal && (
+        <CreateEscrowModal
+          onClose={() => {
+            setUserOpenedModal(false);
+            setModalDismissed(true);
+          }}
+          onSuccess={() => router.push(`/${niche.slug}/all`)}
+          payRequest={payRequest}
+        />
+      )}
+
+      {showPayLinkModal && (
+        <CreatePayLinkModal
+          onClose={() => setShowPayLinkModal(false)}
+          defaultCategory={niche.slug}
+        />
+      )}
     </div>
   );
 }

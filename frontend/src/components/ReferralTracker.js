@@ -9,16 +9,25 @@ export default function ReferralTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const ref = searchParams.get('ref');
-    if (ref) {
-      // Store the referral code in localStorage
-      localStorage.setItem('joob_ref', ref);
-      // Flag KOL : clic horodate sous une cle distincte, seulement pour un handle valide et actif
-      // (un handle inconnu n'ecrase pas un clic valide precedent).
+    // Liens de paiement (?pay=...) : le parametre 'ref' est la reference de transaction
+    // (grave sur le contrat via JOOBREF), pas un code de parrainage.
+    // L'attribution KOL passe alors par 'kol', ou conserve le clic precedent en localStorage.
+    const isPayLink = searchParams.has('pay');
+    const kolParam = searchParams.get('kol');
+    const refParam = searchParams.get('ref');
+
+    const candidateKol = kolParam || (!isPayLink ? refParam : null);
+    if (candidateKol) {
       try {
-        const kolClick = kolClickValue(ref, kolProgram);
-        if (kolClick) localStorage.setItem(KOL_STORAGE_KEY, kolClick);
+        const kolClick = kolClickValue(candidateKol, kolProgram);
+        if (kolClick) {
+          localStorage.setItem('joob_ref', candidateKol);
+          localStorage.setItem(KOL_STORAGE_KEY, kolClick);
+        }
       } catch {}
+    } else if (!isPayLink && refParam) {
+      // Store standard non-KOL referral in localStorage
+      localStorage.setItem('joob_ref', refParam);
     }
   }, [searchParams]);
 

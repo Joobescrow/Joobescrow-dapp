@@ -1,16 +1,20 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useWeb3 } from '../context/Web3Context';
 
-// Pages consultables sans wallet (profils publics des partenaires KOL, roadmap, vue des categories).
-const PUBLIC_PATH = /^\/([^/]+\/(kol\/[^/]+|whats-next)|app)\/?$/;
+// Pages consultables sans wallet (profils publics des partenaires KOL, roadmap, vue des categories, page /pay, et liens de paiement ou d'invitation ?pay= / ?escrow=).
+const PUBLIC_PATH = /^\/([^/]+\/(kol\/[^/]+|whats-next)|app|pay)\/?$/;
 
-export default function AppGuard({ children }) {
+function AppGuardContent({ children }) {
   const { account, error, isTestnet, connectWallet, chainId, ensureCorrectChain } = useWeb3();
+  const pathname = usePathname() || '';
+  const searchParams = useSearchParams();
+  const hasPayOrEscrow = Boolean(searchParams?.has('pay') || searchParams?.has('escrow'));
   // Alerte uniquement si le wallet connecte est sur une autre chaine que BNB Smart Chain (56).
   const wrongNetwork = Boolean(account) && chainId !== null && chainId !== 56 && !isTestnet;
-  const isPublic = PUBLIC_PATH.test(usePathname() || '');
+  const isPublic = PUBLIC_PATH.test(pathname) || hasPayOrEscrow;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -60,5 +64,13 @@ export default function AppGuard({ children }) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AppGuard({ children }) {
+  return (
+    <Suspense fallback={<div style={{ flex: 1 }}>{children}</div>}>
+      <AppGuardContent>{children}</AppGuardContent>
+    </Suspense>
   );
 }

@@ -313,3 +313,51 @@
   }
 }
 
+/* Pay link button and alerts */
+.btn-pay-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  background: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-default, #2A362E);
+  color: var(--app-lime, #A3E635);
+  padding: 0 16px;
+  border-radius: var(--app-radius-md, 8px);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-pay-link:hover {
+  background: var(--app-surface-3, #1F2923);
+  border-color: var(--app-lime, #A3E635);
+  color: var(--app-lime-hover, #BEF264);
+  transform: translateY(-1px);
+}
+
+.pay-link-error-alert {
+  padding: 12px 18px;
+  border-radius: var(--app-radius-md, 8px);
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: var(--app-yellow, #EAB308);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pay-link-error-dismiss {
+  background: none;
+  border: none;
+  color: var(--app-yellow, #EAB308);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+

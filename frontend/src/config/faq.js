@@ -58,6 +58,16 @@ export const FAQ = [
     link: { href: '/security', label: 'Security & audits' },
   },
   {
+    id: 'pay-links',
+    q: 'How do pre-filled payment links work?',
+    summary:
+      'Any provider can generate a direct payment link with their address, requested amount, token (USDT or USDC), category and reference. When the client opens it, the escrow form is already filled out for them to review, approve and lock funds safely.',
+    details: [
+      'Nothing is signed or approved automatically: the client connects their wallet, verifies the provider address and terms, and remains in control of all fields.',
+      'Payment links work across all supported categories and automatically apply our tiered fee rates based on the deal amount.',
+    ],
+  },
+  {
     id: 'messages',
     q: 'Are communications with the provider secure?',
     summary:

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWeb3 } from '../context/Web3Context';
 import { useNiche } from '../context/NicheContext';
 import { useToast } from '../context/ToastContext';
+import { useAppKit } from '@reown/appkit/react';
 import { isUserRejection, walletErrorMessage } from '../lib/walletErrors';
 import { ethers } from 'ethers';
 import { ESCROW_ABI, TOKEN_ADDRESSES, ERC20_ABI } from '../config/contract';
@@ -28,24 +29,54 @@ function toUnits(value) {
 }
 const fmt = (units) => Number(ethers.formatUnits(units, TOKEN_DECIMALS)).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
-export default function CreateEscrowModal({ onClose, onSuccess, prefilledProvider = '', prefilledAmount = '' }) {
+export default function CreateEscrowModal({
+  onClose,
+  onSuccess,
+  prefilledProvider = '',
+  prefilledAmount = '',
+  prefilledToken = '',
+  prefilledReference = '',
+  payRequest = null,
+}) {
   const { account, signer, ensureCorrectChain, readProvider } = useWeb3();
+  const { open } = useAppKit();
   const niche = useNiche();
   const { showToast } = useToast();
-  const [providerAddr, setProviderAddr] = useState(prefilledProvider);
-  const [amount, setAmount] = useState(prefilledAmount);
+
+  const initialProvider = payRequest?.provider || prefilledProvider || '';
+  const initialAmount = payRequest?.amount || prefilledAmount || '';
+  const initialRef = payRequest?.reference || prefilledReference || '';
+
+  const [providerAddr, setProviderAddr] = useState(initialProvider);
+  const [amount, setAmount] = useState(initialAmount);
   const [timeoutDays, setTimeoutDays] = useState(3);
   // Reference facultative gravee dans la transaction (lisible par tous, non modifiable).
-  const [reference, setReference] = useState('');
+  const [reference, setReference] = useState(initialRef);
+
   // Jetons proposes : grille par montant = USDT ou USDC (config/feeTiers.js) ; demo = ses propres jetons.
   const tokenChoices = niche.isDemo ? (niche.tokens || ['USDT']) : PAID_TOKENS;
-  const [tokenSym, setTokenSym] = useState(tokenChoices[0]);
+  const initialToken = (payRequest?.token || prefilledToken) && tokenChoices.includes(payRequest?.token || prefilledToken)
+    ? (payRequest?.token || prefilledToken)
+    : tokenChoices[0];
+  const [tokenSym, setTokenSym] = useState(initialToken);
   const tokenAddr = TOKEN_ADDRESSES[tokenSym];
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: input, 2: approve, 3: create
   const [allowanceSufficient, setAllowanceSufficient] = useState(false);
 
   const [shareableLink, setShareableLink] = useState(null);
+
+  // Detection d'un lien de paiement et de modification des valeurs initiales
+  const isFromPayLink = Boolean(payRequest);
+  const isModified = isFromPayLink && (
+    providerAddr.trim().toLowerCase() !== (payRequest.provider || '').trim().toLowerCase() ||
+    String(amount).trim() !== String(payRequest.amount || '').trim() ||
+    tokenSym !== payRequest.token ||
+    reference.trim() !== (payRequest.reference || '').trim()
+  );
+
+  const providerTrim = providerAddr.trim();
+  const isSelfWallet = Boolean(account && providerTrim && account.toLowerCase() === providerTrim.toLowerCase());
 
   // Grille par montant (contrats payants) : le contrat cible depend du montant, pas de la categorie.
   // La demo garde son contrat et ses bornes.
@@ -77,7 +108,6 @@ export default function CreateEscrowModal({ onClose, onSuccess, prefilledProvide
   // Adresse dont le solde BNB est trop bas (l'option ne s'affiche que pour l'adresse saisie actuelle).
   const [lowGasAddr, setLowGasAddr] = useState(null);
   const [sendGas, setSendGas] = useState(true);
-  const providerTrim = providerAddr.trim();
   const providerLowGas = Boolean(lowGasAddr) && lowGasAddr === providerTrim.toLowerCase();
   useEffect(() => {
     if (!readProvider || !ethers.isAddress(providerTrim)) return;
@@ -310,8 +340,57 @@ export default function CreateEscrowModal({ onClose, onSuccess, prefilledProvide
         <form onSubmit={handleSubmit}>
           {/* Corps defilant : le titre et les boutons restent toujours visibles */}
           <div className="modal-body">
+          {isFromPayLink && (
+            <div className={`pay-link-banner ${isModified ? 'is-modified' : 'is-requested'}`}>
+              <div className="pay-link-banner-header">
+                <span className="pay-link-badge">{isModified ? 'Request Modified' : 'Payment Request'}</span>
+                <span className="pay-link-title">
+                  {isModified ? 'Original request parameters have been modified' : 'Payment requested by provider'}
+                </span>
+              </div>
+              <div className="pay-link-address-row">
+                <span className="pay-link-label">Provider:</span>
+                <a
+                  href={`https://bscscan.com/address/${payRequest.provider}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pay-link-address"
+                  title="View provider on BscScan"
+                >
+                  {payRequest.provider}
+                  <span className="pay-link-ext" aria-hidden="true"> ↗</span>
+                </a>
+              </div>
+              {!isModified && (
+                <div className="pay-link-details">
+                  <span>Requested: <strong>{payRequest.amount} {payRequest.token}</strong></span>
+                  {payRequest.reference && <span>Reference: <strong>{payRequest.reference}</strong></span>}
+                </div>
+              )}
+            </div>
+          )}
+
+          {isSelfWallet && (
+            <div className="pay-link-warning">
+              You are connected with the provider&apos;s wallet. To fund this escrow, switch to a client wallet.
+            </div>
+          )}
+
           <div className="form-group">
-            <label>{niche.lexicon.provider} Address</label>
+            <div className="form-label-row">
+              <label>{niche.lexicon.provider} Address</label>
+              {ethers.isAddress(providerTrim) && (
+                <a
+                  href={`https://bscscan.com/address/${providerTrim}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="form-label-link"
+                  title="View on BscScan"
+                >
+                  View on BscScan ↗
+                </a>
+              )}
+            </div>
             <input type="text" value={providerAddr} onChange={e=>setProviderAddr(e.target.value)} required placeholder="0x..." />
           </div>
           <div className="flex gap-4">
@@ -399,11 +478,30 @@ export default function CreateEscrowModal({ onClose, onSuccess, prefilledProvide
 
           <div className="modal-actions">
             <button type="button" className="btn btn-app-secondary" onClick={onClose} disabled={loading}>Cancel</button>
-            <button type="submit" className="btn btn-app-primary" disabled={loading || !canSubmit}>
-              {loading
-                ? (step === 2 ? `1/2 Approving ${tokenSym}...` : '2/2 Locking funds...')
-                : (step1Done ? 'Lock funds in escrow' : `Approve & Lock ${tokenSym}`)}
-            </button>
+            {!account ? (
+              <button
+                type="button"
+                className="btn btn-app-primary"
+                onClick={() => open()}
+              >
+                Connect wallet to pay
+              </button>
+            ) : isSelfWallet ? (
+              <button
+                type="button"
+                className="btn btn-app-primary"
+                disabled
+                title="The provider must be a different wallet than yours"
+              >
+                Switch wallet to pay
+              </button>
+            ) : (
+              <button type="submit" className="btn btn-app-primary" disabled={loading || !canSubmit}>
+                {loading
+                  ? (step === 2 ? `1/2 Approving ${tokenSym}...` : '2/2 Locking funds...')
+                  : (step1Done ? 'Lock funds in escrow' : `Approve & Lock ${tokenSym}`)}
+              </button>
+            )}
           </div>
         </form>
       </div>
