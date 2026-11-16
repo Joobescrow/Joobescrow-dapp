@@ -73,14 +73,14 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
   return (
     <div className="modal-overlay">
       <div className="modal-content is-form" style={{ maxWidth: '540px' }}>
-        <h2>Create a Payment Link</h2>
+        <h2>Request a payment</h2>
         <div className="modal-body">
           <p className="form-hint" style={{ marginTop: 0, marginBottom: '16px' }}>
             Share a prefilled escrow link with your client. When they open it, the escrow form is already configured with your payout address, amount and chosen token.
           </p>
 
           <div className="form-group">
-            <label>Escrow Category</label>
+            <label>Type of deal</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -93,7 +93,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
               ))}
             </select>
             <p className="form-hint">
-              Select the category matching your deal lexicon. Escrow fee tiers are identical across all categories.
+              Only changes the words your client sees (for example Freelancer or Creator). Fees are the same for every type.
             </p>
           </div>
 

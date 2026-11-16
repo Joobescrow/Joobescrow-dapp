@@ -345,7 +345,7 @@ export default function CreateEscrowModal({
               <div className="pay-link-banner-header">
                 <span className="pay-link-badge">{isModified ? 'Request Modified' : 'Payment Request'}</span>
                 <span className="pay-link-title">
-                  {isModified ? 'Original request parameters have been modified' : 'Payment requested by provider'}
+                  {isModified ? 'You changed the requested details' : `Payment requested by the ${niche.lexicon.provider.toLowerCase()}: you pay, they get paid`}
                 </span>
               </div>
               <div className="pay-link-address-row">
@@ -378,7 +378,7 @@ export default function CreateEscrowModal({
 
           <div className="form-group">
             <div className="form-label-row">
-              <label>{niche.lexicon.provider} Address</label>
+              <label>Who are you paying? ({niche.lexicon.provider} wallet address)</label>
               {ethers.isAddress(providerTrim) && (
                 <a
                   href={`https://bscscan.com/address/${providerTrim}`}
@@ -398,7 +398,7 @@ export default function CreateEscrowModal({
               <label>Amount ({tokenSym})</label>
               {tokenChoices.length > 1 && (
                 <select value={tokenSym} onChange={e=>setTokenSym(e.target.value)} aria-label="Token" style={{ marginBottom: '8px', width: '100%' }}>
-                  {tokenChoices.map(t => <option key={t} value={t}>{t} (BEP-20)</option>)}
+                  {tokenChoices.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               )}
               <input type="number" step="0.01" min={isPaid ? FEE_MIN_USD : niche.minAmount} max={isPaid ? FEE_MAX_USD : niche.maxAmount} value={amount} onChange={e=>setAmount(e.target.value)} required placeholder={niche.isDemo ? '1.00' : '100.00'} />
@@ -410,19 +410,19 @@ export default function CreateEscrowModal({
               )}
             </div>
             <div className="form-group flex-1">
-              <label>Delivery Deadline (Days)</label>
+              <label>Days to deliver</label>
               <input type="number" min="3" max="365" step="1" value={timeoutDays} onChange={e=>setTimeoutDays(e.target.value)} required title="Minimum 3 days as per smart contract rules" />
               <p className="form-hint">
-                Min. 3 days enforced by the smart contract to guarantee a fair dispute window.
+                Minimum 3 days, set by the contract so there is always time to raise a dispute.
               </p>
             </div>
           </div>
 
           <div className="form-group">
-            <label>Reference (optional)</label>
+            <label>Deal note (optional)</label>
             <input type="text" value={reference} onChange={e=>setReference(e.target.value)} maxLength={REF_MAX_LENGTH} placeholder="e.g. Escrow_Joob_Deal_01" />
             <p className="form-hint">
-              Stored on-chain and public. Do not include private data.
+              Stored publicly on the blockchain: keep it professional, no private data.
             </p>
           </div>
 
@@ -439,7 +439,7 @@ export default function CreateEscrowModal({
                 </div>
               )}
               <div className="create-summary-row is-net">
-                <span>Provider receives (on standard release)</span>
+                <span>{niche.lexicon.provider} receives when you release</span>
                 <strong>{fmt(netUnits)} {tokenSym}</strong>
               </div>
               <div className="create-summary-note">
@@ -465,13 +465,13 @@ export default function CreateEscrowModal({
                 {step1Done ? '✓' : '1'}
               </span>
               <span>
-                1. Approve {tokenSym} (no funds leave your wallet yet)
+                1. Allow the escrow to use this amount of {tokenSym} (your wallet calls it Approve; no funds move yet)
                 {step1Done ? ' (approved)' : ''}
               </span>
             </div>
             <div className={`create-step ${step2Active ? 'is-active' : ''}`}>
               <span className="create-step-badge" aria-hidden="true">2</span>
-              <span>2. Lock funds in escrow</span>
+              <span>2. Lock your funds in escrow</span>
             </div>
           </div>
           </div>
