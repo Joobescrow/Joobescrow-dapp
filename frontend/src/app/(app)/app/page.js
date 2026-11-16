@@ -42,10 +42,10 @@ export default function HubPage() {
       <Link href="/pay" className={styles.demo}>
         <div>
           <span className={styles.demoTag} style={{ background: 'var(--app-lime, #A3E635)' }}>Pay Link</span>
-          <h2>Getting paid? Create a payment link</h2>
+          <h2>Getting paid? Request a payment</h2>
           <p>Generate a prefilled escrow link with your payout address, amount and reference to send in a bio, DM or invoice.</p>
         </div>
-        <span className={styles.demoCta}>Create payment link <span aria-hidden="true">→</span></span>
+        <span className={styles.demoCta}>Request a payment <span aria-hidden="true">→</span></span>
       </Link>
 
       {/* Encadre des frais, sous la demo : grille par montant, identique pour toutes les categories */}

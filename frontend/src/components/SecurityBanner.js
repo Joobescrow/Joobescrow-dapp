@@ -55,7 +55,7 @@ export default function SecurityBanner() {
       <div className="security-banner-body">
         <span className="security-banner-text">
           <strong>Seeing an &quot;untrusted contract&quot; warning?</strong>{' '}
-          That&apos;s normal for a new platform — our contracts just aren&apos;t listed in every wallet&apos;s database yet. Funds are non-custodial and only ever go to you or your counterparty.
+          That&apos;s normal for a new platform: our contracts just aren&apos;t listed in every wallet&apos;s database yet. Funds are non-custodial and only ever go to you or your counterparty.
         </span>
         <span className="security-banner-links">
           <span className="security-banner-verify">Verify us anytime:</span>

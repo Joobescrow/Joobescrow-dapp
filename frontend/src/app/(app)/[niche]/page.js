@@ -239,7 +239,7 @@ function DashboardContent() {
               className="btn-pay-link"
               onClick={() => setShowPayLinkModal(true)}
             >
-              + Payment link
+              + Request a payment
             </button>
           )}
           <button className="btn btn-primary" disabled={!account} onClick={() => { setUserOpenedModal(true); setModalDismissed(false); }}>+ Create Secure Transaction</button>
