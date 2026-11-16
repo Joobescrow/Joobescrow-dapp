@@ -349,7 +349,7 @@ export default function CreateEscrowModal({
                 </span>
               </div>
               <div className="pay-link-address-row">
-                <span className="pay-link-label">Provider:</span>
+                <span className="pay-link-label">{niche.lexicon.provider} (gets paid):</span>
                 <a
                   href={`https://bscscan.com/address/${payRequest.provider}`}
                   target="_blank"
@@ -360,6 +360,9 @@ export default function CreateEscrowModal({
                   {payRequest.provider}
                   <span className="pay-link-ext" aria-hidden="true"> ↗</span>
                 </a>
+              </div>
+              <div className="pay-link-details">
+                <span>Type of deal: <strong>{niche.name}</strong> ({niche.lexicon.client} pays, {niche.lexicon.provider} gets paid)</span>
               </div>
               {!isModified && (
                 <div className="pay-link-details">
