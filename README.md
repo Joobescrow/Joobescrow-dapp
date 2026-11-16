@@ -8,7 +8,8 @@ A client locks USDT or USDC in a smart contract, the provider delivers, the clie
 - Try a real $1 escrow (0% fee demo): https://www.joobescrow.com/try
 - Security, audit, KYC and all addresses: https://www.joobescrow.com/security
 - X: https://x.com/JoobEscrow
-- Telegram: https://t.me/JoobEscrow_Official
+- Telegram announcements: https://t.me/joobescrow_channel
+- Telegram community: https://t.me/joobescrow_group
 
 ## Technology Stack
 

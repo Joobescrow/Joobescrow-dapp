@@ -1,7 +1,7 @@
 // Liens officiels publics (un seul endroit a mettre a jour).
 // 16/11/2026 : ancien groupe supprime, le nom @joobescrow_official a ete pris par un faux canal (piege Collab.Land).
-// Le lien Telegram public pointe vers le canal officiel tant qu'un nouveau groupe n'a pas son lien.
-export const TELEGRAM_URL = 'https://t.me/joobescrow_channel';
+// Nouveau groupe communaute cree le 16/11/2026 : @joobescrow_group.
+export const TELEGRAM_URL = 'https://t.me/joobescrow_group';
 // Canal d'annonces officiel (cree le 13/11/2026). Tout autre canal "JoobEscrow" est un faux.
 export const TELEGRAM_CHANNEL_URL = 'https://t.me/joobescrow_channel';
 export const X_URL = 'https://x.com/JoobEscrow';

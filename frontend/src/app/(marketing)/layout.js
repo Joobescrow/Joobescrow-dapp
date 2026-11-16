@@ -69,6 +69,7 @@ export default function MarketingLayout({ children }) {
             <div className={styles.footerCol}>
               <h3>Community</h3>
               <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noopener noreferrer">Telegram announcements</a>
+              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Telegram group</a>
               <a href={X_URL} target="_blank" rel="noopener noreferrer">X (Twitter)</a>
             </div>
           </div>
