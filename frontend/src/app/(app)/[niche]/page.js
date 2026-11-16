@@ -6,6 +6,7 @@ import EscrowCard from '../../../components/EscrowCard';
 import CreateEscrowModal from '../../../components/CreateEscrowModal';
 import CreatePayLinkModal from '../../../components/CreatePayLinkModal';
 import { parsePayParams } from '../../../config/payLink';
+import { OPEN_CREATE_PARAM } from '../../../config/appEntry';
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useWeb3 } from '../../../context/Web3Context';
@@ -55,7 +56,9 @@ function DashboardContent() {
     return parsePayParams(searchParams);
   }, [searchParams, payParam, niche.isDemo]);
 
-  const showModal = userOpenedModal || (Boolean(payLinkParsed?.isValid) && !modalDismissed);
+  // ?new=1 (entree « Pay someone » de /app) : ouvre le formulaire des que le wallet est connecte.
+  const wantsNew = searchParams?.get(OPEN_CREATE_PARAM) === '1' && !niche.isDemo;
+  const showModal = userOpenedModal || ((Boolean(payLinkParsed?.isValid) || (wantsNew && Boolean(account))) && !modalDismissed);
   const payRequest = payLinkParsed?.isValid ? payLinkParsed.data : null;
   const payLinkError = payLinkParsed && !payLinkParsed.isValid && !errorDismissed ? payLinkParsed.reason : null;
 

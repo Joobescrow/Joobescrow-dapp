@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { instances } from '../../../config/instances';
 import { FEE_RANGE_TEXT, FEE_TIERS, tierAmountLabel } from '../../../config/feeTiers';
+import { PAY_SOMEONE_CATEGORY, OPEN_CREATE_PARAM, GET_PAID_PATH } from '../../../config/appEntry';
 import styles from './hub.module.css';
 
 export const metadata = {
   title: 'Launch App | JoobEscrow',
-  description: 'Open a JoobEscrow escrow in your category: funds stay locked in an audited non-custodial contract on BNB Smart Chain until the work is approved, the deadline passes or a dispute is settled.',
+  description: 'Pay someone or get paid with JoobEscrow: funds stay locked in an audited non-custodial contract on BNB Smart Chain until the work is approved, the deadline passes or a dispute is settled.',
   alternates: { canonical: '/app' },
 };
 
@@ -20,32 +21,36 @@ export default function HubPage() {
     <div className={styles.hub}>
       <header className={styles.head}>
         <p className={styles.eyebrow}>JoobEscrow app</p>
-        <h1 className={styles.title}>Choose your escrow</h1>
+        <h1 className={styles.title}>What would you like to do?</h1>
         <p className={styles.lead}>
-          Pick the category that fits your deal. Funds stay locked in an audited contract until the work is approved,
-          the deadline passes or a dispute is settled. The client pays no fee.
+          Funds stay locked in an audited contract until the client releases them, the deadline passes
+          or a dispute is settled. The client pays no fee.
         </p>
         <ul className={styles.trust}>
           {TRUST.map((t) => <li key={t}>{t}</li>)}
         </ul>
       </header>
 
-      <Link href="/demo" className={styles.demo}>
-        <div>
-          <span className={styles.demoTag}>Demo</span>
-          <h2>New here? Run a full escrow with $1</h2>
-          <p>Between two of your own wallets, with $1 in USDT or USDC, 0% fee. You get back exactly what you deposit.</p>
-        </div>
-        <span className={styles.demoCta}>Start the demo <span aria-hidden="true">→</span></span>
-      </Link>
+      {/* Deux entrees selon l'intention : qui paie, qui est paye */}
+      <section className={styles.doors} aria-label="Start">
+        <Link href={`/${PAY_SOMEONE_CATEGORY}?${OPEN_CREATE_PARAM}=1`} className={`${styles.door} ${styles.doorPay}`}>
+          <span className={styles.doorEyebrow}>I am paying</span>
+          <h2>Pay someone</h2>
+          <p>Lock the payment in escrow and release it when the work is delivered. 0% fee for you.</p>
+          <span className={styles.doorCta}>Start an escrow <span aria-hidden="true">→</span></span>
+        </Link>
+        <Link href={GET_PAID_PATH} className={`${styles.door} ${styles.doorGet}`}>
+          <span className={styles.doorEyebrow}>I am getting paid</span>
+          <h2>Get paid</h2>
+          <p>Send your client a payment request. You see the funds locked on-chain before you start the work.</p>
+          <span className={styles.doorCta}>Request a payment <span aria-hidden="true">→</span></span>
+        </Link>
+      </section>
 
-      <Link href="/pay" className={styles.demo}>
-        <div>
-          <span className={styles.demoTag} style={{ background: 'var(--app-lime, #A3E635)' }}>Pay Link</span>
-          <h2>Getting paid? Request a payment</h2>
-          <p>Generate a prefilled escrow link with your payout address, amount and reference to send in a bio, DM or invoice.</p>
-        </div>
-        <span className={styles.demoCta}>Request a payment <span aria-hidden="true">→</span></span>
+      <Link href="/demo" className={styles.demoStrip}>
+        <span className={styles.demoTag}>Try with $1</span>
+        <span className={styles.demoStripText}>Run a full escrow between two of your own wallets, 0% fee.</span>
+        <span className={styles.demoCta}>Start the demo <span aria-hidden="true">→</span></span>
       </Link>
 
       {/* Encadre des frais, sous la demo : grille par montant, identique pour toutes les categories */}
@@ -72,7 +77,8 @@ export default function HubPage() {
       </section>
 
       <section aria-label="Categories">
-        <h2 className={styles.sectionTitle}>Choose a category</h2>
+        <h2 className={styles.sectionTitle}>Or pick a type of deal</h2>
+        <p className={styles.sectionNote}>It only changes the words used, for example Company and Freelancer. Fees are the same for every type.</p>
         <div className={styles.grid}>
           {CATEGORIES.map((n) => (
             <Link key={n.slug} href={`/${n.slug}`} className={styles.card}>
