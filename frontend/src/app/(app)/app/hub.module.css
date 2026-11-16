@@ -238,3 +238,14 @@
   .door h2 { font-size: 1.25rem; }
   .demoStrip { margin-top: -8px; }
 }
+
+/* Liste du type de deal dans « Pay someone » */
+.doorLabel { margin-top: 6px; font-size: 0.78rem; font-weight: 600; color: var(--app-text-secondary, #9CA8A1); }
+.doorSelect {
+  width: 100%; padding: 10px 12px; font-size: 0.9rem; font-family: var(--font-main);
+  color: var(--app-text-primary, #F2F5F3); background: var(--app-surface-2, #171E1A);
+  border: 1px solid var(--app-border-default, #2A362E); border-radius: var(--app-radius-md, 8px);
+}
+.doorSelect:focus { outline: none; border-color: var(--app-lime, #A3E635); }
+.doorHint { font-size: 0.78rem; color: var(--app-text-muted, #627067); }
+.door .doorCta { text-decoration: none; }

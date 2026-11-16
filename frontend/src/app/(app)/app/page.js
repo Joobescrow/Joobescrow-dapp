@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { instances } from '../../../config/instances';
 import { FEE_RANGE_TEXT, FEE_TIERS, tierAmountLabel } from '../../../config/feeTiers';
-import { PAY_SOMEONE_CATEGORY, OPEN_CREATE_PARAM, GET_PAID_PATH } from '../../../config/appEntry';
+import { GET_PAID_PATH } from '../../../config/appEntry';
+import PaySomeoneDoor from './PaySomeoneDoor';
 import styles from './hub.module.css';
 
 export const metadata = {
@@ -9,10 +9,6 @@ export const metadata = {
   description: 'Pay someone or get paid with JoobEscrow: funds stay locked in an audited non-custodial contract on BNB Smart Chain until the work is approved, the deadline passes or a dispute is settled.',
   alternates: { canonical: '/app' },
 };
-
-// Grille par montant (config/feeTiers.js) : toutes les categories ont les memes frais,
-// fixes par le montant de l'escrow. Les categories ne servent plus qu'au vocabulaire (roles).
-const CATEGORIES = Object.values(instances);
 
 const TRUST = ['Audited by SpyWolf', 'Non-custodial', '3-of-5 Safe multisig', 'BNB Smart Chain'];
 
@@ -33,16 +29,12 @@ export default function HubPage() {
 
       {/* Deux entrees selon l'intention : qui paie, qui est paye */}
       <section className={styles.doors} aria-label="Start">
-        <Link href={`/${PAY_SOMEONE_CATEGORY}?${OPEN_CREATE_PARAM}=1`} className={`${styles.door} ${styles.doorPay}`}>
-          <span className={styles.doorEyebrow}>I am paying</span>
-          <h2>Pay someone</h2>
-          <p>Lock the payment in escrow and release it when the work is delivered. 0% fee for you.</p>
-          <span className={styles.doorCta}>Start an escrow <span aria-hidden="true">→</span></span>
-        </Link>
+        <PaySomeoneDoor />
         <Link href={GET_PAID_PATH} className={`${styles.door} ${styles.doorGet}`}>
           <span className={styles.doorEyebrow}>I am getting paid</span>
           <h2>Get paid</h2>
           <p>Send your client a payment request. You see the funds locked on-chain before you start the work.</p>
+          <span className={styles.doorHint}>You choose the type of deal and the amount in the next step.</span>
           <span className={styles.doorCta}>Request a payment <span aria-hidden="true">→</span></span>
         </Link>
       </section>
@@ -76,19 +68,6 @@ export default function HubPage() {
         </p>
       </section>
 
-      <section aria-label="Categories">
-        <h2 className={styles.sectionTitle}>Or pick a type of deal</h2>
-        <p className={styles.sectionNote}>It only changes the words used, for example Company and Freelancer. Fees are the same for every type.</p>
-        <div className={styles.grid}>
-          {CATEGORIES.map((n) => (
-            <Link key={n.slug} href={`/${n.slug}`} className={styles.card}>
-              <span className={styles.cardName}>{n.name}</span>
-              <span className={styles.cardRoles}>{n.lexicon.client} <span aria-hidden="true">↔</span> {n.lexicon.provider}</span>
-              <span className={styles.cardArrow} aria-hidden="true">→</span>
-            </Link>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

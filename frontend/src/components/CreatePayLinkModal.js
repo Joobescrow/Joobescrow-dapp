@@ -88,7 +88,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
             >
               {PAY_CATEGORIES.map((cat) => (
                 <option key={cat.slug} value={cat.slug}>
-                  {cat.name} ({cat.lexicon.provider} ↔ {cat.lexicon.client})
+                  {cat.name} ({cat.lexicon.client} pays, {cat.lexicon.provider} gets paid)
                 </option>
               ))}
             </select>
