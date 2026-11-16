@@ -140,3 +140,7 @@ export function closingTime(global) {
 // Montant minimal a lever pour lister au prix prevu (decision du 02/11/2026, post "Road to $25K").
 // En dessous, le prix de listing est ajuste a la liquidite disponible.
 export const LISTING_TARGET_USD = 25000;
+
+// Delai max de lecture on-chain des routes /api/recent-buys et /api/sales-bonus. Au-dela, la route
+// renvoie sa reponse de secours (liste vide) : evite qu un RPC lent bloque le build (limite Next : 60 s).
+export const ROUTE_READ_TIMEOUT_MS = 40000;

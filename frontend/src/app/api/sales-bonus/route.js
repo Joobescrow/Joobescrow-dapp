@@ -1,3 +1,4 @@
+import { ROUTE_READ_TIMEOUT_MS } from '../../../config/presale';
 import { firstProvider, fairShare, SERVER_RPCS } from '../../../lib/presaleLogs';
 import { SALES_BONUS } from '../../../config/promo';
 
@@ -7,8 +8,18 @@ export const maxDuration = 60;
 
 export async function GET() {
   try {
-    const p = await firstProvider(SERVER_RPCS(), { 'User-Agent': 'JoobEscrow-site/1.0' });
-    return Response.json(await fairShare(p));
+    // Lecture plafonnee : au-dela du delai, reponse de secours (voir config/presale.js).
+    const read = (async () => {
+      const p = await firstProvider(SERVER_RPCS(), { 'User-Agent': 'JoobEscrow-site/1.0' });
+      return fairShare(p);
+    })();
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('read timeout')), ROUTE_READ_TIMEOUT_MS); });
+    try {
+      return Response.json(await Promise.race([read, timeout]));
+    } finally {
+      clearTimeout(timer);
+    }
   } catch (err) {
     console.error('[sales-bonus]', err?.shortMessage || err?.message || err);
     const started = Date.now() / 1000 >= Date.parse(SALES_BONUS.start) / 1000;
