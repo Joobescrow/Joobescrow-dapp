@@ -132,6 +132,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <ComparisonTable />
+
       {/* Why buy JOOB */}
       <section className={styles.section} id="why-joob">
         <div className={styles.container}>
@@ -156,8 +158,6 @@ export default function LandingPage() {
           </p>
         </div>
       </section>
-
-      <ComparisonTable />
 
       <HowToBuy />
 
