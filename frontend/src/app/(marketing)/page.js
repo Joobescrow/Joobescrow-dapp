@@ -10,6 +10,8 @@ import ComparisonTable from '../../components/ComparisonTable';
 import PromoBanner from '../../components/PromoBanner';
 import { AUDITS, BSCSCAN, KYC_URL, PRESALE_ADDRESSES } from '../../config/presale';
 import { TOKENOMICS, fmtM } from '../../config/tokenomics';
+import { HOME_APP_ENTRIES } from '../../config/appEntry';
+import { FEE_RANGE_TEXT } from '../../config/feeTiers';
 
 // Page orientee vente : un seul CTA (presale), preuves de confiance regroupees sous le hero,
 // documentation produit sur ses pages dediees (/try, /tokenomics, /roadmap, /security, /faq).
@@ -106,6 +108,29 @@ export default function LandingPage() {
       </section>
 
       <PartnerMarquee />
+
+      {/* L'app en ligne : les 3 entrees (Pay someone, Get paid, Pay button) */}
+      <section className={styles.section} id="app">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>THE ESCROW APP</span>
+            <h2 className={styles.sectionTitle}>The app is live. <span className={styles.textGradient}>Use it today.</span></h2>
+          </div>
+          <div className={styles.appGrid}>
+            {HOME_APP_ENTRIES.map((e) => (
+              <Link key={e.key} href={e.href} className={`glass-panel ${styles.appCard}`}>
+                <h3 className={styles.eraTitle}>{e.title}</h3>
+                <p className={styles.eraDesc}>{e.desc}</p>
+                <span className={styles.appCta}>{e.cta} <span aria-hidden="true">→</span></span>
+              </Link>
+            ))}
+          </div>
+          <p className={styles.factsLine}>
+            Fees from {FEE_RANGE_TEXT}, paid by the provider. 0% for the client.{' '}
+            <Link href="/try" className="text-gradient font-bold hover:underline">Try the full cycle with $1 →</Link>
+          </p>
+        </div>
+      </section>
 
       {/* Why buy JOOB */}
       <section className={styles.section} id="why-joob">

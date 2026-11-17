@@ -1398,3 +1398,11 @@
 .teamGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
 @media (max-width: 900px) { .teamGrid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .teamGrid { grid-template-columns: 1fr; } }
+
+/* Section « The app is live » : 3 cartes cliquables */
+.appGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.appCard { display: flex; flex-direction: column; padding: 32px 28px; text-decoration: none; border-top: 3px solid #a3e635; transition: transform 0.2s ease, border-color 0.2s ease; }
+.appCard:hover { transform: translateY(-3px); border-color: rgba(163, 230, 53, 0.6); }
+.appCard .eraDesc { flex: 1; }
+.appCta { margin-top: 18px; font-weight: 700; color: #a3e635; font-size: 0.95rem; }
+@media (max-width: 900px) { .appGrid { grid-template-columns: 1fr; gap: 16px; } }
