@@ -434,3 +434,17 @@
 @media (max-width: 480px) { .paybtn-row { flex-direction: column; } }
 .paybtn-preview.is-placeholder { opacity: 0.55; }
 .paybtn-sample { display: inline-flex; align-items: center; padding: 12px 20px; background: #A3E635; color: #052e16; border: 1px solid #BEF264; border-radius: 10px; font: 700 15px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+
+/* Page Pay button : choix du mode, style, double apercu (fond clair et fond sombre) */
+.pb-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.pb-mode { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; text-align: left; cursor: pointer;
+  background: var(--app-surface-2, #171E1A); border: 1px solid var(--app-border-default, #2A362E); border-radius: 8px;
+  color: var(--app-text-secondary, #9CA8A1); font-family: var(--font-main); }
+.pb-mode strong { font-size: 0.86rem; color: var(--app-text-primary, #F2F5F3); }
+.pb-mode span { font-size: 0.74rem; line-height: 1.35; }
+.pb-mode.is-active { border-color: var(--app-lime, #A3E635); background: var(--app-lime-subtle, rgba(163, 230, 53, 0.12)); }
+.pb-mode.is-active strong { color: var(--app-lime, #A3E635); }
+.pb-style { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pb-previews { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.paybtn-preview.is-dark { background: #0d1117; }
+@media (max-width: 480px) { .pb-modes, .pb-previews { grid-template-columns: 1fr; } }

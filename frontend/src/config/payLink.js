@@ -192,27 +192,55 @@ export function buildPayLink({ origin = '', category = DEFAULT_PAY_CATEGORY, pro
   return qs ? `${base}?${qs}` : base;
 }
 
-// Bouton « Pay with JoobEscrow » a coller sur un site (niveau 1 du widget) : un simple lien stylise
-// vers notre lien de paiement. Aucune transaction sur le site du marchand : le paiement se fait sur joobescrow.com.
-export const PAY_BUTTON = {
-  label: 'with JoobEscrow',
-  background: '#A3E635',
-  color: '#052e16',
-  border: '#BEF264',
+// Boutons a coller sur un site (niveau 1 du widget) : de simples liens stylises, sans script ni fichier externe.
+// Aucune transaction sur le site qui les affiche : le paiement se fait toujours sur joobescrow.com.
+//  - mode « Clients pay me » : lien de paiement vers le prestataire (montant facultatif) ;
+//  - mode « My community pays each other » : ouvre « Pay someone » sans destinataire (chacun saisit l'autre partie),
+//    avec un code partenaire facultatif (?ref=, trace l'origine ; jamais de ?pay= dans ce lien).
+export const PAY_BUTTON_LABELS = {
+  pay: 'Pay with JoobEscrow',
+  payAmount: (amount, token) => `Pay ${amount} ${token} with JoobEscrow`,
+  community: 'Secure your deal with JoobEscrow',
 };
+
+export const PAY_BUTTON_THEMES = {
+  lime: { name: 'Lime', background: '#A3E635', color: '#052e16', border: '#BEF264', icon: '#052e16' },
+  dark: { name: 'Dark', background: '#111613', color: '#F2F5F3', border: '#2A362E', icon: '#A3E635' },
+};
+
+export const PAY_BUTTON_SIZES = {
+  standard: { name: 'Standard', padding: '12px 20px', font: 15, icon: 16 },
+  compact: { name: 'Compact', padding: '8px 14px', font: 13, icon: 14 },
+};
+
+// Compatibilite : ancien nom (theme Lime).
+export const PAY_BUTTON = { ...PAY_BUTTON_THEMES.lime, label: 'with JoobEscrow' };
 
 const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** Code HTML du bouton (styles en ligne, sans script ni fichier externe). */
-export function buildPayButtonHtml(link, { amount, token } = {}) {
+/** Code HTML du bouton (styles en ligne). label : texte deja choisi ; sinon « Pay [montant] with JoobEscrow ». */
+export function buildPayButtonHtml(link, { amount, token, theme = 'lime', size = 'standard', label } = {}) {
   if (!link) return '';
-  const b = PAY_BUTTON;
-  const what = amount && token ? `Pay ${escapeHtml(amount)} ${escapeHtml(token)}` : 'Pay';
+  const t = PAY_BUTTON_THEMES[theme] || PAY_BUTTON_THEMES.lime;
+  const z = PAY_BUTTON_SIZES[size] || PAY_BUTTON_SIZES.standard;
+  const text = label || (amount && token ? PAY_BUTTON_LABELS.payAmount(amount, token) : PAY_BUTTON_LABELS.pay);
   const style = [
-    'display:inline-flex', 'align-items:center', 'gap:8px', 'padding:12px 20px',
-    `background:${b.background}`, `color:${b.color}`, `border:1px solid ${b.border}`, 'border-radius:10px',
-    'font:700 15px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif', 'text-decoration:none',
+    'display:inline-flex', 'align-items:center', 'gap:8px', `padding:${z.padding}`,
+    `background:${t.background}`, `color:${t.color}`, `border:1px solid ${t.border}`, 'border-radius:10px',
+    `font:700 ${z.font}px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif`, 'text-decoration:none',
   ].join(';');
-  const lock = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${b.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
-  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" style="${style}">${lock}${what} ${escapeHtml(b.label)}</a>`;
+  const lock = `<svg width="${z.icon}" height="${z.icon}" viewBox="0 0 24 24" fill="none" stroke="${t.icon}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" style="${style}">${lock}${escapeHtml(text)}</a>`;
+}
+
+// Code partenaire du bouton communaute : meme format que les handles KOL (lettres minuscules, chiffres, _).
+export const PARTNER_CODE_PATTERN = /^[a-z0-9_]{2,32}$/;
+
+/** Lien du bouton communaute : /<categorie>?new=1 (ouvre « Pay someone »), + &ref=<code> si fourni. Jamais de ?pay=. */
+export function buildCommunityLink({ origin = '', category = DEFAULT_PAY_CATEGORY, partner = '' }) {
+  const cat = isValidPayCategory(category) ? category.trim().toLowerCase() : DEFAULT_PAY_CATEGORY;
+  const params = new URLSearchParams({ new: '1' });
+  const code = String(partner || '').trim().toLowerCase();
+  if (code && PARTNER_CODE_PATTERN.test(code)) params.set('ref', code);
+  return `${origin.replace(/\/+$/, '')}/${cat}?${params.toString()}`;
 }

@@ -1,28 +1,40 @@
 'use client';
 
-// Page « Pay button » (/pay-button) : un bouton « Pay with JoobEscrow » permanent a ajouter a son site,
-// independant d'un paiement en cours. Le bouton est un simple lien stylise vers une demande de paiement
-// (montant facultatif : sans montant, le client saisit la somme) ; le paiement se fait toujours sur joobescrow.com.
+// Page « Pay button » (/pay-button) : bouton permanent a ajouter a un site, deux modes.
+//  - « Clients pay me » : lien de paiement vers le prestataire (montant facultatif : sans montant, le client saisit la somme).
+//  - « My community pays each other » : ouvre « Pay someone » sans destinataire (groupes OTC, forums, marketplaces),
+//    code partenaire facultatif (?ref=). Le paiement se fait toujours sur joobescrow.com.
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { useWeb3 } from '../context/Web3Context';
 import { useToast } from '../context/ToastContext';
 import { instances } from '../config/instances';
 import { PAID_TOKENS, FEE_MIN_USD, FEE_MAX_USD } from '../config/feeTiers';
-import { buildPayLink, buildPayButtonHtml, PAY_AMOUNT_PATTERN, DEFAULT_PAY_CATEGORY } from '../config/payLink';
+import {
+  buildPayLink, buildPayButtonHtml, buildCommunityLink, PAY_AMOUNT_PATTERN, DEFAULT_PAY_CATEGORY,
+  PAY_BUTTON_LABELS, PAY_BUTTON_THEMES, PAY_BUTTON_SIZES, PARTNER_CODE_PATTERN,
+} from '../config/payLink';
 import { REF_PATTERN, REF_MAX_LENGTH, cleanReference } from '../lib/escrowReference';
 import './CreateEscrowModal.css';
 
 const TYPES = Object.values(instances).filter((n) => !n.isDemo);
+const MODES = [
+  { key: 'me', label: 'Clients pay me', hint: 'You set the wallet that receives the payment.' },
+  { key: 'community', label: 'My community pays each other', hint: "Each visitor enters the other party's wallet." },
+];
 
 export default function PayButtonBuilder({ onClose }) {
   const { account } = useWeb3();
   const { showToast } = useToast();
+  const [mode, setMode] = useState('me');
   const [category, setCategory] = useState(DEFAULT_PAY_CATEGORY);
   const [addr, setAddr] = useState(account || '');
   const [amount, setAmount] = useState('');
   const [token, setToken] = useState(PAID_TOKENS[0]);
   const [reference, setReference] = useState('');
+  const [partner, setPartner] = useState('');
+  const [theme, setTheme] = useState('lime');
+  const [size, setSize] = useState('standard');
   const [copied, setCopied] = useState(false);
 
   // Le wallet peut se connecter apres l'ouverture : on le reprend tant que le champ est vide.
@@ -31,6 +43,10 @@ export default function PayButtonBuilder({ onClose }) {
     if (account && !addr) setAddr(account);
   }, [account, addr]);
 
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.joobescrow.com';
+  const isCommunity = mode === 'community';
+
+  // Mode « Clients pay me »
   const a = addr.trim();
   const addrOk = Boolean(a) && ethers.isAddress(a);
   const amt = amount.trim();
@@ -38,11 +54,21 @@ export default function PayButtonBuilder({ onClose }) {
   const ref = reference.trim();
   const refOk = ref.length <= REF_MAX_LENGTH && REF_PATTERN.test(ref);
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.joobescrow.com';
-  const link = addrOk && amountOk && refOk
-    ? buildPayLink({ origin, category, provider: a, amount: amt, token, reference: cleanReference(ref) })
+  // Mode communaute
+  const code = partner.trim().toLowerCase();
+  const partnerOk = code === '' || PARTNER_CODE_PATTERN.test(code);
+
+  let link = '';
+  if (isCommunity) {
+    if (partnerOk) link = buildCommunityLink({ origin, category, partner: code });
+  } else if (addrOk && amountOk && refOk) {
+    link = buildPayLink({ origin, category, provider: a, amount: amt, token, reference: cleanReference(ref) });
+  }
+  const html = link
+    ? buildPayButtonHtml(link, isCommunity
+      ? { theme, size, label: PAY_BUTTON_LABELS.community }
+      : { theme, size, ...(amt ? { amount: amt, token } : {}) })
     : '';
-  const html = link ? buildPayButtonHtml(link, amt ? { amount: amt, token } : {}) : '';
 
   const copy = () => {
     if (!html) return;
@@ -56,9 +82,9 @@ export default function PayButtonBuilder({ onClose }) {
     if (!html) return;
     const file = [
       '<!doctype html>',
-      '<html lang="en"><head><meta charset="utf-8"><title>JoobEscrow pay button</title></head>',
+      '<html lang="en"><head><meta charset="utf-8"><title>JoobEscrow button</title></head>',
       '<body>',
-      '<!-- JoobEscrow pay button. Copy the <a> tag below into your website. Clicking it opens your payment request on joobescrow.com: payment always happens there. -->',
+      '<!-- JoobEscrow button. Copy the <a> tag below into your website. Clicking it opens joobescrow.com: payment always happens there. -->',
       html,
       '</body></html>',
       '',
@@ -66,20 +92,35 @@ export default function PayButtonBuilder({ onClose }) {
     const url = URL.createObjectURL(new Blob([file], { type: 'text/html' }));
     const el = document.createElement('a');
     el.href = url;
-    el.download = 'joobescrow-pay-button.html';
+    el.download = isCommunity ? 'joobescrow-community-button.html' : 'joobescrow-pay-button.html';
     el.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content is-form" style={{ maxWidth: '540px' }}>
+      <div className="modal-content is-form" style={{ maxWidth: '560px' }}>
         <h2>Pay button</h2>
         <div className="modal-body">
-          <p className="form-hint" style={{ marginTop: 0, marginBottom: '16px' }}>
-            Add a &quot;Pay with JoobEscrow&quot; button to your website or portfolio, once. Your clients click it and pay you
-            through an escrow on joobescrow.com.
+          <p className="form-hint" style={{ marginTop: 0, marginBottom: '14px' }}>
+            Add a JoobEscrow button to your website, once. Anyone who clicks it opens a secure escrow on joobescrow.com.
           </p>
+
+          <div className="pb-modes" role="tablist" aria-label="Button type">
+            {MODES.map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                role="tab"
+                aria-selected={mode === m.key}
+                className={`pb-mode ${mode === m.key ? 'is-active' : ''}`}
+                onClick={() => setMode(m.key)}
+              >
+                <strong>{m.label}</strong>
+                <span>{m.hint}</span>
+              </button>
+            ))}
+          </div>
 
           <div className="form-group">
             <label htmlFor="pb-type">Type of deal</label>
@@ -90,47 +131,79 @@ export default function PayButtonBuilder({ onClose }) {
             </select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="pb-addr">You receive the payment at</label>
-            <input id="pb-addr" type="text" value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="0x..." />
-            {a && !addrOk
-              ? <p className="form-hint is-error">Please enter a valid BSC wallet address.</p>
-              : <p className="form-hint">Your connected wallet by default.</p>}
-          </div>
+          {isCommunity ? (
+            <div className="form-group">
+              <label htmlFor="pb-partner">Partner code (optional)</label>
+              <input id="pb-partner" type="text" value={partner} onChange={(e) => setPartner(e.target.value)} maxLength={32} placeholder="e.g. alpha_otc" />
+              {partnerOk
+                ? <p className="form-hint">We use it to see which escrows were opened from your button.</p>
+                : <p className="form-hint is-error">2 to 32 characters: lowercase letters, numbers and underscores.</p>}
+            </div>
+          ) : (
+            <>
+              <div className="form-group">
+                <label htmlFor="pb-addr">You receive the payment at</label>
+                <input id="pb-addr" type="text" value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="0x..." />
+                {a && !addrOk
+                  ? <p className="form-hint is-error">Please enter a valid BSC wallet address.</p>
+                  : <p className="form-hint">Your connected wallet by default.</p>}
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="pb-amount">Fixed amount (optional)</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input id="pb-amount" type="text" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Leave empty: the client enters it" style={{ flex: '1 1 auto' }} />
-              <select value={token} onChange={(e) => setToken(e.target.value)} style={{ width: '110px', flex: '0 0 auto' }} aria-label="Token">
-                {PAID_TOKENS.map((t) => <option key={t} value={t}>{t}</option>)}
+              <div className="form-group">
+                <label htmlFor="pb-amount">Fixed amount (optional)</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input id="pb-amount" type="text" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Leave empty: the client enters it" style={{ flex: '1 1 auto' }} />
+                  <select value={token} onChange={(e) => setToken(e.target.value)} style={{ width: '110px', flex: '0 0 auto' }} aria-label="Token">
+                    {PAID_TOKENS.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                {amountOk
+                  ? <p className="form-hint">Set an amount for a fixed-price service, or leave it empty.</p>
+                  : <p className="form-hint is-error">Amount must be between ${FEE_MIN_USD} and ${FEE_MAX_USD.toLocaleString('en-US')}, with 2 decimals at most.</p>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="pb-ref">Reference (optional)</label>
+                <input id="pb-ref" type="text" value={reference} onChange={(e) => setReference(e.target.value)} maxLength={REF_MAX_LENGTH} placeholder="e.g. Logo design" />
+                {!refOk && <p className="form-hint is-error">Letters, numbers, spaces, dots, hyphens and underscores only.</p>}
+              </div>
+            </>
+          )}
+
+          <div className="pb-style">
+            <div className="form-group">
+              <label htmlFor="pb-theme">Style</label>
+              <select id="pb-theme" value={theme} onChange={(e) => setTheme(e.target.value)}>
+                {Object.entries(PAY_BUTTON_THEMES).map(([k, t]) => <option key={k} value={k}>{t.name}</option>)}
               </select>
             </div>
-            {amountOk
-              ? <p className="form-hint">Set an amount for a fixed-price service, or leave it empty.</p>
-              : <p className="form-hint is-error">Amount must be between ${FEE_MIN_USD} and ${FEE_MAX_USD.toLocaleString('en-US')}, with 2 decimals at most.</p>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="pb-ref">Reference (optional)</label>
-            <input id="pb-ref" type="text" value={reference} onChange={(e) => setReference(e.target.value)} maxLength={REF_MAX_LENGTH} placeholder="e.g. Logo design" />
-            {!refOk && <p className="form-hint is-error">Letters, numbers, spaces, dots, hyphens and underscores only.</p>}
+            <div className="form-group">
+              <label htmlFor="pb-size">Size</label>
+              <select id="pb-size" value={size} onChange={(e) => setSize(e.target.value)}>
+                {Object.entries(PAY_BUTTON_SIZES).map(([k, z]) => <option key={k} value={k}>{z.name}</option>)}
+              </select>
+            </div>
           </div>
 
           <div className="paybtn-block" style={{ borderTop: 'none', marginTop: 0, paddingTop: 0 }}>
             <label className="paybtn-label">Your button</label>
             {html ? (
               <>
-                <div className="paybtn-preview" dangerouslySetInnerHTML={{ __html: html }} />
+                <div className="pb-previews">
+                  <div className="paybtn-preview" dangerouslySetInnerHTML={{ __html: html }} />
+                  <div className="paybtn-preview is-dark" dangerouslySetInnerHTML={{ __html: html }} />
+                </div>
                 <pre className="paybtn-code">{html}</pre>
                 <p className="form-hint" style={{ margin: 0 }}>
-                  Paste this HTML anywhere on your site. Clicking it opens your payment request on joobescrow.com: payment always happens on our site.
+                  {isCommunity
+                    ? 'Paste this button on your forum, group or marketplace. Visitors enter the other party\'s wallet and lock the funds in an audited escrow contract. We never hold the funds.'
+                    : 'Paste this HTML anywhere on your site. Clicking it opens your payment request on joobescrow.com: payment always happens on our site.'}
                 </p>
               </>
             ) : (
               <>
-                <div className="paybtn-preview is-placeholder"><span className="paybtn-sample">Pay with JoobEscrow</span></div>
-                <p className="form-hint" style={{ margin: 0 }}>Enter your wallet address above to get your button.</p>
+                <div className="paybtn-preview is-placeholder"><span className="paybtn-sample">{isCommunity ? PAY_BUTTON_LABELS.community : PAY_BUTTON_LABELS.pay}</span></div>
+                <p className="form-hint" style={{ margin: 0 }}>{isCommunity ? 'Check the partner code above.' : 'Enter your wallet address above to get your button.'}</p>
               </>
             )}
           </div>

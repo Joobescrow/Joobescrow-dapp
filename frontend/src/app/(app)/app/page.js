@@ -41,7 +41,7 @@ export default function HubPage() {
 
       <Link href="/pay-button" className={styles.demoStrip}>
         <span className={styles.demoTag}>Pay button</span>
-        <span className={styles.demoStripText}>Add a &quot;Pay with JoobEscrow&quot; button to your website, once. Clients click it and pay you through an escrow.</span>
+        <span className={styles.demoStripText}>Add a &quot;Pay with JoobEscrow&quot; button to your site, or a &quot;Secure your deal&quot; button for your community.</span>
         <span className={styles.demoCta}>Get your button <span aria-hidden="true">→</span></span>
       </Link>
 
