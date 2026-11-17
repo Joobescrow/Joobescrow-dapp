@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { useWeb3 } from '../context/Web3Context';
 import { useToast } from '../context/ToastContext';
@@ -71,6 +71,16 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
     showToast('success', 'Button code copied. Paste it into your website.');
     setTimeout(() => setCopiedButton(false), 2500);
   };
+
+  // /pay#pay-button (entree « Pay button » du menu) : on amene directement a la partie bouton.
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#pay-button') return;
+    // Deux essais : le premier peut etre annule par le rendu initial de la page.
+    const go = () => document.getElementById('pay-button')?.scrollIntoView({ block: 'start' });
+    const t1 = setTimeout(go, 300);
+    const t2 = setTimeout(go, 1200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
 
   const handleCopy = () => {
     if (!generatedLink) return;
@@ -234,9 +244,18 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
                 When your client opens this link, the escrow will be ready with your address, amount and selected token. They only need to connect their wallet and confirm.
               </p>
 
-              {/* Bouton a coller sur un site : lien stylise vers ce meme lien de paiement */}
-              <div className="paybtn-block">
-                <label className="paybtn-label">Button for your website</label>
+            </div>
+          ) : (
+            <p className="form-hint is-error">
+              Complete the required fields above with valid information to generate the link.
+            </p>
+          )}
+
+          {/* Bouton a coller sur un site : toujours visible, actif des que le lien est valide */}
+          <div className="paybtn-block" id="pay-button">
+            <label className="paybtn-label">Button for your website</label>
+            {buttonHtml ? (
+              <>
                 <div className="paybtn-preview" dangerouslySetInnerHTML={{ __html: buttonHtml }} />
                 <pre className="paybtn-code">{buttonHtml}</pre>
                 <div className="paybtn-row">
@@ -247,13 +266,18 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
                     {copiedButton ? 'Copied!' : 'Copy button code'}
                   </button>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <p className="form-hint is-error">
-              Complete the required fields above with valid information to generate the link.
-            </p>
-          )}
+              </>
+            ) : (
+              <>
+                <div className="paybtn-preview is-placeholder">
+                  <span className="paybtn-sample">Pay with JoobEscrow</span>
+                </div>
+                <p className="form-hint" style={{ margin: 0 }}>
+                  Enter your wallet address and amount above to get the code of this button for your website.
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="modal-actions">

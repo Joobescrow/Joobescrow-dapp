@@ -432,3 +432,5 @@
 .paybtn-row { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
 .paybtn-copy { flex-shrink: 0; padding: 8px 14px; font-size: 0.8rem; }
 @media (max-width: 480px) { .paybtn-row { flex-direction: column; } }
+.paybtn-preview.is-placeholder { opacity: 0.55; }
+.paybtn-sample { display: inline-flex; align-items: center; padding: 12px 20px; background: #A3E635; color: #052e16; border: 1px solid #BEF264; border-radius: 10px; font: 700 15px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }

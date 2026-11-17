@@ -76,6 +76,11 @@ export default function Sidebar() {
             <span className="nav-badge">NEW</span>
           </Link>
 
+          <Link href="/pay#pay-button" className="nav-link">
+            <span>Pay button</span>
+            <span className="nav-badge">NEW</span>
+          </Link>
+
           <Link href={allEscrowsPath} className={`nav-link ${isMyEscrowsActive ? 'active' : ''}`}>
             <span>My escrows</span>
             {actionsRequired > 0 && (
@@ -115,6 +120,10 @@ export default function Sidebar() {
       {moreOpen && (
         <div className="mobile-more-backdrop" onClick={() => setMoreOpen(false)}>
           <div className="mobile-more-sheet" onClick={(e) => e.stopPropagation()}>
+            <Link href="/pay#pay-button" className="mobile-more-link" onClick={() => setMoreOpen(false)}>
+              <span>Pay button for your site</span>
+              <span className="nav-badge">NEW</span>
+            </Link>
             <Link href={whatsNextPath} className={`mobile-more-link ${pathname === whatsNextPath ? 'is-active' : ''}`} onClick={() => setMoreOpen(false)}>
               <span>What&apos;s next</span>
               <span className="nav-badge">NEW</span>
