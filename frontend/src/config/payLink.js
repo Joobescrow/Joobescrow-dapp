@@ -199,3 +199,28 @@ export function buildPayLink({ origin = '', category = DEFAULT_PAY_CATEGORY, pro
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
 }
+
+// Bouton « Pay with JoobEscrow » a coller sur un site (niveau 1 du widget) : un simple lien stylise
+// vers notre lien de paiement. Aucune transaction sur le site du marchand : le paiement se fait sur joobescrow.com.
+export const PAY_BUTTON = {
+  label: 'with JoobEscrow',
+  background: '#A3E635',
+  color: '#052e16',
+  border: '#BEF264',
+};
+
+const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** Code HTML du bouton (styles en ligne, sans script ni fichier externe). */
+export function buildPayButtonHtml(link, { amount, token } = {}) {
+  if (!link) return '';
+  const b = PAY_BUTTON;
+  const what = amount && token ? `Pay ${escapeHtml(amount)} ${escapeHtml(token)}` : 'Pay';
+  const style = [
+    'display:inline-flex', 'align-items:center', 'gap:8px', 'padding:12px 20px',
+    `background:${b.background}`, `color:${b.color}`, `border:1px solid ${b.border}`, 'border-radius:10px',
+    'font:700 15px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif', 'text-decoration:none',
+  ].join(';');
+  const lock = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${b.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" style="${style}">${lock}${what} ${escapeHtml(b.label)}</a>`;
+}

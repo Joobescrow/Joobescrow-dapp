@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { useNiche } from '../context/NicheContext';
 import { instances } from '../config/instances';
 import { PAID_TOKENS, FEE_MIN_USD, FEE_MAX_USD, tierForAmount } from '../config/feeTiers';
-import { buildPayLink, isValidPayCategory } from '../config/payLink';
+import { buildPayLink, isValidPayCategory, buildPayButtonHtml } from '../config/payLink';
 import { REF_PATTERN, REF_MAX_LENGTH, cleanReference } from '../lib/escrowReference';
 import './CreateEscrowModal.css';
 
@@ -61,6 +61,16 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
       reference: cleanReference(trimmedRef),
     });
   }, [origin, category, trimmedAddr, isAddrValid, amount, isAmountValid, token, trimmedRef, isRefValid]);
+
+  const buttonHtml = generatedLink ? buildPayButtonHtml(generatedLink, { amount: String(amount).trim(), token }) : '';
+  const [copiedButton, setCopiedButton] = useState(false);
+  const handleCopyButton = () => {
+    if (!buttonHtml) return;
+    navigator.clipboard.writeText(buttonHtml);
+    setCopiedButton(true);
+    showToast('success', 'Button code copied. Paste it into your website.');
+    setTimeout(() => setCopiedButton(false), 2500);
+  };
 
   const handleCopy = () => {
     if (!generatedLink) return;
@@ -223,6 +233,21 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
               <p className="form-hint" style={{ color: 'var(--app-text-secondary, #9CA8A1)' }}>
                 When your client opens this link, the escrow will be ready with your address, amount and selected token. They only need to connect their wallet and confirm.
               </p>
+
+              {/* Bouton a coller sur un site : lien stylise vers ce meme lien de paiement */}
+              <div className="paybtn-block">
+                <label className="paybtn-label">Button for your website</label>
+                <div className="paybtn-preview" dangerouslySetInnerHTML={{ __html: buttonHtml }} />
+                <pre className="paybtn-code">{buttonHtml}</pre>
+                <div className="paybtn-row">
+                  <p className="form-hint" style={{ margin: 0 }}>
+                    Paste this HTML on your site or portfolio. Clicking it opens this payment request on joobescrow.com: payment always happens on our site.
+                  </p>
+                  <button type="button" className="btn btn-app-secondary paybtn-copy" onClick={handleCopyButton}>
+                    {copiedButton ? 'Copied!' : 'Copy button code'}
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <p className="form-hint is-error">
