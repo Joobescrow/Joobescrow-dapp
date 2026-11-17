@@ -35,9 +35,15 @@ export default function HubPage() {
           <h2>Get paid</h2>
           <p>Send your client a payment request. You see the funds locked on-chain before you start the work.</p>
           <span className={styles.doorHint}>You choose the type of deal and the amount in the next step.</span>
-          <span className={styles.doorCta}>Request a payment <span aria-hidden="true">→</span></span>
+          <span className={styles.doorCta}>Create a payment link <span aria-hidden="true">→</span></span>
         </Link>
       </section>
+
+      <Link href="/pay-button" className={styles.demoStrip}>
+        <span className={styles.demoTag}>Pay button</span>
+        <span className={styles.demoStripText}>Add a &quot;Pay with JoobEscrow&quot; button to your website, once. Clients click it and pay you through an escrow.</span>
+        <span className={styles.demoCta}>Get your button <span aria-hidden="true">→</span></span>
+      </Link>
 
       <Link href="/demo" className={styles.demoStrip}>
         <span className={styles.demoTag}>Try with $1</span>

@@ -59,9 +59,9 @@ export const FAQ = [
   },
   {
     id: 'pay-links',
-    q: 'How do pre-filled payment links work?',
+    q: 'How do I get paid with JoobEscrow?',
     summary:
-      'Any provider can generate a direct payment link with their address, requested amount, token (USDT or USDC), category and reference. When the client opens it, the escrow form is already filled out for them to review, approve and lock funds safely.',
+      'Open "Get paid" in the app and create a payment link with your address, the amount, the token (USDT or USDC), the type of deal and a reference. When your client opens it, the escrow form is already filled out for them to review, approve and lock the funds. For a permanent button on your website, use "Pay button": the amount can be fixed or left to the client.',
     details: [
       'Nothing is signed or approved automatically: the client connects their wallet, verifies the provider address and terms, and remains in control of all fields.',
       'Payment links work across all supported categories and automatically apply our tiered fee rates based on the deal amount.',

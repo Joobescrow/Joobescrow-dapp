@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { ethers } from 'ethers';
 import { useWeb3 } from '../context/Web3Context';
 import { useToast } from '../context/ToastContext';
 import { useNiche } from '../context/NicheContext';
 import { instances } from '../config/instances';
 import { PAID_TOKENS, FEE_MIN_USD, FEE_MAX_USD, tierForAmount } from '../config/feeTiers';
-import { buildPayLink, isValidPayCategory, buildPayButtonHtml } from '../config/payLink';
+import { buildPayLink, isValidPayCategory } from '../config/payLink';
 import { REF_PATTERN, REF_MAX_LENGTH, cleanReference } from '../lib/escrowReference';
 import './CreateEscrowModal.css';
 
@@ -62,26 +62,6 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
     });
   }, [origin, category, trimmedAddr, isAddrValid, amount, isAmountValid, token, trimmedRef, isRefValid]);
 
-  const buttonHtml = generatedLink ? buildPayButtonHtml(generatedLink, { amount: String(amount).trim(), token }) : '';
-  const [copiedButton, setCopiedButton] = useState(false);
-  const handleCopyButton = () => {
-    if (!buttonHtml) return;
-    navigator.clipboard.writeText(buttonHtml);
-    setCopiedButton(true);
-    showToast('success', 'Button code copied. Paste it into your website.');
-    setTimeout(() => setCopiedButton(false), 2500);
-  };
-
-  // /pay#pay-button (entree « Pay button » du menu) : on amene directement a la partie bouton.
-  useEffect(() => {
-    if (typeof window === 'undefined' || window.location.hash !== '#pay-button') return;
-    // Deux essais : le premier peut etre annule par le rendu initial de la page.
-    const go = () => document.getElementById('pay-button')?.scrollIntoView({ block: 'start' });
-    const t1 = setTimeout(go, 300);
-    const t2 = setTimeout(go, 1200);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
-
   const handleCopy = () => {
     if (!generatedLink) return;
     navigator.clipboard.writeText(generatedLink);
@@ -93,7 +73,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
   return (
     <div className="modal-overlay">
       <div className="modal-content is-form" style={{ maxWidth: '540px' }}>
-        <h2>Request a payment</h2>
+        <h2>Get paid</h2>
         <div className="modal-body">
           <p className="form-hint" style={{ marginTop: 0, marginBottom: '16px' }}>
             Share a prefilled escrow link with your client. When they open it, the escrow form is already configured with your payout address, amount and chosen token.
@@ -251,33 +231,6 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
             </p>
           )}
 
-          {/* Bouton a coller sur un site : toujours visible, actif des que le lien est valide */}
-          <div className="paybtn-block" id="pay-button">
-            <label className="paybtn-label">Button for your website</label>
-            {buttonHtml ? (
-              <>
-                <div className="paybtn-preview" dangerouslySetInnerHTML={{ __html: buttonHtml }} />
-                <pre className="paybtn-code">{buttonHtml}</pre>
-                <div className="paybtn-row">
-                  <p className="form-hint" style={{ margin: 0 }}>
-                    Paste this HTML on your site or portfolio. Clicking it opens this payment request on joobescrow.com: payment always happens on our site.
-                  </p>
-                  <button type="button" className="btn btn-app-secondary paybtn-copy" onClick={handleCopyButton}>
-                    {copiedButton ? 'Copied!' : 'Copy button code'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="paybtn-preview is-placeholder">
-                  <span className="paybtn-sample">Pay with JoobEscrow</span>
-                </div>
-                <p className="form-hint" style={{ margin: 0 }}>
-                  Enter your wallet address and amount above to get the code of this button for your website.
-                </p>
-              </>
-            )}
-          </div>
         </div>
 
         <div className="modal-actions">

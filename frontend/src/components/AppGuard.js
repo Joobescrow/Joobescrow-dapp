@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useWeb3 } from '../context/Web3Context';
 
 // Pages consultables sans wallet (profils publics des partenaires KOL, roadmap, vue des categories, page /pay, et liens de paiement ou d'invitation ?pay= / ?escrow=).
-const PUBLIC_PATH = /^\/([^/]+\/(kol\/[^/]+|whats-next)|app|pay)\/?$/;
+const PUBLIC_PATH = /^\/([^/]+\/(kol\/[^/]+|whats-next)|app|pay|pay-button)\/?$/;
 
 function AppGuardContent({ children }) {
   const { account, error, isTestnet, connectWallet, chainId, ensureCorrectChain } = useWeb3();

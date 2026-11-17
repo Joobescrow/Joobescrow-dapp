@@ -68,7 +68,7 @@ export default function Sidebar() {
           <div className="nav-section-title" role="presentation">ESCROW</div>
 
           <Link href={newEscrowPath} className={`nav-link ${isNewEscrowActive ? 'active' : ''}`}>
-            <span>New escrow</span>
+            <span>Pay someone</span>
           </Link>
 
           <Link href="/pay" className={`nav-link ${pathname === '/pay' ? 'active' : ''}`}>
@@ -76,7 +76,7 @@ export default function Sidebar() {
             <span className="nav-badge">NEW</span>
           </Link>
 
-          <Link href="/pay#pay-button" className="nav-link">
+          <Link href="/pay-button" className={`nav-link ${pathname === '/pay-button' ? 'active' : ''}`}>
             <span>Pay button</span>
             <span className="nav-badge">NEW</span>
           </Link>
@@ -120,8 +120,8 @@ export default function Sidebar() {
       {moreOpen && (
         <div className="mobile-more-backdrop" onClick={() => setMoreOpen(false)}>
           <div className="mobile-more-sheet" onClick={(e) => e.stopPropagation()}>
-            <Link href="/pay#pay-button" className="mobile-more-link" onClick={() => setMoreOpen(false)}>
-              <span>Pay button for your site</span>
+            <Link href="/pay-button" className={`mobile-more-link ${pathname === '/pay-button' ? 'is-active' : ''}`} onClick={() => setMoreOpen(false)}>
+              <span>Pay button</span>
               <span className="nav-badge">NEW</span>
             </Link>
             <Link href={whatsNextPath} className={`mobile-more-link ${pathname === whatsNextPath ? 'is-active' : ''}`} onClick={() => setMoreOpen(false)}>
@@ -158,7 +158,7 @@ export default function Sidebar() {
             <line x1="12" y1="8" x2="12" y2="16" />
             <line x1="8" y1="12" x2="16" y2="12" />
           </svg>
-          <span>New</span>
+          <span>Pay</span>
         </Link>
 
         <Link href="/pay" className={`mobile-nav-item ${pathname === '/pay' ? 'is-active' : ''}`} onClick={() => setMoreOpen(false)}>

@@ -366,7 +366,9 @@ export default function CreateEscrowModal({
               </div>
               {!isModified && (
                 <div className="pay-link-details">
-                  <span>Requested: <strong>{payRequest.amount} {payRequest.token}</strong></span>
+                  {payRequest.amount
+                    ? <span>Requested: <strong>{payRequest.amount} {payRequest.token}</strong></span>
+                    : <span>Amount: <strong>enter it below</strong> ({payRequest.token})</span>}
                   {payRequest.reference && <span>Reference: <strong>{payRequest.reference}</strong></span>}
                 </div>
               )}

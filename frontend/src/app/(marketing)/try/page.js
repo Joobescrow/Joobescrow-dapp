@@ -12,7 +12,7 @@ const STEPS = [
   {
     who: 'Wallet A (client)',
     title: 'Create & fund the escrow',
-    text: 'Open the demo, connect wallet A, click "Create Secure Transaction", paste the address of wallet B as provider and enter 1 USDT or USDC. Your wallet asks you to approve exactly that amount, then to create the escrow.',
+    text: 'Open the demo, connect wallet A, click "+ Pay someone", paste the address of wallet B as provider and enter 1 USDT or USDC. Your wallet asks you to approve exactly that amount, then to create the escrow.',
   },
   {
     who: 'Anyone',

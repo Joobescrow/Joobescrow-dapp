@@ -66,40 +66,32 @@ export function parsePayParams(searchParams) {
   }
   const checksumProvider = ethers.getAddress(providerTrimmed);
 
-  // 2. Amount validation
+  // 2. Amount validation : facultatif (bouton de site sans montant fixe : le client saisit la somme).
   const rawAmount = get(PAY_PARAM_AMOUNT);
-  if (!rawAmount || String(rawAmount).trim() === '') {
-    return {
-      isValid: false,
-      reason: 'Payment amount is missing in the payment link.',
-      errorParam: PAY_PARAM_AMOUNT,
-      data: null,
-    };
-  }
-
-  // Format strict : refuse 100abc, 1e3 ou 0x10, que parseFloat accepterait.
-  const amountStr = String(rawAmount).trim();
-  const numAmount = PAY_AMOUNT_PATTERN.test(amountStr) ? Number(amountStr) : NaN;
-  if (isNaN(numAmount) || !isFinite(numAmount) || numAmount <= 0) {
-    return {
-      isValid: false,
-      reason: 'Payment amount must be a valid positive number.',
-      errorParam: PAY_PARAM_AMOUNT,
-      data: null,
-    };
-  }
-
-  if (numAmount < FEE_MIN_USD || numAmount > FEE_MAX_USD) {
-    return {
-      isValid: false,
-      reason: `Payment amount must be between $${FEE_MIN_USD} and $${FEE_MAX_USD.toLocaleString('en-US')}.`,
-      errorParam: PAY_PARAM_AMOUNT,
-      data: null,
-    };
+  const amountStr = rawAmount == null ? '' : String(rawAmount).trim();
+  if (amountStr !== '') {
+    // Format strict : refuse 100abc, 1e3 ou 0x10, que parseFloat accepterait.
+    const numAmount = PAY_AMOUNT_PATTERN.test(amountStr) ? Number(amountStr) : NaN;
+    if (isNaN(numAmount) || !isFinite(numAmount) || numAmount <= 0) {
+      return {
+        isValid: false,
+        reason: 'Payment amount must be a valid positive number.',
+        errorParam: PAY_PARAM_AMOUNT,
+        data: null,
+      };
+    }
+    if (numAmount < FEE_MIN_USD || numAmount > FEE_MAX_USD) {
+      return {
+        isValid: false,
+        reason: `Payment amount must be between $${FEE_MIN_USD} and $${FEE_MAX_USD.toLocaleString('en-US')}.`,
+        errorParam: PAY_PARAM_AMOUNT,
+        data: null,
+      };
+    }
   }
 
   // Format amount cleanly (up to 2 decimals if decimal, otherwise integer)
-  const cleanAmount = String(rawAmount).trim();
+  const cleanAmount = amountStr; // '' si le lien ne fixe pas de montant
 
   // 3. Token validation
   const rawToken = get(PAY_PARAM_TOKEN);

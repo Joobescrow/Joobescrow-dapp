@@ -271,7 +271,7 @@ export default function MyEscrowsPage() {
                   </button>
                 )}
               </div>
-              <Link href="/app" className="btn btn-primary">+ New escrow</Link>
+              <Link href="/app" className="btn btn-primary">+ Pay someone</Link>
             </div>
           </div>
 

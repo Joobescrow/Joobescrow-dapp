@@ -21,7 +21,7 @@ import { FEE_RANGE_TEXT } from '../../../config/feeTiers';
 import './page.css';
 
 const DEMO_STEPS = [
-  { who: 'Wallet A', title: 'Create & fund', text: 'Click "+ Create Secure Transaction", paste wallet B as provider and lock 1 USDT or USDC.' },
+  { who: 'Wallet A', title: 'Create & fund', text: 'Click "+ Pay someone", paste wallet B as provider and lock 1 USDT or USDC.' },
   { who: 'Wallet B', title: 'Accept', text: 'Switch to wallet B and accept the escrow. No spending approval is ever asked from B.' },
   { who: 'Wallet A', title: 'Release', text: 'Switch back to wallet A and release the funds, as you would once the work is delivered.' },
   { who: 'Wallet B', title: 'Withdraw', text: 'On wallet B, click "Withdraw": the exact amount arrives, 0% fee.' },
@@ -242,10 +242,10 @@ function DashboardContent() {
               className="btn-pay-link"
               onClick={() => setShowPayLinkModal(true)}
             >
-              + Request a payment
+              + Get paid
             </button>
           )}
-          <button className="btn btn-primary" disabled={!account} onClick={() => { setUserOpenedModal(true); setModalDismissed(false); }}>+ Create Secure Transaction</button>
+          <button className="btn btn-primary" disabled={!account} onClick={() => { setUserOpenedModal(true); setModalDismissed(false); }}>+ Pay someone</button>
         </div>
       </div>
 
@@ -295,7 +295,7 @@ function DashboardContent() {
                {niche.isDemo && <p className="empty-sub">4 steps, about 10 minutes, two wallets you own.</p>}
                <div className="steps-grid">
                  {(niche.isDemo ? DEMO_STEPS : [
-                   { title: 'Create & Fund', text: `Click "+ Create Secure Transaction" to lock funds in the smart contract. Share the link with your ${niche.lexicon.provider.toLowerCase()}.` },
+                   { title: 'Create & Fund', text: `Click "+ Pay someone" to lock funds in the smart contract. Share the link with your ${niche.lexicon.provider.toLowerCase()}.` },
                    { title: 'Work & Deliver', text: `The ${niche.lexicon.provider.toLowerCase()} accepts the contract and completes the task securely.` },
                    { title: 'Release or Dispute', text: 'Satisfied? Release funds instantly. Issue? Open a dispute for fair resolution.' },
                  ]).map((s, i) => (
@@ -308,7 +308,7 @@ function DashboardContent() {
                  ))}
                </div>
                <button className="btn btn-primary empty-cta" onClick={() => { setUserOpenedModal(true); setModalDismissed(false); }}>
-                 {niche.isDemo ? 'Start the demo with wallet A' : 'Create an escrow'}
+                 {niche.isDemo ? 'Start the demo with wallet A' : 'Pay someone'}
                </button>
              </>
            ) : (
