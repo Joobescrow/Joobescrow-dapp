@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import styles from './airdrop.module.css';
 import { firstProvider, fairShare, BROWSER_RPCS } from '../../../lib/presaleLogs';
+import { TELEGRAM_URL, TELEGRAM_CHANNEL_URL } from '../../../config/links';
 
 const fmt = (n) => n.toLocaleString('en-US');
 const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -80,6 +81,13 @@ export default function AirdropClient({ campaigns: frozen }) {
         ))}
       </div>
 
+      {/* Lauréats : les annonces (dates de claim, TGE) passent par le Telegram officiel */}
+      <div className={styles.tgNotice} role="note">
+        <strong>Airdrop winners:</strong> claim dates and TGE updates are announced on our official Telegram.{' '}
+        <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noopener noreferrer">Channel</a>{' · '}
+        <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Group</a>.{' '}
+        We never ask for your seed phrase or ask you to connect a wallet in Telegram.
+      </div>
       <div className={`glass-panel ${styles.card}`}>
         <div className={styles.tabs} role="tablist">
           {campaigns.map((c) => (
