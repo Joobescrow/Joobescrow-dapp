@@ -4,5 +4,7 @@ export const RECEIPT = {
   accentRgb: [163, 230, 53], // citron vert #A3E635
   linkRgb: [21, 128, 61], // vert fonce lisible sur papier blanc
   disclaimer: 'This receipt is generated from on-chain data by joobescrow.com. It is not a tax invoice. Every value can be checked on BscScan with the links above.',
-  buttonLabel: 'Download receipt (PDF)',
+  buttonLabel: 'Download receipt (PDF)', // page publique /deal
+  footerLabel: 'Receipt (PDF)', // carte d'escrow terminee ou annulee, en bas a droite
+  proofLabel: 'Proof of funds (PDF)', // carte d'escrow en cours, dans Details
 };

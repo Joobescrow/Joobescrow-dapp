@@ -6,7 +6,7 @@ import { useWeb3 } from '../context/Web3Context';
 import { dealPath } from '../lib/escrowContract';
 import { RECEIPT } from '../config/receipt';
 
-export default function ReceiptButton({ contract, escrowId, niche, className }) {
+export default function ReceiptButton({ contract, escrowId, niche, className, label = RECEIPT.buttonLabel, icon = false }) {
   const { readProvider } = useWeb3();
   const [state, setState] = useState('idle'); // idle | busy | error
 
@@ -32,7 +32,10 @@ export default function ReceiptButton({ contract, escrowId, niche, className }) 
 
   return (
     <button type="button" className={className} onClick={onClick} disabled={state === 'busy' || !readProvider}>
-      {state === 'busy' ? 'Preparing receipt…' : state === 'error' ? 'Receipt failed, try again' : RECEIPT.buttonLabel}
+      {icon && state === 'idle' && (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ marginRight: 6 }}><path d="M12 3v12" /><polyline points="7 10 12 15 17 10" /><path d="M5 21h14" /></svg>
+      )}
+      {state === 'busy' ? 'Preparing receipt…' : state === 'error' ? 'Receipt failed, try again' : label}
     </button>
   );
 }

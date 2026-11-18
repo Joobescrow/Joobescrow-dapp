@@ -16,6 +16,7 @@ import { gasHelp } from '../config/gas';
 import { DEMO_CTA } from '../config/demoCta';
 import { dealPath } from '../lib/escrowContract';
 import ReceiptButton from './ReceiptButton';
+import { RECEIPT } from '../config/receipt';
 import Link from 'next/link';
 
 const EscrowChatPanel = dynamic(() => import('./EscrowChatPanel'), { ssr: false });
@@ -690,15 +691,8 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
           )}
 
           {/* 5. Completed / Cancelled */}
-          {(isCompleted || isCancelled) && getExplorerLink() && (
-            <a
-              href={getExplorerLink()}
-              target="_blank"
-              rel="noreferrer"
-              className="escrow-link-btn"
-            >
-              BscScan ↗
-            </a>
+          {(isCompleted || isCancelled) && (
+            <ReceiptButton contract={escrowAddr} escrowId={escrow.id} niche={niche} className="btn btn-app-secondary" label={RECEIPT.footerLabel} icon />
           )}
         </div>
       </div>
@@ -750,13 +744,18 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
                 </div>
               )}
               <div className="escrow-details-links">
+                <Link href={dealPath(niche.slug, escrow.id.toString(), escrowAddr, niche.isDemo)} target="_blank" rel="noopener noreferrer" className="escrow-link-btn">
+                  Open deal page ↗
+                </Link>
                 <button type="button" className="escrow-link-btn" onClick={copyDealLink}>
                   Copy deal link
                 </button>
-                <ReceiptButton contract={escrowAddr} escrowId={escrow.id} niche={niche} className="escrow-link-btn" />
+                {!isCompleted && !isCancelled && (
+                  <ReceiptButton contract={escrowAddr} escrowId={escrow.id} niche={niche} className="escrow-link-btn" label={RECEIPT.proofLabel} />
+                )}
                 {getExplorerLink() && (
                   <a href={getExplorerLink()} target="_blank" rel="noreferrer" className="escrow-link-btn">
-                    View Contract on BscScan ↗
+                    Contract on BscScan ↗
                   </a>
                 )}
                 {escrow.status === 'FUNDED' && !escrow.accepted && isClient && (
