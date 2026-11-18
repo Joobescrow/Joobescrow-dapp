@@ -54,13 +54,11 @@ export const cacheKey = (contract, id) => `escrowRef2:${contract.toLowerCase()}:
  * Retrouve la reference d'un escrow a partir de sa date de creation (createdAt = horodatage du bloc) :
  * recherche du bloc par dichotomie, puis log EscrowCreated filtre sur l'identifiant (quelques blocs).
  */
-export async function readEscrowReference(provider, contract, escrowId, createdAt) {
-  const key = cacheKey(contract, escrowId);
-  try {
-    const cached = localStorage.getItem(key);
-    if (cached !== null) return cached || null;
-  } catch {}
-
+/**
+ * Hash de la transaction de creation d'un escrow (log EscrowCreated filtre sur l'identifiant),
+ * retrouve a partir de createdAt (horodatage du bloc) par dichotomie. null si introuvable.
+ */
+export async function findCreationTxHash(provider, contract, escrowId, createdAt) {
   const target = Number(createdAt);
   let lo = 0;
   let hi = await provider.getBlockNumber();
@@ -73,15 +71,25 @@ export async function readEscrowReference(provider, contract, escrowId, createdA
     const b = await provider.getBlock(mid);
     if (b.timestamp < target) lo = mid + 1; else hi = mid;
   }
-
   const logs = await provider.getLogs({
     address: contract,
     fromBlock: lo,
     toBlock: Math.min(lo + 9, head),
     topics: [TOPIC_CREATED, ethers.zeroPadValue(ethers.toBeHex(BigInt(escrowId)), 32)],
   });
-  if (!logs.length) return null;
-  const tx = await provider.getTransaction(logs[0].transactionHash);
+  return logs.length ? logs[0].transactionHash : null;
+}
+
+export async function readEscrowReference(provider, contract, escrowId, createdAt) {
+  const key = cacheKey(contract, escrowId);
+  try {
+    const cached = localStorage.getItem(key);
+    if (cached !== null) return cached || null;
+  } catch {}
+
+  const hash = await findCreationTxHash(provider, contract, escrowId, createdAt);
+  if (!hash) return null;
+  const tx = await provider.getTransaction(hash);
   const ref = tx ? referenceFromInput(tx.data) : null;
   try { localStorage.setItem(key, ref ?? ''); } catch {}
   return ref;

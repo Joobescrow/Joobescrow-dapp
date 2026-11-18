@@ -10,6 +10,7 @@ import styles from './deal.module.css';
 import { readEscrowReference } from '../../../../../lib/escrowReference';
 import { resolveEscrowContract } from '../../../../../lib/escrowContract';
 import EvidencePanel from '../../../../../components/EvidencePanel';
+import ReceiptButton from '../../../../../components/ReceiptButton';
 
 // Page publique d'un escrow : lecture seule sur le contrat, sans wallet.
 // Usage principal : un prestataire verifie que les fonds sont bien bloques avant de commencer.
@@ -231,6 +232,7 @@ export default function DealClient({ niche, id, c = null }) {
               <button type="button" className={styles.copyBtn} onClick={handleCopyLink}>
                 {copied ? 'Link copied' : 'Copy deal link'}
               </button>
+              <ReceiptButton contract={escrowAddr} escrowId={id} niche={inst} className={styles.copyBtn} />
             </div>
           </>
         )}

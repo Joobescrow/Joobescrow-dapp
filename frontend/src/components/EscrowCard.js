@@ -15,6 +15,7 @@ import { TOKEN_ADDRESSES } from '../config/contract';
 import { gasHelp } from '../config/gas';
 import { DEMO_CTA } from '../config/demoCta';
 import { dealPath } from '../lib/escrowContract';
+import ReceiptButton from './ReceiptButton';
 import Link from 'next/link';
 
 const EscrowChatPanel = dynamic(() => import('./EscrowChatPanel'), { ssr: false });
@@ -752,6 +753,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
                 <button type="button" className="escrow-link-btn" onClick={copyDealLink}>
                   Copy deal link
                 </button>
+                <ReceiptButton contract={escrowAddr} escrowId={escrow.id} niche={niche} className="escrow-link-btn" />
                 {getExplorerLink() && (
                   <a href={getExplorerLink()} target="_blank" rel="noreferrer" className="escrow-link-btn">
                     View Contract on BscScan ↗
