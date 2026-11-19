@@ -4,6 +4,8 @@ import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useNiche } from '../context/NicheContext';
+import { useWeb3 } from '../context/Web3Context';
+import { REPUTATION } from '../config/reputation';
 import WalletConnect from './WalletConnect';
 import './Sidebar.css';
 
@@ -37,6 +39,7 @@ export default function Sidebar() {
   const niche = useNiche();
   const [moreOpen, setMoreOpen] = useState(false);
   const actionsRequired = useSyncExternalStore(subscribeActions, getActionsSnapshot, getActionsServerSnapshot);
+  const { account } = useWeb3();
 
   const createPath = `/${niche.slug}`;
   const allEscrowsPath = `/${niche.slug}/all`;
@@ -89,6 +92,13 @@ export default function Sidebar() {
               </span>
             )}
           </Link>
+
+          {account && (
+            <Link href={REPUTATION.path(account)} className="nav-link">
+              <span>My reputation</span>
+              <span className="nav-badge">NEW</span>
+            </Link>
+          )}
 
           <Link href={demoPath} className={`nav-link ${isDemoActive ? 'active' : ''}`}>
             <span>Try with $1</span>

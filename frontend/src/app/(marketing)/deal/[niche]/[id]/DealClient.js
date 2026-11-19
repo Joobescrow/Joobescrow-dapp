@@ -11,6 +11,7 @@ import { readEscrowReference } from '../../../../../lib/escrowReference';
 import { resolveEscrowContract } from '../../../../../lib/escrowContract';
 import EvidencePanel from '../../../../../components/EvidencePanel';
 import ReceiptButton from '../../../../../components/ReceiptButton';
+import { REPUTATION } from '../../../../../config/reputation';
 
 // Page publique d'un escrow : lecture seule sur le contrat, sans wallet.
 // Usage principal : un prestataire verifie que les fonds sont bien bloques avant de commencer.
@@ -209,8 +210,8 @@ export default function DealClient({ niche, id, c = null }) {
 
             <ul className={styles.rows}>
               {reference && <li><span>Reference</span><b>{reference}</b></li>}
-              <li><span>{inst.lexicon?.client ?? 'Client'}</span><a href={`${BSCSCAN}/address/${d.client}`} target="_blank" rel="noopener noreferrer">{short(d.client)} ↗</a></li>
-              <li><span>{inst.lexicon?.provider ?? 'Provider'}</span><a href={`${BSCSCAN}/address/${d.provider}`} target="_blank" rel="noopener noreferrer">{short(d.provider)} ↗</a></li>
+              <li><span>{inst.lexicon?.client ?? 'Client'}</span><a href={`${BSCSCAN}/address/${d.client}`} target="_blank" rel="noopener noreferrer">{short(d.client)} ↗</a>{!inst.isDemo && <> · <Link href={REPUTATION.path(d.client)}>Reputation</Link></>}</li>
+              <li><span>{inst.lexicon?.provider ?? 'Provider'}</span><a href={`${BSCSCAN}/address/${d.provider}`} target="_blank" rel="noopener noreferrer">{short(d.provider)} ↗</a>{!inst.isDemo && <> · <Link href={REPUTATION.path(d.provider)}>Reputation</Link></>}</li>
               <li><span>Created</span><b>{fmtDate(d.createdAt)}</b></li>
               <li><span>Delivery deadline</span><b>{fmtDate(d.timeoutDate)}</b></li>
               <li><span>Provider fee</span><b>{Number(d.feeBPS) / 100}%</b></li>

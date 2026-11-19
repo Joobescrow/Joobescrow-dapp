@@ -17,6 +17,7 @@ import { DEMO_CTA } from '../config/demoCta';
 import { dealPath } from '../lib/escrowContract';
 import ReceiptButton from './ReceiptButton';
 import { RECEIPT } from '../config/receipt';
+import { REPUTATION } from '../config/reputation';
 import Link from 'next/link';
 
 const EscrowChatPanel = dynamic(() => import('./EscrowChatPanel'), { ssr: false });
@@ -513,6 +514,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
             <span className="value address">
               {formatAddr(escrow.client)}
               {isClient && <span className="you-tag">You</span>}
+              {!niche.isDemo && <Link href={REPUTATION.path(escrow.client)} target="_blank" className="rep-link">Reputation ↗</Link>}
             </span>
           </div>
           <div className="escrow-party">
@@ -520,6 +522,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
             <span className="value address">
               {formatAddr(escrow.provider)}
               {isProvider && <span className="you-tag">You</span>}
+              {!niche.isDemo && <Link href={REPUTATION.path(escrow.provider)} target="_blank" className="rep-link">Reputation ↗</Link>}
             </span>
           </div>
         </div>

@@ -682,3 +682,7 @@
   border-left: 3px solid var(--app-lime, #A3E635);
   border-radius: var(--app-radius-sm, 6px);
 }
+
+/* Lien vers le profil de reputation d'une partie */
+.rep-link { margin-left: 8px; font-size: 0.72rem; font-weight: 600; color: var(--app-lime, #A3E635); text-decoration: none; font-family: var(--font-main); }
+.rep-link:hover { text-decoration: underline; }
