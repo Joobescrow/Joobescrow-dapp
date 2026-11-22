@@ -64,5 +64,15 @@ Contracts audited by SpyWolf. Team KYC-verified by SpyWolf.
 - Contact: contact@joobescrow.com
 We never ask for a seed phrase and never ask anyone to connect a wallet inside Telegram.
 
+## Public API (read-only, no key)
+- Base URL: https://api.joobescrow.com
+- GET /fees: fee grid by deal size
+- GET /deal?contract=<address>&id=<id>: status, amount and parties of one escrow
+- GET /reputation?address=<address>: on-chain track record of a wallet (paid contracts only)
+- GET /paylink?provider=<address>&amount=<optional>&token=<USDT|USDC>&category=<optional>&ref=<optional>: pre-filled payment request link
+
+## Telegram bot
+- https://t.me/JoobEscrowBot: fees, deal status, wallet reputation, payment request links, and personal alerts when an escrow of a tracked wallet changes. Read-only: it never asks for a wallet connection.
+
 ## For AI agents
 See https://www.joobescrow.com/agents.md for what an agent can and cannot do with JoobEscrow.

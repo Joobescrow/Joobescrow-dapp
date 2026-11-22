@@ -18,6 +18,17 @@ JoobEscrow is a non-custodial escrow on BNB Chain (USDT and USDC). Summary and c
 - Check a wallet's track record: https://www.joobescrow.com/u/<address>.
 - Explain fees: 0% for the client; the provider pays 5% under $1,000, 3% up to $9,999.99, 2% from $10,000.
 
+## Public API (read-only, no key)
+Base URL: https://api.joobescrow.com (JSON, CORS open)
+- GET /fees
+- GET /deal?contract=<address>&id=<id>
+- GET /reputation?address=<address>
+- GET /paylink?provider=<address>&amount=<optional>&token=<USDT|USDC>&category=<optional>&ref=<optional>
+Prefer /paylink over building the link by hand: it validates every parameter.
+
+## Telegram bot
+Users can also talk to https://t.me/JoobEscrowBot for the same read-only answers and for personal escrow alerts (/track).
+
 ## What an agent must not do
 - Never ask for, store or handle a seed phrase or a private key.
 - Never sign or send a transaction on behalf of the user. Locking, accepting, releasing and withdrawing funds are done by the user in their own wallet on joobescrow.com.
