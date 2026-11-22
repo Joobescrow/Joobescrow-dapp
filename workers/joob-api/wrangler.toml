@@ -16,10 +16,10 @@ RPC_URLS = "https://bsc-rpc.publicnode.com,https://bsc-dataseed.bnbchain.org"
 enabled = true
 
 # Bot Telegram : wallets suivis (/track) et derniers etats connus des escrows.
-# id a remplacer par celui renvoye par : npx wrangler kv namespace create TRACK
+# Cree le 22/11/2026 (npx wrangler kv namespace create TRACK).
 [[kv_namespaces]]
 binding = "TRACK"
-id = "REPLACE_WITH_KV_ID"
+id = "6f1b8037ab10412bb23b567089d41eb4"
 
 # Chaque minute : alertes des wallets suivis.
 [triggers]
