@@ -11,6 +11,8 @@ routes = [ { pattern = "api.joobescrow.com", custom_domain = true } ]
 [vars]
 # Lecture des contrats (eth_call / multicall) : premier RPC de la liste.
 RPC_URLS = "https://bsc-rpc.publicnode.com,https://bsc-dataseed.bnbchain.org"
+# Identifiant du bot Telegram (sans @), cite dans les messages.
+BOT_USERNAME = "JoobEscrowBot"
 
 [observability]
 enabled = true
