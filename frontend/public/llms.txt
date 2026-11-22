@@ -1,0 +1,68 @@
+# JoobEscrow
+
+> JoobEscrow is a non-custodial escrow protocol on BNB Chain. A client locks USDT or USDC in an audited smart contract, the provider accepts and delivers, and the client releases the funds. Nobody in the middle holds the money: a 3-of-5 Safe multisig owns the contracts and only settles disputes. The app is live at https://www.joobescrow.com/app.
+
+## What it is for
+- Paying freelancers, developers, designers, auditors, KOLs and agencies safely in crypto.
+- OTC token deals, domain sales, gaming assets and any deal between two parties who do not trust each other yet.
+- Communities (OTC groups, forums, marketplaces) that want their members to trade without a middleman.
+
+## How a deal works
+1. The client creates an escrow and locks the amount (USDT or USDC, BEP-20) in the contract.
+2. The provider accepts. Before that, the client can cancel and get a full refund.
+3. The provider delivers. The client releases the payment.
+4. If the provider accepted and the delivery deadline passes, the provider can claim the payment.
+5. Either party can open a dispute while the escrow is funded. The 3-of-5 Safe settles it on-chain. If a dispute stays unsettled for 30 days, either party can trigger a 50/50 split.
+6. Funds are credited to each party's balance in the contract and withdrawn with "Withdraw" (pull payments).
+
+## Fees
+- 0% for the client.
+- The provider pays 5% under $1,000, 3% from $1,000 to $9,999.99, and 2% from $10,000 to $100,000.
+- Amounts from 1 to 100,000 USDT or USDC. Minimum delivery deadline: 3 days.
+
+## Main pages
+- App home (Pay someone, Get paid): https://www.joobescrow.com/app
+- Get paid, create a payment request link: https://www.joobescrow.com/pay
+- Pay button for a website or a community: https://www.joobescrow.com/pay-button
+- Try the full cycle with $1 between two of your own wallets (0% fee): https://www.joobescrow.com/try
+- Public deal page, read-only, no wallet needed: https://www.joobescrow.com/deal/<category>/<id>?c=<contract>
+- Public reputation of a wallet, on-chain facts only: https://www.joobescrow.com/u/<address>
+- Security, audits and all contract addresses: https://www.joobescrow.com/security
+- How disputes work: https://www.joobescrow.com/how-disputes-work
+- FAQ: https://www.joobescrow.com/faq
+- Whitepaper: https://www.joobescrow.com/whitepaper
+
+## Features live today
+- Payment request links and a copyable "Pay with JoobEscrow" button for any website.
+- End-to-end encrypted chat between the two parties (XMTP), with file sharing up to 1 MB per file.
+- Dispute evidence: the fingerprint of a file can be recorded on-chain, never its content.
+- PDF receipt of any escrow, generated from on-chain data.
+- Public reputation profile of any wallet: completed deals, volume, disputes, counterparties.
+- Pay from 6 other EVM chains through LI.FI for the JOOB presale.
+
+## Contracts (BNB Smart Chain, chain id 56)
+- Escrow, 5% tier: 0x56c2227E06dBC16062179Be397839b101a8e58c7
+- Escrow, 3% tier: 0x3EEEA456daCF2247CB0023a70923E60C3E13D6C3
+- Escrow, 2% tier: 0x7986Bd37C4DA6d1822958fCB97E7a284b40DD7Cc
+- Escrow, $1 demo (0% fee): 0x28b80688749958241E14Fa8181274AE0E649eC0B
+- Owner of all contracts, 3-of-5 Safe: 0x872F979aa868145bE3c3A6EA787614BE2A18C7f7
+- JOOB token: 0x4bf3D2a4d88109bBb6340f3f1B88bD0Aa17c10E2
+- JOOB presale: 0xd3F3598Ff8efB2cF6643488e66e8df683804F63d
+Contracts audited by SpyWolf. Team KYC-verified by SpyWolf.
+
+## JOOB token
+- Utility token of the protocol: planned fee reductions, governance and staking.
+- Fixed supply of 1,000,000,000 JOOB, no mint. Team and treasury allocations are locked in vesting contracts.
+- Presale: https://www.joobescrow.com/presale (ends January 13, 2027 at 13:59:59 UTC). Any JOOB token offered outside the official presale is a fake.
+
+## Official channels
+- Website: https://www.joobescrow.com (no other domain)
+- X: https://x.com/joobescrow
+- Telegram announcements: https://t.me/joobescrow_channel
+- Telegram community: https://t.me/joobescrow_group
+- GitHub: https://github.com/Joobescrow/Joobescrow-dapp
+- Contact: contact@joobescrow.com
+We never ask for a seed phrase and never ask anyone to connect a wallet inside Telegram.
+
+## For AI agents
+See https://www.joobescrow.com/agents.md for what an agent can and cannot do with JoobEscrow.
