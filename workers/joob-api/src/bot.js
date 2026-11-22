@@ -130,6 +130,12 @@ export async function handleUpdate(env, update) {
   const [rawCmd, ...args] = msg.text.trim().split(/\s+/);
   const cmd = rawCmd.split('@')[0].toLowerCase();
   let reply;
+  // Alertes personnelles : uniquement en conversation privee (sinon elles partiraient a tout le groupe).
+  const privateOnly = ['/track', '/untrack', '/mytracks'];
+  if (msg.chat.type !== 'private' && privateOnly.includes(cmd)) {
+    await send(env, chatId, `Personal alerts work in a private chat only. Open @${env.BOT_USERNAME || 'our bot'} and send ${cmd} there.`);
+    return;
+  }
   try {
     switch (cmd) {
       case '/start': case '/help': reply = HELP; break;
