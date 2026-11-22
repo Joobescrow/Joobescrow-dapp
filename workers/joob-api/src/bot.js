@@ -12,12 +12,15 @@ const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 const day = (s) => (s ? new Date(s * 1000).toUTCString().slice(5, 16) : 'n/a');
 
 export async function send(env, chatId, html) {
-  if (env.DRY_RUN === '1' || !env.TELEGRAM_BOT_TOKEN) { console.log(`[DRY_RUN] to ${chatId}:\n${html}`); return; }
-  await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  // Jeton nettoye : un retour a la ligne ajoute a l'enregistrement (PowerShell) casserait l'URL.
+  const token = (env.TELEGRAM_BOT_TOKEN || '').trim();
+  if (env.DRY_RUN === '1' || !token) { console.log(`[DRY_RUN] to ${chatId}:\n${html}`); return; }
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text: html, parse_mode: 'HTML', disable_web_page_preview: true }),
   });
+  if (!res.ok) console.error(`Telegram sendMessage ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
 
 const HELP = [
