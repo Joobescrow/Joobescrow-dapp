@@ -1,0 +1,28 @@
+name = "joob-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+account_id = "4177a644461fb16ed954dc2e7952f71f"
+
+# API publique en lecture seule, sur la zone Cloudflare joobescrow.com.
+routes = [ { pattern = "api.joobescrow.com", custom_domain = true } ]
+
+[vars]
+# Lecture des contrats (eth_call / multicall) : premier RPC de la liste.
+RPC_URLS = "https://bsc-rpc.publicnode.com,https://bsc-dataseed.bnbchain.org"
+
+[observability]
+enabled = true
+
+# Bot Telegram : wallets suivis (/track) et derniers etats connus des escrows.
+# id a remplacer par celui renvoye par : npx wrangler kv namespace create TRACK
+[[kv_namespaces]]
+binding = "TRACK"
+id = "REPLACE_WITH_KV_ID"
+
+# Chaque minute : alertes des wallets suivis.
+[triggers]
+crons = [ "* * * * *" ]
+
+# Secrets (npx wrangler secret put ...) : TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET.
