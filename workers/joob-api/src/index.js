@@ -8,7 +8,9 @@ export default {
     const url = new URL(request.url);
     // Webhook Telegram : seul Telegram connait le secret (setWebhook ... secret_token).
     if (url.pathname === '/telegram' && request.method === 'POST') {
-      if (!env.TELEGRAM_WEBHOOK_SECRET || request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== env.TELEGRAM_WEBHOOK_SECRET) {
+      // Secrets nettoyes : un retour a la ligne ajoute a l'enregistrement (PowerShell) ne doit pas tout bloquer.
+      const expected = (env.TELEGRAM_WEBHOOK_SECRET || '').trim();
+      if (!expected || (request.headers.get('X-Telegram-Bot-Api-Secret-Token') || '').trim() !== expected) {
         return new Response('Forbidden', { status: 403 });
       }
       const update = await request.json().catch(() => null);
