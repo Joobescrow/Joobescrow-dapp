@@ -13,6 +13,12 @@ export default function sitemap() {
       priority: 0.8,
     },
     {
+      url: 'https://www.joobescrow.com/shipped',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
       url: 'https://www.joobescrow.com/security',
       lastModified: new Date(),
       changeFrequency: 'monthly',

@@ -130,7 +130,8 @@ export default function LandingPage() {
           </div>
           <p className={styles.factsLine}>
             Fees from {FEE_RANGE_TEXT}, paid by the provider. 0% for the client.{' '}
-            <Link href="/try" className="text-gradient font-bold hover:underline">Try the full cycle with $1 →</Link>
+            <Link href="/try" className="text-gradient font-bold hover:underline">Try the full cycle with $1 →</Link>{' '}
+            · <Link href="/shipped" className="text-gradient font-bold hover:underline">See everything we shipped →</Link>
           </p>
         </div>
       </section>
