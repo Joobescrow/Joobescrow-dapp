@@ -91,12 +91,16 @@ export function Web3Provider({ children }) {
   }, []);
 
   useEffect(() => {
+    // Une deconnexion ou un changement de reseau relance cet effet pendant que l'ancienne lecture
+    // est encore en cours : son echec (wallet e-mail/Google deja ferme) ne doit pas afficher d'erreur.
+    let stale = false;
     async function syncConnection() {
       if (isConnected && walletProvider) {
         try {
           const ethersProvider = new ethers.BrowserProvider(walletProvider, 'any');
           setProvider(ethersProvider);
           const tempSigner = await ethersProvider.getSigner();
+          if (stale) return;
           setSigner(tempSigner);
           setAccount(address);
           
@@ -109,12 +113,13 @@ export function Web3Provider({ children }) {
           // (wallet e-mail/Google notamment) sans que la connexion soit en cause : pas de message d'erreur.
           try {
             const bal = await ethersProvider.getBalance(address);
-            setBalance(ethers.formatEther(bal));
+            if (!stale) setBalance(ethers.formatEther(bal));
           } catch (balErr) {
             console.warn('Balance read failed (network switch?):', balErr);
             setBalance(null);
           }
         } catch (err) {
+          if (stale) return;
           console.error("Error setting up provider from Reown:", err);
           setError("Failed to setup provider from Reown.");
         }
@@ -123,9 +128,11 @@ export function Web3Provider({ children }) {
         setSigner(null);
         setAccount(null);
         setBalance(null);
+        setError(null);
       }
     }
     syncConnection();
+    return () => { stale = true; };
   }, [isConnected, walletProvider, address, chainId]);
 
   // Avant toute ecriture sur l'escrow ou la presale : le wallet doit etre sur BNB Smart Chain.
