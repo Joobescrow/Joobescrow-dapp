@@ -45,7 +45,7 @@ function AppGuardContent({ children }) {
             </div>
             <h2 className="connect-title">Connect your <span className="text-gradient">wallet</span></h2>
             <p className="connect-text">
-              Please connect your Web3 wallet (MetaMask, TrustWallet) to access the dashboard, manage your contracts, and secure your transactions.
+              Connect your wallet or sign in with email or Google to access the dashboard, manage your escrows and secure your payments.
             </p>
             <ul className="connect-points">
               <li>Funds locked in an audited contract</li>
@@ -55,7 +55,7 @@ function AppGuardContent({ children }) {
             <button className="btn btn-primary btn-lg" onClick={connectWallet}>
               Connect Wallet
             </button>
-            <div className="connect-powered">Powered by Reown · 700+ wallets</div>
+            <div className="connect-powered">Email, Google or 700+ wallets via Reown</div>
           </div>
         </div>
       ) : (

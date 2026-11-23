@@ -814,7 +814,7 @@ export default function PresaleClient() {
                 </button>
                 <div className={styles.poweredBy}>
                   <img src="/logos/reown.svg" alt="" width={18} height={12} />
-                  Powered by Reown · 700+ wallets
+                  Email, Google or 700+ wallets via Reown
                 </div>
               </>
             ) : !isCorrectNetwork && !crossChain ? (
