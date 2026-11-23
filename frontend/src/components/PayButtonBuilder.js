@@ -4,15 +4,16 @@
 //  - « Clients pay me » : lien de paiement vers le prestataire (montant facultatif : sans montant, le client saisit la somme).
 //  - « My community pays each other » : ouvre « Pay someone » sans destinataire (groupes OTC, forums, marketplaces),
 //    code partenaire facultatif (?ref=). Le paiement se fait toujours sur joobescrow.com.
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
+import QRCode from 'qrcode';
 import { useWeb3 } from '../context/Web3Context';
 import { useToast } from '../context/ToastContext';
 import { instances } from '../config/instances';
 import { PAID_TOKENS, FEE_MIN_USD, FEE_MAX_USD } from '../config/feeTiers';
 import {
   buildPayLink, buildPayButtonHtml, buildCommunityLink, PAY_AMOUNT_PATTERN, DEFAULT_PAY_CATEGORY,
-  PAY_BUTTON_LABELS, PAY_BUTTON_THEMES, PAY_BUTTON_SIZES, PARTNER_CODE_PATTERN,
+  PAY_BUTTON_LABELS, PAY_BUTTON_THEMES, PAY_BUTTON_SIZES, PARTNER_CODE_PATTERN, PAY_QR_CODE,
 } from '../config/payLink';
 import { REF_PATTERN, REF_MAX_LENGTH, cleanReference } from '../lib/escrowReference';
 import './CreateEscrowModal.css';
@@ -95,6 +96,35 @@ export default function PayButtonBuilder({ onClose }) {
     el.download = isCommunity ? 'joobescrow-community-button.html' : 'joobescrow-pay-button.html';
     el.click();
     URL.revokeObjectURL(url);
+  };
+
+  const qrCanvasRef = useRef(null);
+  useEffect(() => {
+    if (!link || !qrCanvasRef.current) return;
+    QRCode.toCanvas(qrCanvasRef.current, link, {
+      width: PAY_QR_CODE.size,
+      margin: PAY_QR_CODE.margin,
+      errorCorrectionLevel: PAY_QR_CODE.errorCorrectionLevel,
+      color: PAY_QR_CODE.color,
+    }).catch(() => {});
+  }, [link]);
+
+  const downloadQr = async () => {
+    if (!link) return;
+    try {
+      const dataUrl = await QRCode.toDataURL(link, {
+        width: PAY_QR_CODE.downloadSize,
+        margin: PAY_QR_CODE.margin,
+        errorCorrectionLevel: PAY_QR_CODE.errorCorrectionLevel,
+        color: PAY_QR_CODE.color,
+      });
+      const el = document.createElement('a');
+      el.href = dataUrl;
+      el.download = isCommunity ? PAY_QR_CODE.filenames.communityButton : PAY_QR_CODE.filenames.payButton;
+      el.click();
+    } catch {
+      showToast('error', 'Could not generate the QR code.');
+    }
   };
 
   return (
@@ -199,6 +229,17 @@ export default function PayButtonBuilder({ onClose }) {
                     ? 'Paste this button on your forum, group or marketplace. Visitors enter the other party\'s wallet and lock the funds in an audited escrow contract. We never hold the funds.'
                     : 'Paste this HTML anywhere on your site. Clicking it opens your payment request on joobescrow.com: payment always happens on our site.'}
                 </p>
+                <div className="pay-qr-card">
+                  <div className="pay-qr-frame">
+                    <canvas ref={qrCanvasRef} width={PAY_QR_CODE.size} height={PAY_QR_CODE.size} aria-label={PAY_QR_CODE.alt} />
+                  </div>
+                  <div className="pay-qr-info">
+                    <p className="form-hint">{PAY_QR_CODE.hint}</p>
+                    <button type="button" className="btn btn-app-secondary" onClick={downloadQr}>
+                      {PAY_QR_CODE.downloadLabel}
+                    </button>
+                  </div>
+                </div>
               </>
             ) : (
               <>

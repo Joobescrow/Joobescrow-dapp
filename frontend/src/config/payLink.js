@@ -244,3 +244,21 @@ export function buildCommunityLink({ origin = '', category = DEFAULT_PAY_CATEGOR
   if (code && PARTNER_CODE_PATTERN.test(code)) params.set('ref', code);
   return `${origin.replace(/\/+$/, '')}/${cat}?${params.toString()}`;
 }
+
+// QR code des liens de paiement (/pay) et du Pay button (/pay-button) : noir sur fond blanc pour etre lisible partout.
+export const PAY_QR_CODE = {
+  size: 168,
+  downloadSize: 512,
+  margin: 2,
+  errorCorrectionLevel: 'M',
+  color: { dark: '#000000', light: '#FFFFFF' },
+  downloadLabel: 'Download QR code',
+  alt: 'Payment link QR code',
+  hint: 'Scan with a phone camera to open this exact link.',
+  filenames: {
+    payLink: 'joobescrow-payment-qr.png',
+    payButton: 'joobescrow-pay-button-qr.png',
+    communityButton: 'joobescrow-community-qr.png',
+  },
+};
+

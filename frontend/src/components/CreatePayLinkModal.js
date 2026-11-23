@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
+import QRCode from 'qrcode';
 import { useWeb3 } from '../context/Web3Context';
 import { useToast } from '../context/ToastContext';
 import { useNiche } from '../context/NicheContext';
 import { instances } from '../config/instances';
 import { PAID_TOKENS, FEE_MIN_USD, FEE_MAX_USD, tierForAmount } from '../config/feeTiers';
-import { buildPayLink, isValidPayCategory } from '../config/payLink';
+import { buildPayLink, isValidPayCategory, PAY_QR_CODE } from '../config/payLink';
 import { REF_PATTERN, REF_MAX_LENGTH, cleanReference } from '../lib/escrowReference';
 import './CreateEscrowModal.css';
 
@@ -68,6 +69,35 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
     setCopied(true);
     showToast('success', 'Payment link copied to clipboard.');
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const qrCanvasRef = useRef(null);
+  useEffect(() => {
+    if (!generatedLink || !qrCanvasRef.current) return;
+    QRCode.toCanvas(qrCanvasRef.current, generatedLink, {
+      width: PAY_QR_CODE.size,
+      margin: PAY_QR_CODE.margin,
+      errorCorrectionLevel: PAY_QR_CODE.errorCorrectionLevel,
+      color: PAY_QR_CODE.color,
+    }).catch(() => {});
+  }, [generatedLink]);
+
+  const handleDownloadQr = async () => {
+    if (!generatedLink) return;
+    try {
+      const dataUrl = await QRCode.toDataURL(generatedLink, {
+        width: PAY_QR_CODE.downloadSize,
+        margin: PAY_QR_CODE.margin,
+        errorCorrectionLevel: PAY_QR_CODE.errorCorrectionLevel,
+        color: PAY_QR_CODE.color,
+      });
+      const el = document.createElement('a');
+      el.href = dataUrl;
+      el.download = PAY_QR_CODE.filenames.payLink;
+      el.click();
+    } catch {
+      showToast('error', 'Could not generate the QR code.');
+    }
   };
 
   return (
@@ -223,6 +253,18 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
               <p className="form-hint" style={{ color: 'var(--app-text-secondary, #9CA8A1)' }}>
                 When your client opens this link, the escrow will be ready with your address, amount and selected token. They only need to connect their wallet and confirm.
               </p>
+
+              <div className="pay-qr-card">
+                <div className="pay-qr-frame">
+                  <canvas ref={qrCanvasRef} width={PAY_QR_CODE.size} height={PAY_QR_CODE.size} aria-label={PAY_QR_CODE.alt} />
+                </div>
+                <div className="pay-qr-info">
+                  <p className="form-hint">{PAY_QR_CODE.hint}</p>
+                  <button type="button" className="btn btn-app-secondary" onClick={handleDownloadQr}>
+                    {PAY_QR_CODE.downloadLabel}
+                  </button>
+                </div>
+              </div>
 
             </div>
           ) : (
