@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import styles from '../app/(marketing)/marketing.module.css';
 import PresaleNavButton from './PresaleNavButton';
 import { TELEGRAM_URL, X_URL } from '../config/links';
-import { useDisconnect } from '@reown/appkit/react';
+import { useAppKit, useDisconnect } from '@reown/appkit/react';
 import { useWeb3 } from '../context/Web3Context';
 
 // Pages d'achat isolees : header reduit au logo et au wallet, sans menu.
@@ -30,6 +30,7 @@ const NavDot = () => (
 export const LEARN = [
   { href: '/tokenomics', label: 'Tokenomics' },
   { href: '/roadmap', label: 'Roadmap' },
+  { href: '/shipped', label: 'What we shipped' },
   { href: '/whitepaper', label: 'Whitepaper' },
   { href: '/security#team', label: 'Team' },
 ];
@@ -91,6 +92,7 @@ export default function MarketingHeader() {
   const pathname = usePathname();
   const { account, connectWallet } = useWeb3();
   const { disconnect } = useDisconnect();
+  const { open: openAccount } = useAppKit();
 
   if (FOCUS_PATHS.includes(pathname)) {
     return (
@@ -102,7 +104,9 @@ export default function MarketingHeader() {
         <div className={styles.navRight}>
           {account ? (
             <>
-              <span className={`btn btn-outline ${styles.launchBtn}`}>{account.slice(0, 6)}…{account.slice(-4)}</span>
+              <button type="button" onClick={() => openAccount()} className={`btn btn-outline ${styles.launchBtn}`} title="Open your wallet: balance, receive funds (QR code), networks">
+                {account.slice(0, 6)}…{account.slice(-4)}
+              </button>
               <button type="button" onClick={() => disconnect()} className={`btn btn-outline ${styles.launchBtn}`} aria-label="Disconnect wallet">
                 Disconnect
               </button>
