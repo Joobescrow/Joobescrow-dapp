@@ -464,7 +464,7 @@ export default function PresaleClient() {
     try {
       // Pas assez de BNB pour le gas : message clair avant toute signature.
       await ensureGas();
-      const signer = await provider.getSigner();
+      const signer = new ethers.JsonRpcSigner(provider, account);
       const tokenAddr = paymentToken === 'USDT' ? PRESALE_ADDRESSES.USDT : PRESALE_ADDRESSES.USDC;
       const erc20 = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
       const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
@@ -577,7 +577,7 @@ export default function PresaleClient() {
     if (!isCorrectNetwork) { await doSwitch(); return; }
     setTxError(null); setSuccessMsg(null); setStatus('loading'); setStep('Finalizing the sale…');
     try {
-      const signer = await provider.getSigner();
+      const signer = new ethers.JsonRpcSigner(provider, account);
       const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
       await (await presale.finalize()).wait();
       setStatus('success'); setSuccessMsg('Sale finalized: claims are open.');
@@ -593,7 +593,7 @@ export default function PresaleClient() {
     if (!isCorrectNetwork) { await doSwitch(); return; }
     setTxError(null); setSuccessMsg(null); setStatus('loading'); setStep('Claiming JOOB…');
     try {
-      const signer = await provider.getSigner();
+      const signer = new ethers.JsonRpcSigner(provider, account);
       const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
       await (await presale.claim()).wait();
       setStatus('success'); setSuccessMsg('Tokens claimed to your wallet.');

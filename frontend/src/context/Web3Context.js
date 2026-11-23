@@ -95,11 +95,13 @@ export function Web3Provider({ children }) {
     // est encore en cours : son echec (wallet e-mail/Google deja ferme) ne doit pas afficher d'erreur.
     let stale = false;
     async function syncConnection() {
-      if (isConnected && walletProvider) {
+      if (isConnected && walletProvider && address) {
         try {
           const ethersProvider = new ethers.BrowserProvider(walletProvider, 'any');
           setProvider(ethersProvider);
-          const tempSigner = await ethersProvider.getSigner();
+          // Signataire construit avec l'adresse connue : getSigner() peut envoyer eth_requestAccounts,
+          // refusé par le wallet e-mail/Google de Reown (« Action not allowed »).
+          const tempSigner = new ethers.JsonRpcSigner(ethersProvider, address);
           if (stale) return;
           setSigner(tempSigner);
           setAccount(address);

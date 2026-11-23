@@ -63,7 +63,7 @@ export default function PresaleGlassCard() {
     try {
       const { chainId } = await provider.getNetwork();
       if (Number(chainId) !== PRESALE_CHAIN_ID) { setFinalizeMsg('Switch your wallet to BNB Smart Chain, then try again.'); return; }
-      const signer = await provider.getSigner();
+      const signer = new ethers.JsonRpcSigner(provider, account);
       const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_ABI, signer);
       await (await presale.finalize()).wait();
       setFinalizeMsg('Sale finalized: claims are open.');
