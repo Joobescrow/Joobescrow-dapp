@@ -41,8 +41,8 @@ createAppKit({
   featuredWalletIds: FEATURED_WALLET_IDS,
   features: {
     analytics: true,
-    // Wallets + connexion par e-mail et par Google (wallet non-custodial cree par Reown) + achat par carte (onramp) ;
-    // pas de swap/envoi/reception dans la modale (config/wallets.js).
+    // Wallets + connexion par e-mail et par Google (wallet non-custodial cree par Reown) ; reception active,
+    // pas d'achat par carte, de swap ni d'envoi dans la modale (config/wallets.js).
     email: LOGIN_OPTIONS.email,
     socials: LOGIN_OPTIONS.socials,
     onramp: LOGIN_OPTIONS.onramp,
@@ -103,9 +103,16 @@ export function Web3Provider({ children }) {
             setIsTestnet(chainId === 97);
           }
 
-          const bal = await ethersProvider.getBalance(address);
-          setBalance(ethers.formatEther(bal));
           setError(null);
+          // Solde BNB : lecture secondaire. Elle peut echouer pendant un changement de reseau
+          // (wallet e-mail/Google notamment) sans que la connexion soit en cause : pas de message d'erreur.
+          try {
+            const bal = await ethersProvider.getBalance(address);
+            setBalance(ethers.formatEther(bal));
+          } catch (balErr) {
+            console.warn('Balance read failed (network switch?):', balErr);
+            setBalance(null);
+          }
         } catch (err) {
           console.error("Error setting up provider from Reown:", err);
           setError("Failed to setup provider from Reown.");
