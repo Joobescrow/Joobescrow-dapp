@@ -1,9 +1,9 @@
 // Bot Telegram JoobEscrow : lecture seule. Ne touche jamais aux fonds, ne demande jamais de wallet ni de signature.
 // Webhook : POST /telegram (en-tete secret verifie). Alertes /track : cron chaque minute (index.js).
 import { ethers } from 'ethers';
-import { SITE, PAID_CONTRACTS, OFFICIAL } from './config.js';
+import { SITE, PAID_CONTRACTS, OFFICIAL, ALERTS } from './config.js';
 import { fees, paylink, deal, reputation } from './api.js';
-import { readAllEscrows } from './chain.js';
+import { readAllEscrows, dealUrl } from './chain.js';
 
 const MAX_TRACKED = 5; // wallets suivis par conversation
 const SAFE_LINE = `Official site: joobescrow.com only. We never ask you to connect a wallet in Telegram.`;
@@ -174,17 +174,22 @@ const EVENTS = {
   deadline: (e) => `The deadline of escrow #${e.id} has passed. The provider can now claim the payment, or the client can release it.`,
 };
 
+// Marqueur dans snap:<adresse> : les escrows de demo y sont deja memorises. Sans lui (snap ecrit avant
+// l'ajout de la demo aux alertes), les escrows de demo existants sont memorises sans alerter.
+const DEMO_SNAP_FLAG = '_demo';
+
 export async function runAlerts(env) {
   const tracked = await getJson(env, 'tracked', []);
   if (!tracked.length) return 'no tracked wallet';
-  const all = await readAllEscrows(env);
+  const all = await readAllEscrows(env, { includeDemo: ALERTS.includeDemo });
   const now = Math.floor(Date.now() / 1000);
   let sent = 0;
   for (const addr of tracked) {
     const a = addr.toLowerCase();
     const mine = all.filter((e) => e.client.toLowerCase() === a || e.provider.toLowerCase() === a);
     const snap = await getJson(env, `snap:${addr}`, null);
-    const next = {};
+    const demoKnown = Boolean(snap && snap[DEMO_SNAP_FLAG]);
+    const next = ALERTS.includeDemo ? { [DEMO_SNAP_FLAG]: '1' } : {};
     const msgs = [];
     for (const e of mine) {
       const key = `${e.contract}-${e.id}`;
@@ -192,6 +197,7 @@ export async function runAlerts(env) {
       const state = `${e.statusCode}${e.accepted ? 'a' : ''}${late ? 'l' : ''}`;
       next[key] = state;
       if (!snap) continue; // premier passage : on memorise sans alerter
+      if (e.isDemo && !demoKnown) continue; // premiere lecture de la demo pour ce wallet : idem
       const prev = snap[key];
       if (prev === state) continue;
       const role = e.provider.toLowerCase() === a ? 'provider' : 'client';
@@ -203,7 +209,11 @@ export async function runAlerts(env) {
       else if (e.statusCode === 5) ev = 'cancelled';
       else if (late && !prev.includes('l')) ev = 'deadline';
       else if (e.accepted && !prev.includes('a')) ev = 'accepted';
-      if (ev) msgs.push(`${EVENTS[ev](e)} (you are the ${role} of ${short(addr)})\n${e.isDemo ? '' : `${SITE}/deal/pro/${e.id}?c=${e.contract}`}`);
+      if (ev) {
+        msgs.push(e.isDemo
+          ? `${ALERTS.demoTag} ${EVENTS[ev](e)} (you are the ${role} of ${short(addr)})\n${dealUrl(e)}`
+          : `${EVENTS[ev](e)} (you are the ${role} of ${short(addr)})\n${SITE}/deal/pro/${e.id}?c=${e.contract}`);
+      }
     }
     const changed = !snap || Object.keys(next).length !== Object.keys(snap).length || Object.entries(next).some(([k, v]) => snap[k] !== v);
     if (changed) await putJson(env, `snap:${addr}`, next);

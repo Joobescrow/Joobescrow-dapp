@@ -58,12 +58,16 @@ export async function readDeal(env, contract, id) {
   return { ...d, url: dealUrl(d) };
 }
 
-/** Tous les escrows des contrats payants (demo exclue), en 2 a 3 appels multicall. */
-export async function readAllEscrows(env) {
+/**
+ * Tous les escrows des contrats payants (demo exclue par defaut), en 2 a 3 appels multicall.
+ * includeDemo : ajoute le contrat de demo. Reserve aux alertes /track ; la reputation ne l'active jamais.
+ */
+export async function readAllEscrows(env, { includeDemo = false } = {}) {
+  const contracts = includeDemo ? [...PAID_CONTRACTS, DEMO_CONTRACT] : PAID_CONTRACTS;
   const p = provider(env);
-  const counters = await multicall(p, PAID_CONTRACTS.map((target) => ({ target, data: ESCROW.encodeFunctionData('escrowCounter') })));
+  const counters = await multicall(p, contracts.map((target) => ({ target, data: ESCROW.encodeFunctionData('escrowCounter') })));
   const calls = [];
-  PAID_CONTRACTS.forEach((target, i) => {
+  contracts.forEach((target, i) => {
     const n = counters[i].success ? Number(ESCROW.decodeFunctionResult('escrowCounter', counters[i].returnData)[0]) : 0;
     for (let id = 1; id <= n; id++) calls.push({ target, id, data: ESCROW.encodeFunctionData('escrows', [id]) });
   });

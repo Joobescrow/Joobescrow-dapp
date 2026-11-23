@@ -28,6 +28,13 @@ export const PAID_CONTRACTS = [
 ];
 export const DEMO_CONTRACT = '0x28b80688749958241E14Fa8181274AE0E649eC0B';
 
+// Alertes /track du bot : la demo a 1 $ est incluse (un nouvel utilisateur peut tester gratuitement
+// entre deux de ses wallets). La reputation, elle, n'inclut jamais la demo.
+export const ALERTS = {
+  includeDemo: true,
+  demoTag: '(demo)',
+};
+
 export const CATEGORIES = ['influence', 'talent', 'pro', 'trade', 'prime', 'audit', 'dev', 'art', 'gaming', 'realestate', 'music', 'cm', 'domain', 'mergers', 'bounty', 'otc'];
 export const DEFAULT_CATEGORY = 'pro';
 export const AMOUNT_MIN = 1;
