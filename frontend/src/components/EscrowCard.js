@@ -732,7 +732,7 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
               </div>
               <div className="escrow-details-row">
                 <span>Protocol fee</span>
-                <strong>{feePctOf}% (paid by provider)</strong>
+                <strong>{feePctOf}% (paid by {niche.lexicon.provider.toLowerCase()})</strong>
               </div>
               {escrow.createdAt > 0 && (
                 <div className="escrow-details-row">

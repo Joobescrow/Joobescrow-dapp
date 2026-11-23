@@ -205,7 +205,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
               </p>
             ) : (
               <p className="form-hint">
-                Public reference stored on-chain in the escrow calldata. Do not put private information.
+                Public reference visible on the escrow record. Do not put private information.
               </p>
             )}
           </div>
@@ -225,7 +225,7 @@ export default function CreatePayLinkModal({ onClose, defaultCategory = null }) 
                 <strong>{netValue.toFixed(2)} {token}</strong>
               </div>
               <div className="create-summary-note">
-                Clients pay 0% fees. Escrow fee is deducted solely from provider payout upon release.
+                Clients pay 0% fees. The escrow fee is deducted from your payout upon release.
               </div>
             </div>
           )}

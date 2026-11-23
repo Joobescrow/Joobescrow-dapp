@@ -161,7 +161,7 @@ export default function CreateEscrowModal({
     }
 
     if (!ethers.isAddress(providerAddr)) {
-      showToast('error', "Invalid provider address format.");
+      showToast('error', `Please enter a valid ${niche.lexicon.provider.toLowerCase()} wallet address.`);
       return;
     }
     if (parseFloat(amount) <= 0) {
@@ -171,7 +171,7 @@ export default function CreateEscrowModal({
     if (account && providerAddr.toLowerCase() === account.toLowerCase()) {
       showToast('error', niche.isDemo
         ? "Use your second wallet's address as provider: the contract refuses the same wallet on both sides."
-        : "The provider must be a different wallet than yours.");
+        : `The ${niche.lexicon.provider.toLowerCase()} must be a different wallet than yours.`);
       return;
     }
     if (!REF_PATTERN.test(reference)) {
@@ -300,9 +300,9 @@ export default function CreateEscrowModal({
   let tierNote = null;
   if (isPaid && amount !== '') {
     if (!tier) tierNote = { error: true, text: FEE_RANGE_MESSAGE };
-    else if (!tierChecked) tierNote = { error: false, text: 'Checking the fee on-chain...' };
+    else if (!tierChecked) tierNote = { error: false, text: 'Checking the fee...' };
     else if (!tierChecked.ok) tierNote = { error: true, text: TIER_CHECK_MESSAGES[tierChecked.reason] || TIER_CHECK_MESSAGES.read };
-    else tierNote = { error: false, text: `Fee ${feePct}% (${tier.label}), provider receives ${fmt(netUnits)} ${tokenSym}` };
+    else tierNote = { error: false, text: `Fee ${feePct}% (${tier.label}), ${niche.lexicon.provider.toLowerCase()} receives ${fmt(netUnits)} ${tokenSym}` };
   }
   const canSubmit = !isPaid || Boolean(tierChecked?.ok);
 
@@ -377,7 +377,7 @@ export default function CreateEscrowModal({
 
           {isSelfWallet && (
             <div className="pay-link-warning">
-              You are connected with the provider&apos;s wallet. To fund this escrow, switch to a client wallet.
+              You are connected with the {niche.lexicon.provider.toLowerCase()}&apos;s wallet. To fund this escrow, switch to the {niche.lexicon.client.toLowerCase()}&apos;s wallet.
             </div>
           )}
 
@@ -427,7 +427,7 @@ export default function CreateEscrowModal({
             <label>Deal note (optional)</label>
             <input type="text" value={reference} onChange={e=>setReference(e.target.value)} maxLength={REF_MAX_LENGTH} placeholder="e.g. Escrow_Joob_Deal_01" />
             <p className="form-hint">
-              Stored publicly on the blockchain: keep it professional, no private data.
+              Public note visible on the escrow record: keep it professional, no private data.
             </p>
           </div>
 
@@ -439,7 +439,7 @@ export default function CreateEscrowModal({
               </div>
               {feePct > 0 && (
                 <div className="create-summary-row">
-                  <span>Provider fee ({feePct}%)</span>
+                  <span>{niche.lexicon.provider} fee ({feePct}%)</span>
                   <strong>-{fmt(feeUnits)} {tokenSym}</strong>
                 </div>
               )}
@@ -496,7 +496,7 @@ export default function CreateEscrowModal({
                 type="button"
                 className="btn btn-app-primary"
                 disabled
-                title="The provider must be a different wallet than yours"
+                title={`The ${niche.lexicon.provider.toLowerCase()} must be a different wallet than yours`}
               >
                 Switch wallet to pay
               </button>

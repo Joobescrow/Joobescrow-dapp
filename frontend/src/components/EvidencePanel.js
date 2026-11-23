@@ -20,7 +20,7 @@ export function EvidenceList({ items, account, loading, error }) {
           <span className="ef-ev-who">{account && it.party.toLowerCase() === account.toLowerCase() ? 'You' : short(it.party)}</span>
           <span className="ef-ev-hash" title={it.hash}>{shortHash(it.hash)}</span>
           <span className="ef-ev-date">{new Date(it.time * 1000).toLocaleString()}</span>
-          <a href={`${BSCSCAN}/tx/${it.txHash}`} target="_blank" rel="noopener noreferrer">Tx ↗</a>
+          <a href={`${BSCSCAN}/tx/${it.txHash}`} target="_blank" rel="noopener noreferrer">Receipt ↗</a>
         </li>
       ))}
     </ul>
