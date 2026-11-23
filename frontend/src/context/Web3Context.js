@@ -6,7 +6,7 @@ import { createAppKit, useAppKit, useAppKitProvider, useAppKitAccount, useAppKit
 import { EthersAdapter } from '@reown/appkit-adapter-ethers';
 import { bsc, bscTestnet, hardhat, mainnet, arbitrum, base, polygon, optimism, avalanche } from '@reown/appkit/networks';
 import { MAX_TX_GAS } from '../config/gas';
-import { FEATURED_WALLET_IDS } from '../config/wallets';
+import { FEATURED_WALLET_IDS, LOGIN_OPTIONS } from '../config/wallets';
 
 // Projet Reown dedie a JoobEscrow (cloud.reown.com, equipe JoobEscrow). ID public par nature.
 const projectId = '63a257b332dae1f848b7dab85c8f0880';
@@ -41,14 +41,14 @@ createAppKit({
   featuredWalletIds: FEATURED_WALLET_IDS,
   features: {
     analytics: true,
-    // Wallets uniquement : pas de wallet heberge cree par email ou reseau social.
-    email: false,
-    socials: false,
-    // Pas d'achat par carte ni de swap/envoi/reception dans la modale du wallet.
-    onramp: false,
-    swaps: false,
-    send: false,
-    receive: false
+    // Wallets + connexion par e-mail et par Google (wallet non-custodial cree par Reown) + achat par carte (onramp) ;
+    // pas de swap/envoi/reception dans la modale (config/wallets.js).
+    email: LOGIN_OPTIONS.email,
+    socials: LOGIN_OPTIONS.socials,
+    onramp: LOGIN_OPTIONS.onramp,
+    swaps: LOGIN_OPTIONS.swaps,
+    send: LOGIN_OPTIONS.send,
+    receive: LOGIN_OPTIONS.receive
   }
 });
 

@@ -13,3 +13,16 @@ export const FEATURED_WALLETS = [
 ];
 
 export const FEATURED_WALLET_IDS = FEATURED_WALLETS.map((w) => w.id);
+
+// Options de connexion dans la fenetre Reown AppKit (lues par context/Web3Context.js).
+// Wallets + connexion par e-mail (code recu par mail) et par Google (wallet non-custodial cree par Reown),
+// et achat de crypto par carte (onramp via Reown). Pas de swap/envoi/reception dans la modale.
+export const LOGIN_OPTIONS = {
+  email: true,
+  socials: ['google'],
+  onramp: true,
+  swaps: false,
+  send: false,
+  receive: false,
+};
+
