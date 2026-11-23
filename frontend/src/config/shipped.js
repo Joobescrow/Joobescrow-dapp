@@ -1,8 +1,13 @@
 // Page /shipped : ce qui est en ligne, date par date (le plus recent en premier). Rien d'annonce ici :
 // seulement des fonctions utilisables aujourd'hui, chacune avec un lien pour l'essayer ou la verifier.
-import { BSCN_ARTICLE_URL } from './links';
+import { BSCN_ARTICLE_URL, TELEGRAM_BOT_URL, PUBLIC_API_URL } from './links';
 
 export const SHIPPED = [
+  { date: '2026-11-23', title: 'Sign in with email or Google', desc: 'Start an escrow without installing a wallet: sign in with your email or Google account, no seed phrase to write down. Wallets still work as before.', href: '/app', cta: 'Open the app' },
+  { date: '2026-11-23', title: 'Install JoobEscrow on your phone', desc: 'Add JoobEscrow to your home screen from your browser and open the app like any other app.', href: '/app', cta: 'Open the app' },
+  { date: '2026-11-23', title: 'QR codes for payment links and buttons', desc: 'Every payment link and pay button comes with a QR code to print or share, downloadable as an image.', href: '/pay-button', cta: 'Get your button' },
+  { date: '2026-11-22', title: 'Telegram bot and personal deal alerts', desc: 'Check any deal, a wallet reputation or the fees from Telegram, and track your own wallet to get an alert when one of your escrows moves.', href: TELEGRAM_BOT_URL, cta: 'Open @JoobEscrowBot' },
+  { date: '2026-11-22', title: 'Public read-only API', desc: 'Fees, deal status, wallet reputation and payment links, readable by any app. No keys, no writes.', href: PUBLIC_API_URL, cta: 'See the endpoints' },
   { date: '2026-11-22', title: 'Readable by AI assistants', desc: 'A plain summary of JoobEscrow and instructions for AI agents, so assistants can explain the escrow and build a payment link for you.', href: '/llms.txt', cta: 'Read llms.txt' },
   { date: '2026-11-19', title: 'Public reputation profiles', desc: 'Completed deals, volume, disputes and counterparties of any wallet, read from our contracts. No reviews, only on-chain facts.', href: '/u/0x5504732986176ad264dae4897aA7d81B81b78C4C', cta: 'See an example profile' },
   { date: '2026-11-18', title: 'PDF receipts', desc: 'A receipt for every escrow, generated from on-chain data, with links to check every value on BscScan.', href: '/deal/demo/28', cta: 'See a deal page' },

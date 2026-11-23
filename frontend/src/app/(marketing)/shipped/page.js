@@ -26,7 +26,11 @@ export default function ShippedPage() {
             <div>
               <h2>{s.title}</h2>
               <p>{s.desc}</p>
-              <Link href={s.href} className={styles.cta}>{s.cta} <span aria-hidden="true">→</span></Link>
+              {s.href.startsWith('http') ? (
+                <a href={s.href} target="_blank" rel="noopener noreferrer" className={styles.cta}>{s.cta} <span aria-hidden="true">↗</span></a>
+              ) : (
+                <Link href={s.href} className={styles.cta}>{s.cta} <span aria-hidden="true">→</span></Link>
+              )}
             </div>
           </li>
         ))}
@@ -42,7 +46,7 @@ export default function ShippedPage() {
       </ul>
 
       <p className={styles.next}>
-        Coming next: personal Telegram alerts for your escrows. See the <Link href="/roadmap">roadmap</Link>.
+        Coming next: Escrow V5, with lower fees for JOOB stakers, then milestone payments. See the <Link href="/roadmap">roadmap</Link>.
       </p>
     </div>
   );
