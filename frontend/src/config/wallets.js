@@ -26,5 +26,8 @@ export const LOGIN_OPTIONS = {
   swaps: false,
   send: false,
   receive: true,
+  // E-mail et Google en haut, puis les wallets. Sans cet ordre, Reown met les wallets en premier
+  // des qu'une extension (MetaMask, Rabby...) est installee, et l'e-mail finit en bas d'une longue liste.
+  connectMethodsOrder: ['email', 'social', 'wallet'],
 };
 

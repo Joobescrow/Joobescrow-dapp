@@ -48,7 +48,8 @@ createAppKit({
     onramp: LOGIN_OPTIONS.onramp,
     swaps: LOGIN_OPTIONS.swaps,
     send: LOGIN_OPTIONS.send,
-    receive: LOGIN_OPTIONS.receive
+    receive: LOGIN_OPTIONS.receive,
+    connectMethodsOrder: LOGIN_OPTIONS.connectMethodsOrder
   }
 });
 
