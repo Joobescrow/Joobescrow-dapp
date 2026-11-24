@@ -34,7 +34,7 @@ export default function AirdropClient({ campaigns: frozen }) {
           entries: d.entries || [],
           labelHeader: 'Bought',
           unavailable: Boolean(d.error),
-          rule: `${SALES_BONUS.joobPerUsd} bonus JOOB for every $1 bought, from $1, from ${startLabel} until $${SALES_BONUS.capRaisedUsd / 1000}K raised.${d.capReached ? ' Target reached, the list is final.' : ''}`,
+          rule: `${SALES_BONUS.joobPerUsd} bonus JOOB for every $1 bought, any amount, from ${startLabel} until $${SALES_BONUS.capRaisedUsd / 1000}K raised.${d.capReached ? ' Target reached, the list is final.' : ''}`,
           delivery: 'From the Airdrop allocation, delivered at TGE with the presale vesting: 20% at the end of the sale, then linear over 180 days.',
         });
         setTab('fair-share');

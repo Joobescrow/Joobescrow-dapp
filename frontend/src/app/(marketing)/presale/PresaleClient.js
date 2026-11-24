@@ -744,7 +744,7 @@ export default function PresaleClient() {
                 <div className={fairShareJoob > 0 ? styles.receiveBonusNote : styles.promoHint}>
                   {fairShareJoob > 0
                     ? <>+ {fairShareJoob.toLocaleString('en-US')} JOOB Fair Share bonus ({fairShare.joobPerUsd} per $1), delivered at TGE</>
-                    : <>Fair Share bonus: {fairShare.joobPerUsd} JOOB for every $1, from $1</>}
+                    : <>Fair Share bonus: {fairShare.joobPerUsd} JOOB for every $1, any amount</>}
                 </div>
               )}
               {promo && promoBonus === 0n && (
