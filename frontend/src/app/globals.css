@@ -31,7 +31,7 @@ body {
   line-height: 1.5;
   background-image: 
     radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.04), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(250, 204, 21, 0.04), transparent 25%);
+    radial-gradient(circle at 85% 30%, rgba(163, 230, 53, 0.04), transparent 25%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -130,7 +130,7 @@ h1, h2, h3 {
 }
 
 .text-gradient {
-  background: linear-gradient(to right, #10b981, #a3e635, #facc15);
+  background: linear-gradient(to right, #10b981, #a3e635, #bef264);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

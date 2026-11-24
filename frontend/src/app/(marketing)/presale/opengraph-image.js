@@ -12,16 +12,16 @@ export default function Image() {
       <div
         style={{
           width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          padding: '70px 80px', background: 'linear-gradient(135deg, #0a0a0a 0%, #0d1f1a 55%, #1a1405 100%)', color: '#fff',
+          padding: '70px 80px', background: 'linear-gradient(135deg, #0a0a0a 0%, #0d1f1a 55%, #0f1f08 100%)', color: '#fff',
           fontFamily: 'sans-serif',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 34, color: '#94a3b8' }}>
-          <div style={{ width: 18, height: 18, borderRadius: 9, background: '#f59e0b' }} />
+          <div style={{ width: 18, height: 18, borderRadius: 9, background: '#22c55e' }} />
           JoobEscrow
         </div>
         <div style={{ display: 'flex', fontSize: 96, fontWeight: 800, marginTop: 24, letterSpacing: -2 }}>JOOB Presale</div>
-        <div style={{ display: 'flex', fontSize: 44, marginTop: 12, color: '#fbbf24', fontWeight: 700 }}>
+        <div style={{ display: 'flex', fontSize: 44, marginTop: 12, color: '#a3e635', fontWeight: 700 }}>
           Live now · the price rises every 2 days
         </div>
         <div style={{ display: 'flex', gap: 14, marginTop: 48 }}>

@@ -85,7 +85,7 @@
 }
 
 .titleGradient {
-  background: linear-gradient(90deg, #10b981 0%, #a3e635 50%, #facc15 100%);
+  background: linear-gradient(90deg, #10b981 0%, #a3e635 50%, #bef264 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -255,9 +255,9 @@
 }
 
 .badgePending {
-  background: rgba(250, 204, 21, 0.15);
-  color: #facc15;
-  border: 1px solid rgba(250, 204, 21, 0.35);
+  background: rgba(163, 230, 53, 0.15);
+  color: #bef264;
+  border: 1px solid rgba(163, 230, 53, 0.35);
 }
 
 .badgeMuted {
@@ -289,7 +289,7 @@
   font-size: clamp(1.3rem, 3.5vw, 1.6rem);
   font-weight: 800;
   line-height: 1.1;
-  background: linear-gradient(135deg, #10b981 0%, #a3e635 60%, #facc15 100%);
+  background: linear-gradient(135deg, #10b981 0%, #a3e635 60%, #bef264 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -344,7 +344,7 @@
 }
 
 .nextPriceHighlight {
-  color: #facc15;
+  color: #bef264;
   font-weight: 600;
 }
 
@@ -1098,7 +1098,7 @@
 }
 
 .timelineNext::before {
-  border-color: #facc15;
+  border-color: #bef264;
   background: #0d1117;
 }
 
@@ -1136,8 +1136,8 @@
 }
 
 .tagNext {
-  background: rgba(250, 204, 21, 0.15);
-  color: #facc15;
+  background: rgba(163, 230, 53, 0.15);
+  color: #bef264;
 }
 
 .timelineDesc {

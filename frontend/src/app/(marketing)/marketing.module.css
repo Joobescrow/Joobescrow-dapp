@@ -50,7 +50,7 @@
 }
 
 .textGradient {
-  background: linear-gradient(135deg, #10b981 0%, #a3e635 55%, #facc15 100%);
+  background: linear-gradient(135deg, #10b981 0%, #a3e635 55%, #bef264 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -598,8 +598,8 @@
   border-radius: 6px;
   font-size: 0.72rem;
   font-weight: 700;
-  background: rgba(250, 204, 21, 0.12);
-  color: #facc15;
+  background: rgba(163, 230, 53, 0.12);
+  color: #bef264;
 }
 
 /* Steps 4 Grid */
@@ -951,7 +951,7 @@
   border: 1px solid transparent;
   background:
     linear-gradient(#0d1117, #0d1117) padding-box,
-    linear-gradient(90deg, #a3e635, #10b981, #facc15) border-box;
+    linear-gradient(90deg, #a3e635, #10b981, #bef264) border-box;
   box-shadow: 0 0 18px rgba(163, 230, 53, 0.25);
   transition: transform 0.15s, box-shadow 0.2s;
 }
@@ -1069,7 +1069,7 @@
   border-radius: 14px; text-align: center; border: 1px solid transparent;
   background:
     linear-gradient(#0d1117, #0d1117) padding-box,
-    linear-gradient(90deg, #a3e635, #10b981, #facc15) border-box;
+    linear-gradient(90deg, #a3e635, #10b981, #bef264) border-box;
   transition: transform 0.15s, box-shadow 0.2s;
 }
 
@@ -1212,6 +1212,9 @@
 .learn { position: relative; }
 .navCenter .navLink { white-space: nowrap; }
 .learnBtn { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+/* Pas de cadre blanc du navigateur au clic ; anneau citron vert seulement au clavier. */
+.learnBtn:focus { outline: none; }
+.learnBtn:focus-visible { outline: 2px solid rgba(163, 230, 53, 0.6); outline-offset: 4px; border-radius: 6px; }
 .learnMenu {
   position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); z-index: 60;
   display: flex; flex-direction: column; min-width: 180px; padding: 8px;

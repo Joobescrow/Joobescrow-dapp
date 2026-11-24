@@ -14,7 +14,7 @@
 }
 .badgeDot { width: 7px; height: 7px; border-radius: 50%; background: #a3e635; }
 .title { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 800; line-height: 1.08; letter-spacing: -0.02em; color: #fff; margin: 18px 0 14px; }
-.gradient { background: linear-gradient(90deg, #10b981, #a3e635, #facc15); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.gradient { background: linear-gradient(90deg, #10b981, #a3e635, #bef264); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lead { color: var(--text-secondary); font-size: 1.12rem; line-height: 1.7; margin: 0 auto 10px; max-width: 680px; }
 .note { color: #64748b; font-size: 0.85rem; margin-bottom: 26px; }
 .heroActions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
@@ -86,12 +86,12 @@
 .step::before { content: ''; position: absolute; left: -29px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #1f2937; border: 2px solid #475569; }
 .stepDone::before { background: #10b981; border-color: #10b981; }
 .stepNow::before { background: #a3e635; border-color: #a3e635; box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.2); }
-.stepNext::before { border-color: #facc15; }
+.stepNext::before { border-color: #bef264; }
 .stepTitle { color: #fff; font-weight: 700; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .status { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
 .statusDone { color: #4ade80; background: rgba(16, 185, 129, 0.12); }
 .statusNow { color: #0d1117; background: #a3e635; }
-.statusNext { color: #facc15; background: rgba(250, 204, 21, 0.1); }
+.statusNext { color: #bef264; background: rgba(163, 230, 53, 0.1); }
 .stepText { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-top: 3px; }
 
 /* Contrats */
