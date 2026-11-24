@@ -1,5 +1,5 @@
 import { ROUTE_READ_TIMEOUT_MS } from '../../../config/presale';
-import { firstProvider, fairShare, SERVER_RPCS } from '../../../lib/presaleLogs';
+import { firstProvider, fairShare, ARCHIVE_RPCS } from '../../../lib/presaleLogs';
 import { SALES_BONUS } from '../../../config/promo';
 
 // Beneficiaires du bonus Fair Share, calcules cote serveur, cache 10 minutes (src/lib/presaleLogs.js).
@@ -10,7 +10,7 @@ export async function GET() {
   try {
     // Lecture plafonnee : au-dela du delai, reponse de secours (voir config/presale.js).
     const read = (async () => {
-      const p = await firstProvider(SERVER_RPCS(), { 'User-Agent': 'JoobEscrow-site/1.0' });
+      const p = await firstProvider(ARCHIVE_RPCS(), { 'User-Agent': 'JoobEscrow-site/1.0' });
       return fairShare(p);
     })();
     let timer;

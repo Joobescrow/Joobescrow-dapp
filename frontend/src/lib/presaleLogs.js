@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { PRESALE_ADDRESSES } from '../config/presale';
+import { PRESALE_ADDRESSES, LOGS_READ_CONCURRENCY } from '../config/presale';
 import { SAFE_SIGNERS } from '../config/team';
 import { SALES_BONUS } from '../config/promo';
 
@@ -60,17 +60,26 @@ export async function fairShare(p, nowSec = Math.floor(Date.now() / 1000)) {
   const base = { campaign: SALES_BONUS.name, joobPerUsd: SALES_BONUS.joobPerUsd, capRaisedUsd: SALES_BONUS.capRaisedUsd, start: SALES_BONUS.start };
   if (nowSec < startSec) return { ...base, entries: [], started: false };
   const head = await p.getBlockNumber();
-  // Premier bloc a partir de `start` : dichotomie sur l'horodatage (le temps de bloc BSC varie).
-  let lo = 0;
+  // Premier bloc a partir de `start` : fixe en config, sinon dichotomie sur l'horodatage (le temps de bloc BSC varie).
+  let lo = SALES_BONUS.startBlock ?? 0;
   let hi = head;
-  while (lo < hi) {
+  while (!SALES_BONUS.startBlock && lo < hi) {
     const mid = Math.floor((lo + hi) / 2);
     if ((await p.getBlock(mid)).timestamp < startSec) lo = mid + 1; else hi = mid;
   }
-  const logs = [];
-  for (let a = lo; a <= head; a += WINDOW) {
-    logs.push(...await p.getLogs({ address: PRESALE_ADDRESSES.PRESALE, topics: [TOPIC_BOUGHT], fromBlock: a, toBlock: Math.min(head, a + WINDOW - 1) }));
-  }
+  // Tranches lues en parallele (LOGS_READ_CONCURRENCY), remises dans l'ordre des blocs.
+  const ranges = [];
+  for (let a = lo; a <= head; a += WINDOW) ranges.push([a, Math.min(head, a + WINDOW - 1)]);
+  const parts = new Array(ranges.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < ranges.length) {
+      const i = next++;
+      parts[i] = await p.getLogs({ address: PRESALE_ADDRESSES.PRESALE, topics: [TOPIC_BOUGHT], fromBlock: ranges[i][0], toBlock: ranges[i][1] });
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(LOGS_READ_CONCURRENCY, ranges.length) }, worker));
+  const logs = parts.flat();
   const buys = logs.map((l) => ({ buyer: buyerOf(l), usd: Number(ethers.formatUnits(EVENT.parseLog({ topics: l.topics, data: l.data }).args.paid, 18)) }));
   // Montant leve avant le premier achat de la periode = total actuel - achats de la periode.
   const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_READ, p);
@@ -93,3 +102,6 @@ export async function fairShare(p, nowSec = Math.floor(Date.now() / 1000)) {
 // RPC : cote serveur, la cle NodeReal privee (BSC_LOGS_RPC_URL, variable Vercel non publique) passe en premier.
 export const SERVER_RPCS = () => [process.env.BSC_LOGS_RPC_URL, 'https://bsc-rpc.publicnode.com', 'https://bsc-dataseed.bnbchain.org'];
 export const BROWSER_RPCS = ['https://bsc-rpc.publicnode.com'];
+// Fair Share remonte au 05/11 : il faut un RPC d'archive. Les RPC publics renvoient une liste vide sans erreur
+// sur les anciens blocs, ce qui afficherait une liste fausse : pas de repli public ici.
+export const ARCHIVE_RPCS = () => [process.env.BSC_LOGS_RPC_URL];

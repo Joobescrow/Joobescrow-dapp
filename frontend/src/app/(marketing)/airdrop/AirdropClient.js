@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import styles from './airdrop.module.css';
-import { firstProvider, fairShare, BROWSER_RPCS } from '../../../lib/presaleLogs';
+import { SALES_BONUS } from '../../../config/promo';
 import { TELEGRAM_URL, TELEGRAM_CHANNEL_URL } from '../../../config/links';
 
 const fmt = (n) => n.toLocaleString('en-US');
@@ -21,20 +21,20 @@ export default function AirdropClient({ campaigns: frozen }) {
   // Campagne en cours, calculee on-chain par /api/sales-bonus (cache serveur de 10 minutes).
   useEffect(() => {
     let alive = true;
-    // Repli dans le navigateur si le serveur n'a pas pu lire la blockchain.
+    // Pas de repli dans le navigateur : les RPC publics n'ont plus l'historique (liste incomplete).
     fetch('/api/sales-bonus')
       .then((r) => r.json())
-      .then(async (d) => (d.error && d.started ? fairShare(await firstProvider(BROWSER_RPCS)) : d))
       .then((d) => {
         if (!alive || !d.started) return;
-        const startLabel = new Date(d.start).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+        const startLabel = new Date(SALES_BONUS.start).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
         setLive({
           id: 'fair-share',
           live: true,
           campaign: d.campaign,
           entries: d.entries || [],
           labelHeader: 'Bought',
-          rule: `${d.joobPerUsd} bonus JOOB for every $1 bought, from $1, from ${startLabel} until $${d.capRaisedUsd / 1000}K raised.${d.capReached ? ' Target reached, the list is final.' : ''}`,
+          unavailable: Boolean(d.error),
+          rule: `${SALES_BONUS.joobPerUsd} bonus JOOB for every $1 bought, from $1, from ${startLabel} until $${SALES_BONUS.capRaisedUsd / 1000}K raised.${d.capReached ? ' Target reached, the list is final.' : ''}`,
           delivery: 'From the Airdrop allocation, delivered at TGE with the presale vesting: 20% at the end of the sale, then linear over 180 days.',
         });
         setTab('fair-share');
@@ -100,7 +100,7 @@ export default function AirdropClient({ campaigns: frozen }) {
         <div className={styles.stats}>
           <div><span>Wallets</span><b>{current.entries.length}</b></div>
           <div><span>Total</span><b>{fmt(total)} JOOB</b></div>
-          <div><span>{current.live ? 'Status' : 'List frozen'}</span><b>{current.live ? 'Live, updated every 10 min' : dateLabel(current.snapshot)}</b></div>
+          <div><span>{current.live ? 'Status' : 'List frozen'}</span><b>{current.unavailable ? 'List refreshing, check back soon' : current.live ? 'Live, updated every 10 min' : dateLabel(current.snapshot)}</b></div>
         </div>
         <p className={styles.sub} style={{ marginTop: 14 }}>{current.delivery}</p>
         <div className={styles.tableWrap}>

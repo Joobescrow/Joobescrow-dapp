@@ -27,6 +27,8 @@ export function activePromo(nowSec, promo = PROMO) {
 export const SALES_BONUS = {
   name: 'Fair Share Bonus',
   start: '2026-11-05T13:00:00Z',
+  // Premier bloc BSC a partir de `start` (verifie le 24/11/2026) : evite la recherche par dichotomie.
+  startBlock: 131821014,
   joobPerUsd: 5,
   capRaisedUsd: 25000,
 };

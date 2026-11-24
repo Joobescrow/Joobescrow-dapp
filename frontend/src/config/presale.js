@@ -144,3 +144,5 @@ export const LISTING_TARGET_USD = 25000;
 // Delai max de lecture on-chain des routes /api/recent-buys et /api/sales-bonus. Au-dela, la route
 // renvoie sa reponse de secours (liste vide) : evite qu un RPC lent bloque le build (limite Next : 60 s).
 export const ROUTE_READ_TIMEOUT_MS = 40000;
+// Tranches eth_getLogs lues en parallele (Fair Share) : la periode couvre des millions de blocs BSC.
+export const LOGS_READ_CONCURRENCY = 4;
