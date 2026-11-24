@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import styles from './airdrop.module.css';
-import { SALES_BONUS } from '../../../config/promo';
+import { SALES_BONUS, REFRESH_LABEL } from '../../../config/promo';
 import { TELEGRAM_URL, TELEGRAM_CHANNEL_URL } from '../../../config/links';
 
 const fmt = (n) => n.toLocaleString('en-US');
@@ -18,7 +18,7 @@ export default function AirdropClient({ campaigns: frozen }) {
   const [tab, setTab] = useState(frozen[0].id);
   const [live, setLive] = useState(null);
 
-  // Campagne en cours, calculee on-chain par /api/sales-bonus (cache serveur de 10 minutes).
+  // Campagne en cours, calculee on-chain par /api/sales-bonus (mise a jour a heures fixes, config/promo.js).
   useEffect(() => {
     let alive = true;
     // Pas de repli dans le navigateur : les RPC publics n'ont plus l'historique (liste incomplete).
@@ -100,7 +100,7 @@ export default function AirdropClient({ campaigns: frozen }) {
         <div className={styles.stats}>
           <div><span>Wallets</span><b>{current.entries.length}</b></div>
           <div><span>Total</span><b>{fmt(total)} JOOB</b></div>
-          <div><span>{current.live ? 'Status' : 'List frozen'}</span><b>{current.unavailable ? 'List refreshing, check back soon' : current.live ? 'Live, updated every 10 min' : dateLabel(current.snapshot)}</b></div>
+          <div><span>{current.live ? 'Status' : 'List frozen'}</span><b>{current.unavailable ? 'List refreshing, check back soon' : current.live ? `Updated daily at ${REFRESH_LABEL}` : dateLabel(current.snapshot)}</b></div>
         </div>
         <p className={styles.sub} style={{ marginTop: 14 }}>{current.delivery}</p>
         <div className={styles.tableWrap}>

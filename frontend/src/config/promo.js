@@ -31,7 +31,22 @@ export const SALES_BONUS = {
   startBlock: 131821014,
   joobPerUsd: 5,
   capRaisedUsd: 25000,
+  // Mise a jour de la liste a heures fixes (UTC), pour limiter les lectures du RPC d'archive.
+  refreshHoursUtc: [2, 14],
+  // En cas d'echec de lecture, nouvel essai apres ce delai (secondes).
+  retryAfterErrorSec: 900,
 };
+
+/** Secondes jusqu'a la prochaine mise a jour prevue (refreshHoursUtc). */
+export function secondsToNextRefresh(nowMs = Date.now(), hours = SALES_BONUS.refreshHoursUtc) {
+  const now = new Date(nowMs);
+  const day = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const slots = [...hours, ...hours.map((h) => h + 24)].map((h) => day + h * 3600_000).filter((t) => t > nowMs);
+  return Math.max(60, Math.ceil((Math.min(...slots) - nowMs) / 1000));
+}
+
+/** Libelle public des heures de mise a jour, ex. « 02:00 and 14:00 UTC ». */
+export const REFRESH_LABEL = `${SALES_BONUS.refreshHoursUtc.map((h) => `${String(h).padStart(2, '0')}:00`).join(' and ')} UTC`;
 
 /** Bonus actif a nowSec si le montant leve (USD, Number) est encore sous le plafond, sinon null. */
 export function activeSalesBonus(nowSec, raisedUsd, bonus = SALES_BONUS) {
