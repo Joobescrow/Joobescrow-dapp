@@ -10,7 +10,6 @@ import RecentBuys from './RecentBuys';
 import {
   PRESALE_ADDRESSES, PRESALE_ABI, ERC20_ABI, PRESALE_STATE, PRESALE_CHAIN_ID, BSCSCAN,
   priceAt, nextStepAt, volumeTierBps, readableError, maxPurchasablePayment, isSoldOut, closingTime,
-  LISTING_TARGET_USD,
 } from '../../../config/presale';
 import styles from './presale.module.css';
 import { activePromo, activeSalesBonus } from '../../../config/promo';
@@ -896,13 +895,7 @@ export default function PresaleClient() {
               <div className={styles.raisedBox}>
                 <div className={styles.raisedLabel}>Total raised</div>
                 <div className={styles.raisedValue}>${fmtNum(Number(ethers.formatUnits(global.totalRaised, pd)), 0)}</div>
-                {/* Objectif minimal pour lister au prix prevu (config/presale.js). */}
-                <div className={styles.targetBar} aria-hidden="true">
-                  <i style={{ width: `${Math.min(100, Math.max(2, (Number(ethers.formatUnits(global.totalRaised, pd)) / LISTING_TARGET_USD) * 100))}%` }} />
-                </div>
                 <div className={styles.targetText}>
-                  Listing liquidity target: ${fmtNum(LISTING_TARGET_USD / 1000, 0)}K
-                  <br />
                   <Link href="/security#liquidity-lock" style={{ color: '#a3e635', fontWeight: 700 }}>{fmtNum(lockedTotal(), 0)} USDT already locked by the team →</Link>
                 </div>
               </div>

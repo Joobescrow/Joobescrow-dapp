@@ -28,6 +28,7 @@ const TRUST = [
   { label: 'KYC verified', href: KYC_URL },
   { label: '3-of-5 Safe', href: `${BSCSCAN}/address/${PRESALE_ADDRESSES.SAFE}` },
   { label: 'Verified on BscScan', href: `${BSCSCAN}/address/${PRESALE_ADDRESSES.PRESALE}#code` },
+  { label: 'Featured on BSC News', href: BSCN_ARTICLE_URL },
 ];
 
 const META_TITLE = 'JOOB Presale Live | The token behind smart escrow | JoobEscrow';
@@ -49,13 +50,6 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className={styles.heroSection}>
         <div className={styles.container}>
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '0 0 28px' }}>
-            <a href={BSCN_ARTICLE_URL} target="_blank" rel="noopener noreferrer" className="press-pill">
-              <img src="/logos/bscnews.webp" alt="BSC News" width={30} height={30} style={{ borderRadius: 8, flexShrink: 0 }} />
-              <span>Featured on <strong>BSC News</strong></span>
-              <span aria-hidden="true">↗</span>
-            </a>
-          </div>
           <PromoBanner cta />
           <div className={styles.heroGrid}>
             <div className={styles.heroLeft}>
