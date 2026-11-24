@@ -260,6 +260,7 @@ function Feedback({ status, step, success, error }) {
 
 const PRESALE_TABS = [
   { id: 'purchase', label: 'Purchase' },
+  { id: 'allocation', label: 'Allocation' },
   { id: 'referral', label: 'Referral' },
   { id: 'claim', label: 'Claim' },
 ];
@@ -285,7 +286,7 @@ export default function PresaleClient() {
   // Paiement depuis un autre token ou reseau (null = USDT/USDC sur BSC, achat direct).
   const [source, setSource] = useState(null);
   const [picking, setPicking] = useState(false);
-  // Page d'achat en mode application : onglets Purchase / Referral / Claim (#referral ou #claim ouvre l'onglet).
+  // Page d'achat en mode application : onglets Purchase / Allocation / Referral / Claim (#allocation, #referral ou #claim ouvre l'onglet).
   const [tab, setTab] = useState('purchase');
   useEffect(() => {
     const t = setTimeout(() => {
@@ -930,6 +931,16 @@ export default function PresaleClient() {
         </aside>
       </div>
 
+      {/* ── Onglet Allocation : recherche par adresse, sans connexion ── */}
+      {tab === 'allocation' && (
+        <div className={styles.tabPanel}>
+          <div className={styles.referralCard}>
+            <h2 className={styles.referralTitle}>Check an allocation</h2>
+            <AllocationLookup readProvider={readProvider} td={td} pd={pd} />
+          </div>
+        </div>
+      )}
+
       {/* ── Onglet Referral ──────────────────────────────────────── */}
       {tab === 'referral' && (
         <div className={styles.tabPanel}>
@@ -972,7 +983,7 @@ export default function PresaleClient() {
         </div>
       )}
 
-      {/* ── Onglet Claim : allocation, claim apres la vente, recherche par adresse ── */}
+      {/* ── Onglet Claim : allocation du wallet connecte, claim apres la vente ── */}
       {tab === 'claim' && (
         <div className={styles.tabPanel}>
           {!isEnded && !awaitingFinalize && (
@@ -1041,10 +1052,6 @@ export default function PresaleClient() {
             </div>
           )}
 
-          <div className={styles.referralCard}>
-            <h2 className={styles.referralTitle}>Check an allocation</h2>
-            <AllocationLookup readProvider={readProvider} td={td} pd={pd} />
-          </div>
         </div>
       )}
 

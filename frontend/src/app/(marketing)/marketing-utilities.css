@@ -218,3 +218,18 @@
 .press-pill strong { color: #bef264; }
 .press-pill:hover { border-color: rgba(163, 230, 53, 0.8); box-shadow: 0 0 32px rgba(163, 230, 53, 0.25); transform: translateY(-1px); }
 @media (max-width: 480px) { .press-pill { font-size: 0.9rem; gap: 10px; padding-right: 14px; } }
+
+/* Bouton principal du site : vert fonce, texte citron vert (decision du 24/11/2026). L'app garde son style. */
+.mkt-site .btn-primary {
+  background: linear-gradient(90deg, #14532d, #166534);
+  color: #bef264;
+  border-color: rgba(163, 230, 53, 0.45);
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.18);
+}
+.mkt-site .btn-primary:hover {
+  background: linear-gradient(90deg, #166534, #15803d);
+  color: #d9f99d;
+  border-color: rgba(190, 242, 100, 0.7);
+  box-shadow: 0 8px 22px rgba(163, 230, 53, 0.22);
+}
+.mkt-site .btn-primary:disabled { color: rgba(190, 242, 100, 0.55); }

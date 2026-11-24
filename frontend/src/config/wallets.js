@@ -14,6 +14,17 @@ export const FEATURED_WALLETS = [
 
 export const FEATURED_WALLET_IDS = FEATURED_WALLETS.map((w) => w.id);
 
+// Couleurs de la fenetre Reown : fond sombre teinte vert, accent vert (palette du site, ni bleu ni violet).
+export const APPKIT_THEME = {
+  themeMode: 'dark',
+  themeVariables: {
+    '--w3m-accent': '#22c55e',
+    '--w3m-color-mix': '#0b2414',
+    '--w3m-color-mix-strength': 30,
+    '--w3m-border-radius-master': '2px',
+  },
+};
+
 // Options de connexion dans la fenetre Reown AppKit (lues par context/Web3Context.js).
 // Wallets + connexion par e-mail (code recu par mail) et par Google (wallet non-custodial cree par Reown),
 // Pas d'achat par carte : l'onramp Reown (Meld) impose l'USDC sur Ethereum, inutilisable sur nos contrats BSC.

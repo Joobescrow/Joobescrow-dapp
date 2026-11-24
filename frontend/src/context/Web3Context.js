@@ -6,7 +6,7 @@ import { createAppKit, useAppKit, useAppKitProvider, useAppKitAccount, useAppKit
 import { EthersAdapter } from '@reown/appkit-adapter-ethers';
 import { bsc, bscTestnet, hardhat, mainnet, arbitrum, base, polygon, optimism, avalanche } from '@reown/appkit/networks';
 import { MAX_TX_GAS } from '../config/gas';
-import { FEATURED_WALLET_IDS, LOGIN_OPTIONS } from '../config/wallets';
+import { FEATURED_WALLET_IDS, LOGIN_OPTIONS, APPKIT_THEME } from '../config/wallets';
 
 // Projet Reown dedie a JoobEscrow (cloud.reown.com, equipe JoobEscrow). ID public par nature.
 const projectId = '63a257b332dae1f848b7dab85c8f0880';
@@ -39,6 +39,8 @@ createAppKit({
   metadata,
   // Wallets BNB Chain en tete de la fenetre de connexion (ordre de config/wallets.js).
   featuredWalletIds: FEATURED_WALLET_IDS,
+  themeMode: APPKIT_THEME.themeMode,
+  themeVariables: APPKIT_THEME.themeVariables,
   features: {
     analytics: true,
     // Wallets + connexion par e-mail et par Google (wallet non-custodial cree par Reown) ; reception active,

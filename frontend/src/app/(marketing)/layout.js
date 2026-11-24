@@ -12,7 +12,7 @@ import { TELEGRAM_URL, TELEGRAM_CHANNEL_URL, X_URL } from '../../config/links';
 export default function MarketingLayout({ children }) {
   return (
     <Web3Provider>
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div className="mkt-site" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <MarketingHeader />
 
         <main className="mkt-main" style={{ flex: 1 }}>

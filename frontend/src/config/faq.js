@@ -91,6 +91,11 @@ FAQ.push(
     summary: 'When the sale ends, 20% of your allocation becomes claimable on the presale page. The remaining 80% unlocks linearly over 180 days, and claims cannot be paused.',
   },
   {
+    id: 'presale-claim-email',
+    q: 'I bought with my email or Google account. How do I claim?',
+    summary: 'Sign in again on the presale page with the same email or Google account: your wallet and your JOOB are linked to it, nothing else to keep. Claims open when the sale ends. If you lose access to that account, contact us on Telegram or at contact@joobescrow.com.',
+  },
+  {
     id: 'presale-safety',
     q: 'Is the presale safe?',
     summary: 'The token and presale contracts are verified on BscScan and audited by SpyWolf, with no critical, high or medium issue. The full cap was locked in the contract before the sale opened, so every allocation is covered. An audit reduces risk but does not remove it.',

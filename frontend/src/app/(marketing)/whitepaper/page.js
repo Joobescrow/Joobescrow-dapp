@@ -2,7 +2,7 @@ import Link from 'next/link';
 import styles from './whitepaper.module.css';
 import PrintButton from './PrintButton';
 import CoFundedEscrowDiagram from '../../../components/CoFundedEscrowDiagram';
-import { AUDITS, KYC_URL, PRESALE_ADDRESSES, PLANNED_LISTING_PRICE } from '../../../config/presale';
+import { AUDITS, KYC_URL, PRESALE_ADDRESSES } from '../../../config/presale';
 import { ROADMAP_STEPS, ROADMAP_STATUS_LABEL } from '../../../config/roadmap';
 import { TOKENOMICS, TOKENOMICS_SEGMENTS, fmtM } from '../../../config/tokenomics';
 import { FEE_GRID_TEXT } from '../../../config/feeTiers';
@@ -42,7 +42,7 @@ const FLOW = [
 ];
 
 const USE_OF_FUNDS = [
-  ['PancakeSwap liquidity', 40, `JOOB/stablecoin pool at the $${PLANNED_LISTING_PRICE} listing price, LP locked 12 months or more`],
+  ['PancakeSwap liquidity', 40, 'JOOB/stablecoin pool at the planned listing price (see Tokenomics), LP locked 12 months or more'],
   ['Product development', 30, 'Escrow V5, PerShare V2 and the co-funded escrow, the Web2-simple layer'],
   ['Audits & security', 10, 'Audits of Escrow V5 and PerShare V2, bug bounty, monitoring'],
   ['Growth', 10, 'KOL campaigns, listings, partnerships'],
@@ -324,7 +324,7 @@ export default function WhitepaperPage() {
               <li className={styles.li}>Sealed vault: the full cap of 163,500,000 JOOB was deposited before the sale could open, verifiable on BscScan.</li>
               <li className={styles.li}>Vesting for every buyer: 20% at sale end, then linear over 180 days. No soft cap, no refund.</li>
               <li className={styles.li}>Volume bonus 2% to 7% from $100 to $1,000 cumulative; referrers receive 2% of the tokens bought through their link.</li>
-              <li className={styles.li}>Planned listing: JOOB/USDT pool on PancakeSwap at ${PLANNED_LISTING_PRICE}. After listing, the price is set by the market only.</li>
+              <li className={styles.li}>Planned listing: JOOB/USDT pool on PancakeSwap, planned price on our Tokenomics page. After listing, the price is set by the market only.</li>
             </ul>
             <p className={styles.p}>Full rules: <Link href="/presale-terms" className={styles.link}>presale terms</Link> · <Link href="/presale" className={styles.link}>presale page</Link>.</p>
           </Section>
