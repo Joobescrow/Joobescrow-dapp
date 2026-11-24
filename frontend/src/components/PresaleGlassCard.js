@@ -75,13 +75,14 @@ export default function PresaleGlassCard() {
     }
   };
 
+  // Pendant la lecture on-chain : « … » (jamais d'ancien prix affiche puis remplace).
   const priceUSD = config && currentPrice
     ? Number(ethers.formatUnits(currentPrice, config.paymentDecimals)).toFixed(4)
-    : '0.0010';
+    : null;
 
   const nextPriceUSD = config && nextPrice
     ? Number(ethers.formatUnits(nextPrice, config.paymentDecimals)).toFixed(4)
-    : '0.0012';
+    : null;
 
   const raisedUSD = config && global?.totalRaised !== undefined
     ? Math.round(Number(ethers.formatUnits(global.totalRaised, config.paymentDecimals))).toLocaleString('en-US')
@@ -115,8 +116,8 @@ export default function PresaleGlassCard() {
       <div className={styles.metricsGrid}>
         <div className={styles.metricItem}>
           <div className={styles.metricLabel}>{isClosed ? 'Final Price' : isSoldOut ? 'Price' : 'Current Price'}</div>
-          <div className={styles.metricVal}>{isSoldOut ? 'Sold out' : `$${isClosed ? finalPriceUSD : priceUSD}`}</div>
-          <div className={styles.metricSub}>{isClosed ? 'Sale closed' : isSoldOut ? 'Cap reached' : `Next: $${nextPriceUSD}`}</div>
+          <div className={styles.metricVal}>{isSoldOut ? 'Sold out' : isClosed ? `$${finalPriceUSD}` : priceUSD ? `$${priceUSD}` : '…'}</div>
+          <div className={styles.metricSub}>{isClosed ? 'Sale closed' : isSoldOut ? 'Cap reached' : nextPriceUSD ? `Next: $${nextPriceUSD}` : '\u00a0'}</div>
         </div>
         <div className={styles.metricItem}>
           <div className={styles.metricLabel}>Raised</div>
@@ -134,6 +135,8 @@ export default function PresaleGlassCard() {
         </div>
       )}
 
+      {/* Le hero porte deja « Join the Presale » : la carte n'a un bouton qu'en fin de vente (finalisation, claim). */}
+      {(computedState === 'FINALIZATION_PENDING' || computedState === 'ENDED') && (
       <div className={styles.actionWrap}>
         {computedState === 'FINALIZATION_PENDING' ? (
           <>
@@ -145,11 +148,12 @@ export default function PresaleGlassCard() {
             </div>
           </>
         ) : (
-          <Link href="/presale" className="btn btn-primary" style={{ width: '100%', padding: '13px 0', fontSize: '1rem' }}>
-            {isLive ? 'Buy JOOB Now →' : computedState === 'ENDED' ? 'Claim your JOOB →' : 'Access Presale Portal →'}
+          <Link href="/presale#claim" className="btn btn-primary" style={{ width: '100%', padding: '13px 0', fontSize: '1rem' }}>
+            Claim your JOOB →
           </Link>
         )}
       </div>
+      )}
 
     </div>
   );

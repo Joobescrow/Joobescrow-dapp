@@ -11,8 +11,8 @@ const noopSubscribe = () => () => {};
 const isOpen = () => Date.now() >= PRESALE_START_MS;
 
 export default function PresaleNavButton() {
-  // Rendu serveur : « Oct 15 » ; le client corrige apres l'hydratation si la vente a ouvert.
-  const open = useSyncExternalStore(noopSubscribe, isOpen, () => false);
+  // Meme calcul cote serveur et client : la page est generee apres l'ouverture, donc « Open » des le HTML.
+  const open = useSyncExternalStore(noopSubscribe, isOpen, isOpen);
   return (
     <Link href="/presale" className={styles.presaleBtn}>
       <span className={styles.presaleDot} />

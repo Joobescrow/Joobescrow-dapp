@@ -651,12 +651,12 @@ export default function PresaleClient() {
     <>
       {/* ── Hero Section ────────────────────────────────────────── */}
       <header className={styles.hero}>
-        <h1 className={styles.heroTitle}>
+        <h1 className={`${styles.heroTitle} ${styles.srOnly}`}>
           <span className={styles.titleGradient}>JOOB Presale</span>
         </h1>
         {/* Bonus Fair Share (config/promo.js), affiche tant que le plafond n'est pas atteint. */}
         {fairShare && (
-          <p style={{ margin: '10px auto 0', maxWidth: 720, textAlign: 'center', color: '#a3e635', fontWeight: 700, fontSize: '1.05rem', lineHeight: 1.5 }}>
+          <p className={styles.fairShareLine}>
             {fairShare.name}: +{fairShare.joobPerUsd} JOOB for every $1 you buy, until ${fmtNum(fairShare.capRaisedUsd / 1000, 0)}K is raised (${fmtNum(fairShare.leftUsd, 0)} left)
           </p>
         )}
@@ -739,6 +739,21 @@ export default function PresaleClient() {
                 className={`${styles.inputField} ${styles.inputRight}`}
               />
             </div>
+            {/* Montants rapides : un par palier de bonus de volume (seuils et taux lus dans le contrat). */}
+            {config?.tierThresholds?.length > 0 && (
+              <div className={styles.quickAmounts}>
+                {config.tierThresholds.map((th, i) => {
+                  const value = ethers.formatUnits(th, pd).replace(/\.0+$/, '');
+                  return (
+                    <button key={i} type="button"
+                      className={`${styles.quickAmount} ${Number(amount) === Number(value) ? styles.quickAmountActive : ''}`}
+                      onClick={() => { setAmount(value); if (status !== 'loading') { setStatus('idle'); setTxError(null); } }}>
+                      ${fmtUsd(th, pd, 0)}<span>+{Number(config.tierBps[i]) / 100}%</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {crossChain && route.status === 'loading' && <div className={styles.quoteLine}>Getting the best route…</div>}
             {crossChain && cost && (
               <div className={styles.quoteLine}>
@@ -770,11 +785,9 @@ export default function PresaleClient() {
                   + {fmtToken(promoBonus, td)} JOOB weekend bonus, delivered at TGE
                 </div>
               )}
-              {fairShare && (
-                <div className={fairShareJoob > 0 ? styles.receiveBonusNote : styles.promoHint}>
-                  {fairShareJoob > 0
-                    ? <>+ {fairShareJoob.toLocaleString('en-US')} JOOB Fair Share bonus ({fairShare.joobPerUsd} per $1), delivered at TGE</>
-                    : <>Fair Share bonus: {fairShare.joobPerUsd} JOOB for every $1, any amount</>}
+              {fairShare && fairShareJoob > 0 && (
+                <div className={styles.receiveBonusNote}>
+                  + {fairShareJoob.toLocaleString('en-US')} JOOB Fair Share bonus ({fairShare.joobPerUsd} per $1), delivered at TGE
                 </div>
               )}
               {promo && promoBonus === 0n && (
@@ -784,14 +797,13 @@ export default function PresaleClient() {
               )}
             </div>
 
-            {/* Relance visible du prochain palier ; barre et liste des paliers repliees */}
-            <div className={styles.bonusNudge}>
-              {nextTier
-                ? <>Add <b>${fmtUsd(nextTier.missing, pd, 0)}</b> more to get a <b>+{Number(nextTier.bps) / 100}%</b> volume bonus</>
-                : <>Maximum volume bonus reached (+{Number(config.tierBps[config.tierBps.length - 1] ?? 0n) / 100}%)</>}
-            </div>
+            {/* Relance du prochain palier, qui ouvre la barre et la liste des paliers */}
             <details className={styles.bonusDetails}>
-              <summary>All bonus tiers</summary>
+              <summary>
+                {nextTier
+                  ? <>Add ${fmtUsd(nextTier.missing, pd, 0)} more to get a +{Number(nextTier.bps) / 100}% volume bonus</>
+                  : <>Maximum volume bonus reached (+{Number(config.tierBps[config.tierBps.length - 1] ?? 0n) / 100}%)</>}
+              </summary>
             <div className={styles.tierWrap}>
               <div className={styles.tierBarRow}>
                 <span className={styles.tierPill}>{Number(volumeTierBps(config, user.contribution + amountWei)) / 100}%</span>

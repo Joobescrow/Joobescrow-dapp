@@ -19,7 +19,7 @@ const PRESALE_PCT = TOKENOMICS.filter((t) => t.name.startsWith('Presale')).reduc
 // Utilites du token, reprises de la FAQ « What is JOOB? » (livrees progressivement, sans date garantie).
 const BENEFITS = [
   { num: '01', title: 'Lower escrow fees', desc: 'Stake JOOB to cut your fees by tier, up to a full waiver at the highest tier (Escrow V5).' },
-  { num: '02', title: 'Staking rewards', desc: 'Audited staking contract already deployed, opening after the TGE.' },
+  { num: '02', title: 'On-chain staking', desc: 'Audited staking contract already deployed, opening after the TGE.' },
   { num: '03', title: 'Governance', desc: 'Vote on new categories, fee tiers and ecosystem grants.' },
 ];
 
@@ -69,7 +69,7 @@ export default function LandingPage() {
               </h1>
 
               <p className={styles.heroSubtitle}>
-                JOOB powers JoobEscrow, the audited non-custodial escrow live on BNB Chain. Get it at presale price, before the PancakeSwap listing.
+                JOOB powers JoobEscrow, the audited non-custodial escrow live on BNB Chain. The presale funds protocol growth.
               </p>
 
               <div className={styles.heroCtas}>
@@ -77,7 +77,7 @@ export default function LandingPage() {
                   Join the Presale
                 </Link>
                 <Link href="/try" className="text-gradient font-bold hover:underline" style={{ fontSize: '0.98rem' }}>
-                  Or try the app with $1 →
+                  Try the app with $1 →
                 </Link>
               </div>
             </div>
