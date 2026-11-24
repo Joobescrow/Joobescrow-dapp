@@ -103,7 +103,7 @@ FAQ.push(
   {
     id: 'presale-listing',
     q: 'Will JOOB be tradable after the sale?',
-    summary: 'A JOOB/USDT pool on PancakeSwap is planned right after the sale, opened above every presale price. After that the market sets the price, which may be lower than what you paid: only contribute what you can afford to lose.',
+    summary: 'A JOOB/USDT pool on PancakeSwap is planned right after the sale, at the planned price shown on our Tokenomics page. After that the market sets the price, which may be lower than what you paid: only contribute what you can afford to lose.',
   },
   {
     id: 'presale-eligibility',
@@ -149,10 +149,5 @@ export const HOME_FAQ = [
     q: 'Is it safe?',
     summary: 'The token and presale contracts are verified on BscScan and audited by SpyWolf, and the founder is KYC verified by the same firm. The full presale cap was locked in the contract before the sale opened.',
     href: '/security',
-  },
-  {
-    q: 'When do I get my tokens?',
-    summary: 'When the sale ends, 20% of your JOOB becomes claimable on the presale page. The remaining 80% unlocks linearly over 180 days.',
-    href: '/faq#presale-claim',
   },
 ];

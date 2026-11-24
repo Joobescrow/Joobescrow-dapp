@@ -1,6 +1,5 @@
 // Roadmap : source unique pour l'accueil (resume par phase), /presale et le whitepaper (detail par etape).
 // Statut d'une phase deduit de ses etapes : tout fait = done, une etape faite ou en cours = now, sinon next / a venir.
-import { PLANNED_LISTING_PRICE } from './presale';
 import { FEE_GRID_TEXT } from './feeTiers';
 import { instances } from './instances';
 
@@ -33,7 +32,7 @@ export const ROADMAP_PHASES = [
     title: 'TGE & Liquidity',
     summary: 'Right after the presale closes: PancakeSwap JOOB/USDT pool with LP locked 12 months or more, unsold presale tokens burned in a public transaction, audited staking opens.',
     steps: [
-      { title: 'TGE & liquidity', items: `Right after the presale closes, anyone can finalize the sale on-chain: 20% of every allocation becomes claimable, then the rest unlocks linearly over 180 days. Unsold tokens are burned in a public transaction. A JOOB/USDT pool opens on PancakeSwap at a planned initial price of $${PLANNED_LISTING_PRICE}, funded with part of the funds raised, with LP tokens locked 12 months or more.` },
+      { title: 'TGE & liquidity', items: `Right after the presale closes, anyone can finalize the sale on-chain: 20% of every allocation becomes claimable, then the rest unlocks linearly over 180 days. Unsold tokens are burned in a public transaction. A JOOB/USDT pool opens on PancakeSwap at the planned price shown on our Tokenomics page, funded with part of the funds raised, with LP tokens locked 12 months or more.` },
       { title: 'First JOOB utilities', items: 'JOOB staking opens (contract already deployed and audited): stake JOOB, earn JOOB in 30-day periods, with a 7-day withdrawal delay and no guaranteed yield. JOOB is activated on PerShare, boosts and badges arrive in the app, and Early Escrow points start rewarding real escrow usage.' },
     ],
   },

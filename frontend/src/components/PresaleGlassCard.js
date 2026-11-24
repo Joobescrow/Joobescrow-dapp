@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ethers } from 'ethers';
 import { useWeb3 } from '../context/Web3Context';
 import { usePresaleState } from '../hooks/usePresaleState';
-import { PLANNED_LISTING_PRICE, PRESALE_ADDRESSES, PRESALE_ABI, PRESALE_CHAIN_ID, readableError } from '../config/presale';
+import { PRESALE_ADDRESSES, PRESALE_ABI, PRESALE_CHAIN_ID, readableError } from '../config/presale';
 import styles from './PresaleGlassCard.module.css';
 
 function CountdownDisplay({ seconds }) {
@@ -26,8 +26,9 @@ function CountdownDisplay({ seconds }) {
 }
 
 const BADGE = {
-  LOADING: 'OPENS OCT 15 · 14:00 UTC',
-  PENDING: 'OPENS OCT 15 · 14:00 UTC',
+  // Etat neutre pendant la lecture on-chain : jamais de date perimee affichee au chargement.
+  LOADING: 'PRESALE',
+  PENDING: 'OPENING SOON',
   AWAITING_START: 'OPENING SHORTLY',
   LIVE: 'LIVE',
   PAUSED: 'PAUSED',
@@ -52,7 +53,7 @@ export default function PresaleGlassCard() {
   } = usePresaleState(readProvider);
 
   const isLive = computedState === 'LIVE';
-  const isPending = computedState === 'PENDING' || computedState === 'LOADING';
+  const isPending = computedState === 'PENDING';
   const isClosed = computedState === 'ENDED' || computedState === 'FINALIZATION_PENDING';
   const isSoldOut = computedState === 'SOLD_OUT';
 
@@ -82,6 +83,10 @@ export default function PresaleGlassCard() {
     ? Number(ethers.formatUnits(nextPrice, config.paymentDecimals)).toFixed(4)
     : '0.0012';
 
+  const raisedUSD = config && global?.totalRaised !== undefined
+    ? Math.round(Number(ethers.formatUnits(global.totalRaised, config.paymentDecimals))).toLocaleString('en-US')
+    : null;
+
   const finalPriceUSD = config && finalPrice
     ? Number(ethers.formatUnits(finalPrice, config.paymentDecimals)).toFixed(4)
     : '0.0000';
@@ -96,14 +101,14 @@ export default function PresaleGlassCard() {
           <span>JOOB · Presale</span>
         </div>
         <span className={`${styles.badge} ${isLive ? styles.badgeLive : styles.badgePending}`}>
-          {BADGE[computedState] ?? 'OPENS OCT 15 · 14:00 UTC'}
+          {BADGE[computedState] ?? 'PRESALE'}
         </span>
       </div>
 
       {isPending && (
         <div className={styles.countdownBox}>
           <div className={styles.boxLabel}>Presale Opens In</div>
-          {computedState === 'LOADING' ? <span style={{ opacity: 0.6 }}>Loading…</span> : <CountdownDisplay seconds={countdownSeconds} />}
+          <CountdownDisplay seconds={countdownSeconds} />
         </div>
       )}
 
@@ -114,11 +119,9 @@ export default function PresaleGlassCard() {
           <div className={styles.metricSub}>{isClosed ? 'Sale closed' : isSoldOut ? 'Cap reached' : `Next: $${nextPriceUSD}`}</div>
         </div>
         <div className={styles.metricItem}>
-          <div className={styles.metricLabel}>Presale Cap</div>
-          <div className={styles.metricVal}>
-            163.5M <span className={styles.tokenUnit}>JOOB</span>
-          </div>
-          <div className={styles.metricSub}>Planned DEX: ${PLANNED_LISTING_PRICE}</div>
+          <div className={styles.metricLabel}>Raised</div>
+          <div className={styles.metricVal}>{raisedUSD === null ? '…' : `$${raisedUSD}`}</div>
+          <div className={styles.metricSub}>Cap 163.5M JOOB</div>
         </div>
       </div>
 

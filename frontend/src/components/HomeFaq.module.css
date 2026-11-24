@@ -1,8 +1,6 @@
 .wrap {
-  display: grid;
-  grid-template-columns: 1.6fr 0.9fr;
-  gap: 36px;
-  align-items: start;
+  max-width: 820px;
+  margin: 0 auto;
 }
 
 .list {

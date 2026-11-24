@@ -138,6 +138,10 @@ export default function TokenomicsPage() {
         </div>
 
         <p className={styles.fineText}>
+          Planned listing: a JOOB/USDT pool on PancakeSwap at ${PLANNED_LISTING_PRICE} per JOOB, right after the sale. After that the market
+          sets the price, which may be lower than what you paid.
+        </p>
+        <p className={styles.fineText}>
           Funds raised are held by our 3-of-5 Safe multisig and every outgoing transfer is disclosed. Liquidity is added at the planned
           listing price; the DEX allocation of the tokenomics is a cap, not a promise of liquidity depth.
         </p>

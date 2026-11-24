@@ -53,6 +53,8 @@ export default function MarketingLayout({ children }) {
               <h3>Product</h3>
               <Link href="/app">Launch App</Link>
               <Link href="/try">Try it with $1</Link>
+              <Link href="/shipped">What we shipped</Link>
+              <Link href="/compare">Compare</Link>
               <Link href="/security">Audits &amp; security</Link>
               <Link href="/faq">FAQ</Link>
             </div>
@@ -71,6 +73,7 @@ export default function MarketingLayout({ children }) {
               <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noopener noreferrer">Telegram announcements</a>
               <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Telegram group</a>
               <a href={X_URL} target="_blank" rel="noopener noreferrer">X (Twitter)</a>
+              <a href="mailto:contact@joobescrow.com">contact@joobescrow.com</a>
             </div>
           </div>
 

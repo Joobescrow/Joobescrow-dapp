@@ -10,7 +10,7 @@ import RecentBuys from './RecentBuys';
 import {
   PRESALE_ADDRESSES, PRESALE_ABI, ERC20_ABI, PRESALE_STATE, PRESALE_CHAIN_ID, BSCSCAN,
   priceAt, nextStepAt, volumeTierBps, readableError, maxPurchasablePayment, isSoldOut, closingTime,
-  PLANNED_LISTING_PRICE, LISTING_TARGET_USD,
+  LISTING_TARGET_USD,
 } from '../../../config/presale';
 import styles from './presale.module.css';
 import { activePromo, activeSalesBonus } from '../../../config/promo';
@@ -258,6 +258,12 @@ function Feedback({ status, step, success, error }) {
   return null;
 }
 
+const PRESALE_TABS = [
+  { id: 'purchase', label: 'Purchase' },
+  { id: 'referral', label: 'Referral' },
+  { id: 'claim', label: 'Claim' },
+];
+
 export default function PresaleClient() {
   const { account, provider, readProvider, connectWallet, ensureGas } = useWeb3();
   const { disconnect } = useDisconnect();
@@ -279,6 +285,15 @@ export default function PresaleClient() {
   // Paiement depuis un autre token ou reseau (null = USDT/USDC sur BSC, achat direct).
   const [source, setSource] = useState(null);
   const [picking, setPicking] = useState(false);
+  // Page d'achat en mode application : onglets Purchase / Referral / Claim (#referral ou #claim ouvre l'onglet).
+  const [tab, setTab] = useState('purchase');
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const h = window.location.hash.slice(1);
+      if (PRESALE_TABS.some((x) => x.id === h)) setTab(h);
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
   const [balanceTick, setBalanceTick] = useState(0);
 
   const isCorrectNetwork = Number(chainId) === PRESALE_CHAIN_ID;
@@ -649,8 +664,22 @@ export default function PresaleClient() {
       <RecentBuys />
       {promo && <PromoBanner className={styles.promoAligned} />}
 
-      {/* ── Presale Hero Grid (Buy Card + Side Column) ───────────── */}
-      <div className={styles.presaleGrid}>
+      {/* Onglets de l'application d'achat */}
+      <div className={styles.appTabs} role="tablist" aria-label="Presale">
+        {PRESALE_TABS.map((t) => (
+          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={`${styles.appTab} ${tab === t.id ? styles.appTabActive : ''}`}>
+            {t.label}
+            {t.id === 'claim' && account && user.allocation > 0n && (
+              <span className={styles.appTabCount}>{fmtToken(user.allocation, td)}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Onglet Purchase : carte d'achat + etat de la vente ───── */}
+      <div className={styles.presaleGrid} style={tab === 'purchase' ? undefined : { display: 'none' }}>
         {/* Left: Glass Buy Card */}
         <form onSubmit={handleBuy} className={styles.glassBuyCard}>
           <div className={styles.cardHeader}>
@@ -898,8 +927,69 @@ export default function PresaleClient() {
 
           </div>
 
-          {/* Allocation de l'acheteur : seulement pour un wallet connecte qui a deja achete. */}
-          {account && (user.allocation > 0n || isEnded || awaitingFinalize) && (
+        </aside>
+      </div>
+
+      {/* ── Onglet Referral ──────────────────────────────────────── */}
+      {tab === 'referral' && (
+        <div className={styles.tabPanel}>
+          <div className={styles.referralCard} id="referral">
+            <h2 className={styles.referralTitle}>Share &amp; Earn <span className={styles.referralAccent}>2%</span> On-Chain</h2>
+            <p className={styles.referralSub}>
+              Referrers receive <b className={styles.referralAccent}>2% of all JOOB</b> bought through their link, with the exact same linear vesting.
+            </p>
+
+            {account ? (
+              <div className={styles.refInputRow}>
+                <input readOnly value={referralLink} aria-label="Your referral link" className={styles.refInput} />
+                <button type="button" onClick={copyLink} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.82rem' }}>
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            ) : (
+              <>
+                <button type="button" onClick={connectWallet} className="btn btn-primary" style={{ width: '100%', padding: '10px 16px', fontSize: '0.85rem' }}>
+                  Connect to get your link
+                </button>
+                <p className={styles.referralSub} style={{ marginTop: 8, marginBottom: 0 }}>
+                  Connect your wallet to get your link. No purchase needed.
+                </p>
+              </>
+            )}
+            {account && (
+              <a
+                href={`https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(referralLink)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ display: 'block', width: '100%', marginTop: 10, padding: '10px 16px', fontSize: '0.85rem', textAlign: 'center' }}
+              >
+                Share on X
+              </a>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* ── Onglet Claim : allocation, claim apres la vente, recherche par adresse ── */}
+      {tab === 'claim' && (
+        <div className={styles.tabPanel}>
+          {!isEnded && !awaitingFinalize && (
+            <div className={styles.referralCard}>
+              <h2 className={styles.referralTitle}>Claims open when the sale ends</h2>
+              <p className={styles.referralSub}>
+                20% of your JOOB becomes claimable on this page when the sale ends, then the rest unlocks linearly over 180 days.
+                Your allocation is already recorded on-chain.
+              </p>
+              {!account && (
+                <button type="button" onClick={connectWallet} className="btn btn-primary" style={{ width: '100%', padding: '12px 16px' }}>
+                  Connect to see your JOOB
+                </button>
+              )}
+            </div>
+          )}
+          {account && (
             <div className={styles.allocCard}>
               <div className={styles.sideCardTitle}>Your Allocation</div>
               {account && (
@@ -951,50 +1041,12 @@ export default function PresaleClient() {
             </div>
           )}
 
-          {/* Parrainage replie par defaut (id="referral") */}
-          <details className={`${styles.referralCard} ${styles.sideDetails}`} id="referral">
-            <summary className={styles.referralTitle}>Share &amp; Earn <span className={styles.referralAccent}>2%</span> On-Chain</summary>
-            <p className={styles.referralSub}>
-              Referrers receive <b className={styles.referralAccent}>2% of all JOOB</b> bought through their link, with the exact same linear vesting.
-            </p>
-
-            {account ? (
-              <div className={styles.refInputRow}>
-                <input readOnly value={referralLink} aria-label="Your referral link" className={styles.refInput} />
-                <button type="button" onClick={copyLink} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.82rem' }}>
-                  {copied ? 'Copied!' : 'Copy'}
-                </button>
-              </div>
-            ) : (
-              <>
-                <button type="button" onClick={connectWallet} className="btn btn-primary" style={{ width: '100%', padding: '10px 16px', fontSize: '0.85rem' }}>
-                  Share on X
-                </button>
-                <p className={styles.referralSub} style={{ marginTop: 8, marginBottom: 0 }}>
-                  Connect your wallet to get your link. No purchase needed.
-                </p>
-              </>
-            )}
-            {account && (
-              <a
-                href={`https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(referralLink)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary"
-                style={{ display: 'block', width: '100%', marginTop: 10, padding: '10px 16px', fontSize: '0.85rem', textAlign: 'center' }}
-              >
-                Share on X
-              </a>
-            )}
-
-          </details>
-
-          <details className={`${styles.referralCard} ${styles.sideDetails}`}>
-            <summary className={styles.referralTitle}>Check an allocation</summary>
+          <div className={styles.referralCard}>
+            <h2 className={styles.referralTitle}>Check an allocation</h2>
             <AllocationLookup readProvider={readProvider} td={td} pd={pd} />
-          </details>
-        </aside>
-      </div>
+          </div>
+        </div>
+      )}
 
     </>
   );

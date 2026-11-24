@@ -1544,3 +1544,57 @@
 .tickerDot { width: 6px; height: 6px; border-radius: 50%; background: #a3e635; box-shadow: 0 0 8px #a3e635; }
 @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .tickerTrack { animation: none; } }
+
+/* --- Mode application : onglets Purchase / Referral / Claim --- */
+.appTabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 18px auto 22px;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(163, 230, 53, 0.18);
+}
+.appTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #cbd5e1;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.appTab:hover { color: #ecfccb; }
+.appTabActive {
+  background: rgba(34, 197, 94, 0.16);
+  color: #bef264;
+  box-shadow: inset 0 0 0 1px rgba(163, 230, 53, 0.45);
+}
+.appTabCount {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(163, 230, 53, 0.15);
+  color: #bef264;
+}
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto 48px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+@media (max-width: 480px) {
+  .appTab { padding: 0 14px; font-size: 0.9rem; }
+}

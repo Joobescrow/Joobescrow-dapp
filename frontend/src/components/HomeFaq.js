@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { HOME_FAQ } from '../config/faq';
-import { TELEGRAM_URL } from '../config/links';
 import styles from './HomeFaq.module.css';
 
 export default function HomeFaq() {
@@ -35,18 +34,9 @@ export default function HomeFaq() {
         })}
       </div>
 
-      <div className={`glass-panel ${styles.helpCard}`}>
-        <h3 className={styles.helpTitle}>Need Direct Support?</h3>
-        <p className={styles.helpDesc}>
-          Our team is available on official communication channels.
-        </p>
-        <a href="mailto:contact@joobescrow.com" className="btn btn-outline" style={{ width: '100%', marginBottom: '12px' }}>
-          contact@joobescrow.com
-        </a>
-        <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: '100%' }}>
-          Join Telegram Support →
-        </a>
-      </div>
+      <p style={{ textAlign: 'center', margin: '18px 0 0' }}>
+        <Link href="/faq" className="text-gradient font-bold hover:underline">Read all questions →</Link>
+      </p>
     </div>
   );
 }

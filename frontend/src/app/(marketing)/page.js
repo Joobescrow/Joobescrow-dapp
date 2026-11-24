@@ -2,19 +2,17 @@ import Link from 'next/link';
 import styles from './marketing.module.css';
 import AmbientConstellation from '../../components/AmbientConstellation';
 import PresaleGlassCard from '../../components/PresaleGlassCard';
-import PartnerMarquee from '../../components/PartnerMarquee';
 import { BSCN_ARTICLE_URL } from '../../config/links';
 import HomeFaq from '../../components/HomeFaq';
 import HowToBuy from '../../components/HowToBuy';
-import ComparisonTable from '../../components/ComparisonTable';
 import PromoBanner from '../../components/PromoBanner';
 import { AUDITS, BSCSCAN, KYC_URL, PRESALE_ADDRESSES } from '../../config/presale';
 import { TOKENOMICS, fmtM } from '../../config/tokenomics';
 import { HOME_APP_ENTRIES } from '../../config/appEntry';
 import { FEE_RANGE_TEXT } from '../../config/feeTiers';
 
-// Page orientee vente : un seul CTA (presale), preuves de confiance regroupees sous le hero,
-// documentation produit sur ses pages dediees (/try, /tokenomics, /roadmap, /security, /faq).
+// Page orientee vente, epuree : un seul bouton plein par ecran (presale), une seule ligne de preuves
+// sous le hero, le detail sur les pages dediees (/try, /compare, /tokenomics, /roadmap, /security, /faq).
 // Plafond du contrat = vente + bonus et parrainage (163,5M JOOB).
 const PRESALE_PCT = TOKENOMICS.filter((t) => t.name.startsWith('Presale')).reduce((a, t) => a + t.pct, 0);
 
@@ -28,9 +26,8 @@ const BENEFITS = [
 const TRUST = [
   { label: 'Audited by SpyWolf', href: AUDITS.PRESALE },
   { label: 'KYC verified', href: KYC_URL },
-  { label: 'Meet the team', href: '/security#team', internal: true },
   { label: '3-of-5 Safe', href: `${BSCSCAN}/address/${PRESALE_ADDRESSES.SAFE}` },
-  { label: 'Verify on BscScan', href: `${BSCSCAN}/address/${PRESALE_ADDRESSES.PRESALE}#code` },
+  { label: 'Verified on BscScan', href: `${BSCSCAN}/address/${PRESALE_ADDRESSES.PRESALE}#code` },
 ];
 
 const META_TITLE = 'JOOB Presale Live | The token behind smart escrow | JoobEscrow';
@@ -79,11 +76,8 @@ export default function LandingPage() {
                 <Link href="/presale" className="btn btn-primary" style={{ padding: '14px 34px', fontSize: '1rem' }}>
                   Join the Presale
                 </Link>
-                <Link href="/app" className={`btn ${styles.tryBtn}`} style={{ padding: '14px 28px', fontSize: '1rem' }}>
-                  Launch app
-                </Link>
-                <Link href="/try" className={`btn ${styles.tryBtn}`} style={{ padding: '14px 28px', fontSize: '1rem' }}>
-                  Try it with $1 →
+                <Link href="/try" className="text-gradient font-bold hover:underline" style={{ fontSize: '0.98rem' }}>
+                  Or try the app with $1 →
                 </Link>
               </div>
             </div>
@@ -110,8 +104,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <PartnerMarquee />
-
       {/* L'app en ligne : les 3 entrees (Pay someone, Get paid, Pay button) */}
       <section className={styles.section} id="app">
         <div className={styles.container}>
@@ -130,13 +122,14 @@ export default function LandingPage() {
           </div>
           <p className={styles.factsLine}>
             Fees from {FEE_RANGE_TEXT}, paid by the provider. 0% for the client.{' '}
-            <Link href="/try" className="text-gradient font-bold hover:underline">Try the full cycle with $1 →</Link>{' '}
+            <Link href="/compare" className="text-gradient font-bold hover:underline">Compare with the usual options →</Link>{' '}
             · <Link href="/shipped" className="text-gradient font-bold hover:underline">See everything we shipped →</Link>
           </p>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
+            <Link href="/app" className="btn btn-outline" style={{ padding: '12px 30px' }}>Launch app</Link>
+          </div>
         </div>
       </section>
-
-      <ComparisonTable />
 
       {/* Why buy JOOB */}
       <section className={styles.section} id="why-joob">
@@ -165,26 +158,6 @@ export default function LandingPage() {
 
       <HowToBuy />
 
-      {/* What's next */}
-      <section className={styles.sectionAlt} id="next">
-        <div className={styles.container}>
-          <div className={`glass-panel ${styles.referralBanner}`}>
-            <div>
-              <span className={styles.refTag}>WHAT&apos;S NEXT</span>
-              <h3 className={styles.refTitle}>
-                Sale end, claims open, then <span className={styles.textGradient}>PancakeSwap listing.</span>
-              </h3>
-              <p className={styles.refSub}>
-                The JOOB/USDT pool opens right after the sale, above every presale price.
-              </p>
-            </div>
-            <Link href="/roadmap" className={`btn btn-outline ${styles.refBtn}`}>
-              Roadmap →
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className={styles.section} id="faq">
         <div className={styles.container}>
@@ -203,10 +176,11 @@ export default function LandingPage() {
           <div className={`glass-panel ${styles.referralBanner} ${styles.finalCtaBanner}`}>
             <div className={styles.finalCtaText}>
               <h2 className={styles.refTitle}>
-                Get JOOB before the next price step.
+                Get JOOB at the current price.
               </h2>
               <p className={styles.refSub}>
-                <Link href="/try" className="text-gradient font-bold hover:underline">See the product with $1 →</Link>
+                Try the full escrow cycle with $1 before you decide.{' '}
+                <Link href="/try" className="text-gradient font-bold hover:underline">Try it with $1 →</Link>
               </p>
             </div>
             <div className={styles.finalCtaActions}>
