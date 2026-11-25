@@ -660,6 +660,9 @@
 /* Pied de carte : les deux onglets (Details, Chat & files) sur une seule ligne */
 .escrow-footer-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
+/* Lien vers les alertes Telegram (@JoobEscrowBot) : meme gabarit que les onglets, icone cloche. */
+.escrow-tg-alerts { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+
 /* Role de l'utilisateur dans le deal (qui paie, qui est paye) */
 .escrow-role-tag {
   font-size: 0.75rem;
