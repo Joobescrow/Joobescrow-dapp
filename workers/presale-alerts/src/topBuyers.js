@@ -37,7 +37,8 @@ export function weekWindow(c, nowMs, mode = 'post') {
 
 /**
  * TOP_BUYERS = { name, start, end (ISO UTC), postDates: ["AAAA-MM-JJ"], poolBps, poolCap (USDT),
- *                showPoolFrom (USDT), splitBps: [..] (total 10000), exclude: [adresses] }
+ *                showPoolFrom (USDT), splitBps: [..] (total 10000), exclude: [adresses],
+ *                prorataFromWeek + topN : prorata des achats du top N a partir de cette semaine }
  * Le jour de `end`, le message final part au cron qui suit la fin.
  * Mode hebdomadaire : { weekly: true, anchor (debut de la 1re semaine, ISO UTC), firstWeek (numero),
  *                       postWeekdays: [0-6, getUTCDay] } a la place de start, end et postDates.
@@ -49,18 +50,26 @@ export function parseTopBuyers(raw, nowMs = Date.now(), mode = 'post') {
   let endMs = Date.parse(c.end);
   let name = c.name ?? 'Top Buyers';
   let postDates = c.postDates ?? [];
+  let weekNumber;
   if (c.weekly) {
     const w = weekWindow(c, nowMs, mode);
     ({ startMs, endMs } = w);
+    weekNumber = w.number;
     name = `${name} week ${w.number}`;
     const wd = new Set(c.postWeekdays ?? []);
     postDates = Array.from({ length: 7 }, (_, i) => startMs + i * 86_400_000).filter((t) => wd.has(new Date(t).getUTCDay())).map(day);
   }
   if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs <= startMs) throw new Error('TOP_BUYERS: start/end invalides');
-  const split = (c.splitBps ?? []).map(BigInt);
-  if (!split.length || split.reduce((s, b) => s + b, 0n) !== 10000n) throw new Error('TOP_BUYERS: splitBps doit totaliser 10000');
+  // Prorata (cagnotte partagee entre les topN au prorata de leurs achats) a partir de la semaine
+  // prorataFromWeek ; parts fixes splitBps avant (50/30/20 des semaines 1 a 4).
+  const prorata = c.split === 'prorata' || (c.prorataFromWeek !== undefined && weekNumber >= c.prorataFromWeek);
+  const split = prorata ? [] : (c.splitBps ?? []).map(BigInt);
+  if (prorata && !(Number.isInteger(c.topN) && c.topN > 0)) throw new Error('TOP_BUYERS: topN invalide pour le prorata');
+  if (!prorata && (!split.length || split.reduce((s, b) => s + b, 0n) !== 10000n)) throw new Error('TOP_BUYERS: splitBps doit totaliser 10000');
   return {
     name,
+    prorata,
+    topN: prorata ? c.topN : split.length,
     weekly: Boolean(c.weekly),
     startMs,
     endMs,
@@ -96,9 +105,18 @@ export function leaderboard(buys, config, excluded, endBlock) {
   }
   let pool = (eligible * config.poolBps) / 10000n;
   if (pool > config.poolCap) pool = config.poolCap;
-  const ranking = [...totals.values()]
-    .sort((a, b) => (a.total === b.total ? (a.reachedAt < b.reachedAt ? -1 : 1) : a.total > b.total ? -1 : 1))
-    .map((r, i) => ({ ...r, prize: i < config.split.length ? (pool * config.split[i]) / 10000n : 0n }));
+  const sorted = [...totals.values()]
+    .sort((a, b) => (a.total === b.total ? (a.reachedAt < b.reachedAt ? -1 : 1) : a.total > b.total ? -1 : 1));
+  let ranking;
+  if (config.prorata) {
+    // Prorata des achats du top N, arrondi inferieur ; le reste (poussiere) va au n° 1.
+    const topTotal = sorted.slice(0, config.topN).reduce((s, r) => s + r.total, 0n);
+    ranking = sorted.map((r, i) => ({ ...r, prize: i < config.topN && topTotal > 0n ? (pool * r.total) / topTotal : 0n }));
+    const dust = pool - ranking.reduce((s, r) => s + r.prize, 0n);
+    if (ranking.length && topTotal > 0n) ranking[0].prize += dust;
+  } else {
+    ranking = sorted.map((r, i) => ({ ...r, prize: i < config.split.length ? (pool * config.split[i]) / 10000n : 0n }));
+  }
   return { eligible, pool, ranking };
 }
 
@@ -107,7 +125,7 @@ const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 /** Message Telegram (HTML, anglais, sans emoji). */
 export function formatLeaderboard(result, config, kind, nowMs) {
-  const podium = result.ranking.slice(0, config.split.length);
+  const podium = result.ranking.slice(0, config.topN);
   const showPool = kind === 'final' || result.pool >= config.showPoolFrom;
   const days = Math.floor((nowMs - config.startMs) / 86_400_000);
   const lines = [kind === 'final' ? `<b>JOOB ${config.name}, final results</b>` : `<b>JOOB ${config.name}, day ${days} leaderboard</b>`, ''];
@@ -128,7 +146,7 @@ export function formatLeaderboard(result, config, kind, nowMs) {
     lines.push(podium.length
       ? `The top spot is wide open: a ${usd(lead).replace('.00', '')} USDT purchase takes the lead today.`
       : 'The top spot is open: any purchase takes the lead today.');
-    lines.push(`${config.poolBps / 100n}% of every purchase this week goes to the prize pool for the top ${config.split.length}${showPool ? `, now ${usd(result.pool)} USDT` : ''}.`);
+    lines.push(`${config.poolBps / 100n}% of every purchase this week goes to the prize pool for the top ${config.topN}${config.prorata ? ', shared in proportion to what each one bought' : ''}${showPool ? `, now ${usd(result.pool)} USDT` : ''}.`);
     lines.push('', `Ends ${new Date(config.endMs).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })} at ${new Date(config.endMs).toISOString().slice(11, 16)} UTC.`);
   }
   lines.push(PRESALE_LINK);
