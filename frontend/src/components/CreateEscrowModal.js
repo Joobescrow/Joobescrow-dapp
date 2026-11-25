@@ -15,6 +15,7 @@ import kolProgram from '../config/kolProgram.json';
 import { gasHelp } from '../config/gas';
 import { tierForUnits, FEE_MIN_USD, FEE_MAX_USD, FEE_RANGE_MESSAGE, PAID_TOKENS } from '../config/feeTiers';
 import { checkTierOnChain, TIER_CHECK_MESSAGES } from '../lib/feeTierCheck';
+import { telegramAlertsUrl } from '../config/links';
 import './CreateEscrowModal.css';
 
 // Montant saisi -> unites du token (bigint), ou null si invalide. USDT et USDC BEP-20 : 18 decimales.
@@ -322,6 +323,14 @@ export default function CreateEscrowModal({
             <div className="bg-black/50 border border-gray-700 p-3 rounded text-sm text-white mb-2 break-all" style={{ fontFamily: 'monospace' }}>
               {shareableLink}
             </div>
+            {account && (
+              <p className="text-gray-400 text-sm mt-3">
+                Want to know when they accept?{' '}
+                <a href={telegramAlertsUrl(account)} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--app-accent, #A3E635)' }}>
+                  Get Telegram alerts ↗
+                </a>
+              </p>
+            )}
           </div>
           <div className="modal-actions">
             <button className="btn btn-app-primary w-full" onClick={copyLinkAndClose}>

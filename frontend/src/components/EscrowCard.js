@@ -19,6 +19,7 @@ import ReceiptButton from './ReceiptButton';
 import { RECEIPT } from '../config/receipt';
 import { REPUTATION } from '../config/reputation';
 import Link from 'next/link';
+import { telegramAlertsUrl } from '../config/links';
 
 const EscrowChatPanel = dynamic(() => import('./EscrowChatPanel'), { ssr: false });
 
@@ -759,6 +760,11 @@ export default function EscrowCard({ escrow, isDisputeView, isOwner, onUpdate, d
                 {getExplorerLink() && (
                   <a href={getExplorerLink()} target="_blank" rel="noreferrer" className="escrow-link-btn">
                     Contract on BscScan ↗
+                  </a>
+                )}
+                {(isClient || isProvider) && !isCompleted && !isCancelled && (
+                  <a href={telegramAlertsUrl(account)} target="_blank" rel="noopener noreferrer" className="escrow-link-btn" title="Get a Telegram message when this escrow is accepted, released or disputed">
+                    Telegram alerts ↗
                   </a>
                 )}
                 {escrow.status === 'FUNDED' && !escrow.accepted && isClient && (

@@ -5,6 +5,8 @@ export const TELEGRAM_URL = 'https://t.me/joobescrow_group';
 // Canal d'annonces officiel (cree le 13/11/2026). Tout autre canal "JoobEscrow" est un faux.
 export const TELEGRAM_CHANNEL_URL = 'https://t.me/joobescrow_channel';
 export const TELEGRAM_BOT_URL = 'https://t.me/JoobEscrowBot';
+// Lien profond : le bot lance /track sur ce wallet des que l'utilisateur clique « Demarrer » (prive uniquement).
+export const telegramAlertsUrl = (address) => `${TELEGRAM_BOT_URL}?start=track_${address}`;
 export const PUBLIC_API_URL = 'https://api.joobescrow.com';
 export const X_URL = 'https://x.com/JoobEscrow';
 // Article de lancement publie par BSC News (rubrique Sponsored), le 15/10/2026.

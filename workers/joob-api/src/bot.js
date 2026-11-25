@@ -141,7 +141,13 @@ export async function handleUpdate(env, update) {
   }
   try {
     switch (cmd) {
-      case '/start': case '/help': reply = HELP; break;
+      case '/start': {
+        // Lien profond du site : t.me/<bot>?start=track_0x... -> suivi immediat du wallet (prive uniquement).
+        const m = /^track_(0x[0-9a-fA-F]{40})$/.exec(args[0] || '');
+        reply = m && msg.chat.type === 'private' && ethers.isAddress(m[1]) ? await track(env, chatId, m[1]) : HELP;
+        break;
+      }
+      case '/help': reply = HELP; break;
       case '/fees': reply = cmdFees(); break;
       case '/deal': reply = await cmdDeal(env, args); break;
       case '/rep': reply = await cmdRep(env, args); break;
