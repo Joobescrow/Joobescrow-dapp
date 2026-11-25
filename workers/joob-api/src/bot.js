@@ -173,7 +173,8 @@ export async function handleUpdate(env, update) {
 const EVENTS = {
   new: (e) => `New escrow #${e.id}: ${e.amount} ${e.token} locked.`,
   accepted: (e) => `Escrow #${e.id} accepted by the provider. Work can start.`,
-  completed: (e) => `Escrow #${e.id} released: ${e.amount} ${e.token} sent to the provider's balance (fee ${e.feePercent}%). The provider can now withdraw it on joobescrow.com.`,
+  // Montant net : e.amount est le montant bloque, frais compris.
+  completed: (e) => `Escrow #${e.id} released: ${(Number(e.amount) * (1 - Number(e.feePercent) / 100)).toFixed(2)} ${e.token} credited to the provider (${e.amount} minus the ${e.feePercent}% fee). The provider can now withdraw it on joobescrow.com.`,
   disputed: (e) => `A dispute was opened on escrow #${e.id}. Share your evidence in the encrypted chat on joobescrow.com.`,
   resolved: (e) => `The dispute on escrow #${e.id} was settled. Check your balance on joobescrow.com and withdraw.`,
   cancelled: (e) => `Escrow #${e.id} was cancelled before acceptance. The client can withdraw the refund on joobescrow.com.`,
