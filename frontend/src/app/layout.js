@@ -17,14 +17,14 @@ export const metadata = {
   openGraph: {
     title: "JoobEscrow | The Universal Web3 Escrow",
     description: "Secure every payment. Pay only when the work is approved. The universal non-custodial escrow platform for freelancers, creators, and businesses.",
-    images: [{ url: "/og-image.png", width: 1500, height: 500 }],
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "JoobEscrow: secure every deal with smart escrow on BNB Chain" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "JoobEscrow | The Universal Web3 Escrow",
     description: "Secure every payment. Pay only when the work is approved. The universal non-custodial escrow platform for freelancers, creators, and businesses.",
-    images: ["/og-image.png"],
+    images: ["/og-default.png"],
   }
 };
 
