@@ -18,6 +18,17 @@ export const FAQ = [
     link: { href: '/risks', label: 'Read the full risk disclosure' },
   },
   {
+    id: 'get-paid',
+    q: 'I am the provider: how do I get paid?',
+    summary:
+      'Three steps. 1. Open the deal link the client sent you and connect the wallet that receives the payment. 2. Click Accept once. 3. When the client releases the funds, open the deal link again, click "Withdraw in the app", connect the same wallet and click the green "Withdraw" button, then confirm in your wallet.',
+    details: [
+      'Released funds are credited to your address in the contract and wait there until you withdraw them. They never expire, and nobody else can withdraw them. The deal page shows the amount waiting for you.',
+      'You need a little BNB in that wallet for the network fee of Accept and Withdraw (a few cents). To be told when the client releases, use the "Telegram alerts" button on the escrow, or send /withdraw to @JoobEscrowBot for these steps.',
+    ],
+    link: { href: '/try', label: 'Try the full cycle with $1' },
+  },
+  {
     id: 'disputes',
     q: 'Who resolves disputes and how?',
     summary:

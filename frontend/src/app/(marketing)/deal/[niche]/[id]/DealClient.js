@@ -18,6 +18,7 @@ import { REPUTATION } from '../../../../../config/reputation';
 const ESCROW_ABI = [
   'function escrows(uint256) view returns (address client, address provider, address token, uint256 amount, uint256 feeBPS, uint256 createdAt, uint256 timeoutDate, uint8 status, bool accepted)',
   'function disputeOpenedAt(uint256) view returns (uint256)',
+  'function withdrawable(address, address) view returns (uint256)',
 ];
 const BSCSCAN = 'https://bscscan.com';
 const TOKENS = { [USDT_ADDRESS.toLowerCase()]: 'USDT', [USDC_ADDRESS.toLowerCase()]: 'USDC' };
@@ -102,7 +103,11 @@ export default function DealClient({ niche, id, c = null }) {
         // Litige en cours ou resolu : date d'ouverture, pour afficher les preuves on-chain.
         const st = Number(e.status);
         const disputeOpenedAt = st === 3 || st === 4 ? Number(await ct.disputeOpenedAt(BigInt(id))) : 0;
-        if (!cancelled) setState({ loading: false, error: null, data: { ...e.toObject(), symbol, decimals: Number(decimals), disputeOpenedAt } });
+        // Fonds credites a retirer (modele « pull ») : prestataire apres liberation ou litige regle,
+        // client apres annulation. Solde global du wallet sur ce contrat, tous escrows confondus.
+        const payee = st === 2 || st === 4 ? e.provider : st === 5 ? e.client : null;
+        const pendingWithdraw = payee ? await ct.withdrawable(payee, e.token) : 0n;
+        if (!cancelled) setState({ loading: false, error: null, data: { ...e.toObject(), symbol, decimals: Number(decimals), disputeOpenedAt, payee, pendingWithdraw } });
         readEscrowReference(readProvider, escrowAddr, id, e.createdAt).then((r) => { if (!cancelled) setReference(r); }).catch(() => {});
       } catch (err) {
         console.error('[Deal] read:', err);
@@ -228,8 +233,28 @@ export default function DealClient({ niche, id, c = null }) {
                 <EvidencePanel contract={escrowAddr} escrowId={id} disputeOpenedAt={d.disputeOpenedAt} />
               </div>
             )}
+            {d.payee && (
+              <div className={styles.withdrawBox}>
+                {d.pendingWithdraw > 0n ? (
+                  <>
+                    <b>
+                      {Number(ethers.formatUnits(d.pendingWithdraw, d.decimals)).toLocaleString('en-US', { maximumFractionDigits: 4 })} {d.symbol} ready to withdraw
+                      {' '}for the {d.payee === d.provider ? (inst.lexicon?.provider ?? 'provider').toLowerCase() : (inst.lexicon?.client ?? 'client').toLowerCase()} {short(d.payee)}
+                    </b>
+                    <ol>
+                      <li>Click &quot;Withdraw in the app&quot; below</li>
+                      <li>Connect the wallet {short(d.payee)}</li>
+                      <li>Click the green &quot;Withdraw&quot; button and confirm in your wallet</li>
+                    </ol>
+                    <p>The funds stay safe in the contract until they are withdrawn. They never expire.</p>
+                  </>
+                ) : (
+                  <b>Nothing left to withdraw for {short(d.payee)} on this contract: the funds were withdrawn to the wallet.</b>
+                )}
+              </div>
+            )}
             <div className={styles.actions}>
-              <Link href={c && !inst.isDemo ? `/${niche}?escrow=${id}&c=${escrowAddr}` : `/${niche}?escrow=${id}`} className={`btn btn-primary ${styles.cta}`}>Open in the app</Link>
+              <Link href={c && !inst.isDemo ? `/${niche}?escrow=${id}&c=${escrowAddr}` : `/${niche}?escrow=${id}`} className={`btn btn-primary ${styles.cta}`}>{d.pendingWithdraw > 0n ? 'Withdraw in the app' : 'Open in the app'}</Link>
               <button type="button" className={styles.copyBtn} onClick={handleCopyLink}>
                 {copied ? 'Link copied' : 'Copy deal link'}
               </button>

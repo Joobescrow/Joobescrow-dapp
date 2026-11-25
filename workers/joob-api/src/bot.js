@@ -23,6 +23,18 @@ export async function send(env, chatId, html) {
   if (!res.ok) console.error(`Telegram sendMessage ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
 
+// Etapes de retrait (modele pull) : reprises par /withdraw et rappelees dans les alertes.
+const WITHDRAW_HELP = [
+  '<b>How to withdraw your funds</b>',
+  '',
+  '1. Open the deal link you received (or joobescrow.com/pro)',
+  '2. Connect the wallet that received the payment',
+  '3. Click the green "Withdraw" button and confirm in your wallet',
+  '',
+  'Released funds stay safe in the contract until you withdraw them. They never expire. The deal page shows the amount waiting for you.',
+  SAFE_LINE,
+].join('\n');
+
 const HELP = [
   '<b>JoobEscrow bot</b>: escrow on BNB Chain, read-only from here.',
   '',
@@ -32,6 +44,7 @@ const HELP = [
   '/getpaid &lt;address&gt; [amount] [USDT|USDC]: payment request link for your client',
   '/track &lt;address&gt;: alerts when an escrow of this wallet changes',
   '/untrack &lt;address&gt;, /mytracks',
+  '/withdraw: how to withdraw a payment you received',
   '',
   `Try the full cycle with $1: ${SITE}/try`,
   SAFE_LINE,
@@ -148,6 +161,7 @@ export async function handleUpdate(env, update) {
         break;
       }
       case '/help': reply = HELP; break;
+      case '/withdraw': reply = WITHDRAW_HELP; break;
       case '/fees': reply = cmdFees(); break;
       case '/deal': reply = await cmdDeal(env, args); break;
       case '/rep': reply = await cmdRep(env, args); break;
@@ -174,10 +188,10 @@ const EVENTS = {
   new: (e) => `New escrow #${e.id}: ${e.amount} ${e.token} locked.`,
   accepted: (e) => `Escrow #${e.id} accepted by the provider. Work can start.`,
   // Montant net : e.amount est le montant bloque, frais compris.
-  completed: (e) => `Escrow #${e.id} released: ${(Number(e.amount) * (1 - Number(e.feePercent) / 100)).toFixed(2)} ${e.token} credited to the provider (${e.amount} minus the ${e.feePercent}% fee). The provider can now withdraw it on joobescrow.com.`,
+  completed: (e) => `Escrow #${e.id} released: ${(Number(e.amount) * (1 - Number(e.feePercent) / 100)).toFixed(2)} ${e.token} credited to the provider (${e.amount} minus the ${e.feePercent}% fee). Provider: open the deal link below and click "Withdraw in the app".`,
   disputed: (e) => `A dispute was opened on escrow #${e.id}. Share your evidence in the encrypted chat on joobescrow.com.`,
-  resolved: (e) => `The dispute on escrow #${e.id} was settled. Check your balance on joobescrow.com and withdraw.`,
-  cancelled: (e) => `Escrow #${e.id} was cancelled before acceptance. The client can withdraw the refund on joobescrow.com.`,
+  resolved: (e) => `The dispute on escrow #${e.id} was settled. Open the deal link below to see the amount waiting for you and withdraw it.`,
+  cancelled: (e) => `Escrow #${e.id} was cancelled before acceptance. Client: open the deal link below and click "Withdraw in the app" to get the refund.`,
   deadline: (e) => `The deadline of escrow #${e.id} has passed. The provider can now claim the payment, or the client can release it.`,
 };
 
