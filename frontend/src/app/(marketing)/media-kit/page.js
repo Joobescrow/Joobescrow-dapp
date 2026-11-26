@@ -18,14 +18,14 @@ export default function MediaKitPage() {
   const k = MEDIA_KIT;
   return (
     <div className="w-full max-w-5xl mx-auto py-16 px-4">
-      <div className="text-center mb-10">
+      <div className="text-center" style={{ marginBottom: 40 }}>
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Media <span className="text-gradient">Kit</span></h1>
         <p className="text-gray-400 text-lg">Official files and information for partners and media.</p>
         <a href={k.zip} download className="btn btn-primary mt-6 inline-flex items-center justify-center">Download the full kit (.zip)</a>
       </div>
 
       {/* Encart anti-arnaque : la page sert aussi de reference pour verifier un lien ou une adresse */}
-      <div className="glass-panel p-6 mb-8" style={{ border: '1px solid rgba(163, 230, 53, 0.45)', background: 'rgba(163, 230, 53, 0.06)' }}>
+      <div className="glass-panel p-6" style={{ marginBottom: 32, border: '1px solid rgba(163, 230, 53, 0.45)', background: 'rgba(163, 230, 53, 0.06)' }}>
         <h2 className="text-lg font-bold text-lime-300 mb-2">Verify before you trust</h2>
         <p className="text-gray-300 text-sm leading-relaxed">
           The links and contract addresses on this page are the only official ones. JoobEscrow never DMs first, never asks for your seed phrase or private key,
@@ -33,12 +33,12 @@ export default function MediaKitPage() {
         </p>
       </div>
 
-      <section className={`${card} mb-8`}>
+      <section className={card} style={{ marginBottom: 32 }}>
         <h2 className="text-xl font-bold text-white mb-3">About JoobEscrow</h2>
         <p className="text-gray-300">{k.description}</p>
       </section>
 
-      <section className="mb-8">
+      <section style={{ marginBottom: 32 }}>
         <h2 className="text-xl font-bold text-white mb-4">Logos</h2>
         <div style={grid(200)}>
           {k.logos.map((f) => (
@@ -55,7 +55,7 @@ export default function MediaKitPage() {
         </div>
       </section>
 
-      <section className="mb-8">
+      <section style={{ marginBottom: 32 }}>
         <h2 className="text-xl font-bold text-white mb-4">Banners</h2>
         <div style={grid(260)}>
           {k.banners.map((f) => (
@@ -70,7 +70,7 @@ export default function MediaKitPage() {
         </div>
       </section>
 
-      <section className={`${card} mb-8`}>
+      <section className={card} style={{ marginBottom: 32 }}>
         <h2 className="text-xl font-bold text-white mb-4">Colors</h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
           {k.colors.map((c) => (
@@ -82,7 +82,7 @@ export default function MediaKitPage() {
         </div>
       </section>
 
-      <section className={`${card} mb-8`}>
+      <section className={card} style={{ marginBottom: 32 }}>
         <h2 className="text-xl font-bold text-white mb-4">Official links</h2>
         <ul className="space-y-2">
           {k.links.map((l) => (
@@ -94,7 +94,7 @@ export default function MediaKitPage() {
         </ul>
       </section>
 
-      <section className={`${card} mb-8`}>
+      <section className={card} style={{ marginBottom: 32 }}>
         <h2 className="text-xl font-bold text-white mb-1">Official contracts (BNB Chain)</h2>
         <p className="text-gray-500 text-sm mb-4">Always compare the full address, not only the first and last characters.</p>
         <ul className="space-y-3">

@@ -234,6 +234,8 @@ export default function SecurityPage() {
               { label: 'JOOB Staking', addr: '0x7949528182876027b1F4B2e43E3a46eb2dADD32b', note: 'Audited staking pool (opens post-TGE)' },
               { label: 'Treasury Vesting (36m)', addr: '0x8cbac3786F61572D4571C951e9215FC289FB2ff3', note: '130M JOOB on-chain vesting' },
               { label: 'Team Vesting (24m)', addr: '0xc430f8C4E26FFc25326C4AA84947B3e2A1328012', note: '120M JOOB locked until 2028' },
+              // Allocations partenaires (regle publiee Partners & KOL : 3 mois apres le TGE, puis 12 mois). Une ligne par contrat.
+              { label: 'Partner Vesting (12m)', addr: '0xddc686e5c30E6c7952A3B5B9b279eD90aE5F51d6', note: 'Marketing partner allocation (Nov 2026): nothing before Apr 13, 2027, then linear over 12 months' },
             ].map((item) => (
               <div key={item.addr} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 12px', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ minWidth: 0 }}>
