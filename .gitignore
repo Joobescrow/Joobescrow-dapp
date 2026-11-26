@@ -50,3 +50,6 @@ captures_refonte/
 /captures_ux/
 /captures_ameliorations/
 /audit/
+
+# Media kit public : seul zip publie (images uniquement)
+!frontend/public/media-kit/joobescrow-media-kit.zip
