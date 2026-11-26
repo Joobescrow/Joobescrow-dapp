@@ -74,6 +74,7 @@ export default function MarketingLayout({ children }) {
               <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Telegram group</a>
               <a href={X_URL} target="_blank" rel="noopener noreferrer">X (Twitter)</a>
               <a href="mailto:contact@joobescrow.com">contact@joobescrow.com</a>
+              <Link href="/media-kit">Media kit</Link>
             </div>
           </div>
 
