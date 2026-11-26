@@ -156,3 +156,10 @@
 .tgNotice strong { color: #bef264; }
 .tgNotice a { color: #a3e635; font-weight: 700; text-decoration: none; }
 .tgNotice a:hover { text-decoration: underline; }
+
+/* Airdrop Booster (config/promo.js) */
+.booster { margin-top: 14px; padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.08); color: #e5e7eb; font-size: 0.92rem; line-height: 1.55; }
+.booster strong { color: #bef264; }
+.booster a { color: #a3e635; font-weight: 700; text-decoration: none; }
+.booster a:hover { text-decoration: underline; }
+.boostOff { color: #94a3b8; font-size: 0.85rem; white-space: nowrap; }

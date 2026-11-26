@@ -84,6 +84,9 @@ export async function fairShare(p, nowSec = Math.floor(Date.now() / 1000)) {
   // Montant leve avant le premier achat de la periode = total actuel - achats de la periode.
   const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_READ, p);
   let raised = Number(ethers.formatUnits(await presale.totalRaised(), 18)) - buys.reduce((s, b) => s + b.usd, 0);
+  // Total achete par wallet depuis `start`, plafond Fair Share ignore (Airdrop Booster, config/promo.js).
+  const bought = new Map();
+  for (const b of buys) if (!TEAM.has(b.buyer)) bought.set(b.buyer, (bought.get(b.buyer) || 0) + b.usd);
   const byWallet = new Map();
   for (const b of buys) {
     const eligible = raised < SALES_BONUS.capRaisedUsd && !TEAM.has(b.buyer);
@@ -96,7 +99,8 @@ export async function fairShare(p, nowSec = Math.floor(Date.now() / 1000)) {
   const entries = [...byWallet.values()]
     .map((w) => ({ address: w.address, joob: Math.floor(w.usd * SALES_BONUS.joobPerUsd), label: `$${w.usd.toLocaleString('en-US', { maximumFractionDigits: 2 })} bought` }))
     .sort((a, b) => b.joob - a.joob);
-  return { ...base, entries, started: true, capReached: raised >= SALES_BONUS.capRaisedUsd, updatedAt: nowSec };
+  const buyers = [...bought].map(([address, usd]) => ({ address, usd: Math.round(usd * 100) / 100 }));
+  return { ...base, entries, buyers, started: true, capReached: raised >= SALES_BONUS.capRaisedUsd, updatedAt: nowSec };
 }
 
 // RPC : cote serveur, la cle NodeReal privee (BSC_LOGS_RPC_URL, variable Vercel non publique) passe en premier.

@@ -37,6 +37,18 @@ export const SALES_BONUS = {
   retryAfterErrorSec: 900,
 };
 
+// « Airdrop Booster » (decision du 26/11/2026) : les wallets des campagnes listees qui achetent au moins
+// `minUsd` au total dans la presale (achats lus depuis SALES_BONUS.start, aucun n'avait achete avant) voient
+// leur recompense multipliee par `multiplier`. Hors contrat : le supplement est pris sur l'allocation Airdrop
+// et livre au TGE avec le vesting de la campagne. Statut calcule on-chain par /api/sales-bonus.
+export const AIRDROP_BOOSTER = {
+  name: 'Airdrop Booster',
+  campaigns: ['zealy', 'meme-contest'],
+  minUsd: 50,
+  multiplier: 2,
+  end: '2027-01-13T14:00:00Z', // fin de la presale
+};
+
 /** Secondes jusqu'a la prochaine mise a jour prevue (refreshHoursUtc). */
 export function secondsToNextRefresh(nowMs = Date.now(), hours = SALES_BONUS.refreshHoursUtc) {
   const now = new Date(nowMs);
