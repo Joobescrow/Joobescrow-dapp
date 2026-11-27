@@ -12,6 +12,8 @@ const nextConfig = {
       { source: '/:niche/disputes', destination: '/:niche/all', permanent: false },
       // Lien KOL court : joobescrow.com/r/<handle> -> /app?ref=<handle> (le suivi ?ref existant prend le relais).
       { source: '/r/:handle', destination: '/app?ref=:handle', permanent: false },
+      // Lien KOL presale : joobescrow.com/p/<handle> -> /presale?ref=<handle> (meme flag, parrain = wallet de parrainage du KOL).
+      { source: '/p/:handle', destination: '/presale?ref=:handle', permanent: false },
     ];
   },
 };
