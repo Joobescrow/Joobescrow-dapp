@@ -25,7 +25,7 @@ export function activePromo(nowSec, promo = PROMO) {
 // acheteurs (pas de bonus de volume sous 100 $). Hors contrat : pris sur l'allocation Airdrop, livre au TGE
 // avec le vesting de la presale. Un achat compte en entier si le montant leve avant lui est sous le plafond.
 export const SALES_BONUS = {
-  name: 'Fair Share Bonus',
+  name: 'Early Buyer Bonus',
   start: '2026-11-05T13:00:00Z',
   // Premier bloc BSC a partir de `start` (verifie le 24/11/2026) : evite la recherche par dichotomie.
   startBlock: 131821014,

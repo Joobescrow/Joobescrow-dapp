@@ -12,6 +12,7 @@ import {
   priceAt, nextStepAt, volumeTierBps, readableError, maxPurchasablePayment, isSoldOut, closingTime,
 } from '../../../config/presale';
 import styles from './presale.module.css';
+import { TELEGRAM_URL } from '../../../config/links';
 import { activePromo, activeSalesBonus } from '../../../config/promo';
 import PromoBanner from '../../../components/PromoBanner';
 import { lockedTotal } from '../../../config/liquidityLock';
@@ -622,6 +623,20 @@ export default function PresaleClient() {
   // Tweet pre-rempli pour le lien de parrainage : faits verifiables seulement, aucune promesse de gain.
   const SHARE_TEXT = 'I joined the $JOOB presale: the token behind @JoobEscrow, the audited non-custodial escrow live on BNB Chain. The price rises every 2 days.';
 
+  const xShareUrl = `https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(referralLink)}`;
+  const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(SHARE_TEXT)}`;
+  // Boutons de partage du lien de parrainage (onglet Referral et encart apres achat).
+  const shareButtons = (
+    <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+      <a href={tgShareUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ flex: '1 1 140px', padding: '10px 16px', fontSize: '0.85rem', textAlign: 'center' }}>
+        Share on Telegram
+      </a>
+      <a href={xShareUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ flex: '1 1 140px', padding: '10px 16px', fontSize: '0.85rem', textAlign: 'center' }}>
+        Share on X
+      </a>
+    </div>
+  );
+
   const copyLink = async () => {
     try { await navigator.clipboard.writeText(referralLink); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* ignore */ }
   };
@@ -693,6 +708,21 @@ export default function PresaleClient() {
           </div>
 
           <Feedback status={status} step={step} success={successMsg} error={txError} />
+
+          {/* Apres un achat : le moment ou l'acheteur partage le plus volontiers son lien. */}
+          {status === 'success' && successMsg?.startsWith('Purchase confirmed') && referralLink && (
+            <div className={styles.referralCard} style={{ marginBottom: 16 }}>
+              <h2 className={styles.referralTitle} style={{ fontSize: '1rem' }}>Share your link and earn <span className={styles.referralAccent}>2%</span></h2>
+              <p className={styles.referralSub}>You receive 2% of all JOOB bought through your link, credited by the contract with the same vesting.</p>
+              <div className={styles.refInputRow}>
+                <input readOnly value={referralLink} aria-label="Your referral link" className={styles.refInput} />
+                <button type="button" onClick={copyLink} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.82rem' }}>
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              {shareButtons}
+            </div>
+          )}
 
           {/* Amount and Currency Selection */}
           <div className={styles.formSection}>
@@ -786,7 +816,7 @@ export default function PresaleClient() {
               )}
               {fairShare && fairShareJoob > 0 && (
                 <div className={styles.receiveBonusNote}>
-                  + {fairShareJoob.toLocaleString('en-US')} JOOB Fair Share bonus ({fairShare.joobPerUsd} per $1), delivered at TGE
+                  + {fairShareJoob.toLocaleString('en-US')} JOOB Early Buyer bonus ({fairShare.joobPerUsd} per $1), delivered at TGE
                 </div>
               )}
               {promo && promoBonus === 0n && (
@@ -972,18 +1002,12 @@ export default function PresaleClient() {
                 </p>
               </>
             )}
-            {account && (
-              <a
-                href={`https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(referralLink)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary"
-                style={{ display: 'block', width: '100%', marginTop: 10, padding: '10px 16px', fontSize: '0.85rem', textAlign: 'center' }}
-              >
-                Share on X
-              </a>
-            )}
+            {account && shareButtons}
 
+            <p className={styles.referralSub} style={{ marginTop: 14, marginBottom: 0 }}>
+              Creators and communities: get personal links for the app and the presale, with extra rewards in USDT.{' '}
+              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className={styles.referralAccent} style={{ fontWeight: 700 }}>Contact us on Telegram</a>
+            </p>
           </div>
         </div>
       )}
