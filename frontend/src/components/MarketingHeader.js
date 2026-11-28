@@ -18,6 +18,7 @@ const X_PATH = 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.
 // Menu court (3 liens + boutons Presale et Launch App) : le reste est dans Learn et le pied de page.
 const NAV = [
   { href: '/try', label: 'Try $1', hot: true },
+  { href: '/leaderboard', label: 'Leaderboard', dot: true },
   { href: '/security', label: 'Security' },
 ];
 

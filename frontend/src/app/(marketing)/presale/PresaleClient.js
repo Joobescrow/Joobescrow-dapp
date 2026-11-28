@@ -75,6 +75,15 @@ const fmtDate = (s) => new Date(Number(s) * 1000).toLocaleString('en-GB', { time
 const pad2 = (n) => String(n).padStart(2, '0');
 const fmtDhms = (t) => `${pad2(Math.floor(t / 86400))}d ${pad2(Math.floor((t % 86400) / 3600))}h ${pad2(Math.floor((t % 3600) / 60))}m ${pad2(t % 60)}s`;
 
+// Duree courte pour une ligne de texte : 1d 20h, 5h 12m, 8m.
+const leftLabel = (t) => {
+  const s = Math.max(0, t);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${m}m`;
+};
+
 function useNow() {
   const [now, setNow] = useState(() => BigInt(Math.floor(Date.now() / 1000)));
   useEffect(() => {
@@ -296,6 +305,13 @@ export default function PresaleClient() {
     return () => clearTimeout(t);
   }, []);
   const [balanceTick, setBalanceTick] = useState(0);
+  // Classements on-chain (/api/leaderboard, cache 10 min) : cagnotte Top Buyers et top parrains. null = pas encore lu.
+  const [board, setBoard] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/leaderboard').then((r) => r.json()).then((d) => { if (alive && !d.error) setBoard(d); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const isCorrectNetwork = Number(chainId) === PRESALE_CHAIN_ID;
 
@@ -929,7 +945,11 @@ export default function PresaleClient() {
                   <Link href="/security#liquidity-lock" style={{ color: '#a3e635', fontWeight: 700 }}>{fmtNum(lockedTotal(), 0)} USDT already locked by the team →</Link>
                 </div>
                 <div className={styles.targetText}>
-                  <Link href="/leaderboard" style={{ color: '#a3e635', fontWeight: 700 }}>Leaderboard: top buyers and top referrers →</Link>
+                  <Link href="/leaderboard" style={{ color: '#a3e635', fontWeight: 700 }}>
+                    {board
+                      ? `Top Buyers week ${board.week.number}: ${fmtNum(board.week.pool, 2)} USDT prize pool, ends in ${leftLabel(board.week.end - Number(now))} →`
+                      : 'Leaderboard: top buyers and top referrers →'}
+                  </Link>
                 </div>
               </div>
             )}
@@ -1012,6 +1032,33 @@ export default function PresaleClient() {
               <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className={styles.referralAccent} style={{ fontWeight: 700 }}>Contact us on Telegram</a>
             </p>
           </div>
+
+          {board && (
+            <div className={styles.referralCard} style={{ marginTop: 16 }}>
+              <h2 className={styles.referralTitle} style={{ fontSize: '1rem' }}>
+                {board.referrers.contest ? <>Referral league: <span className={styles.referralAccent}>{board.referrers.contest.name}</span></> : 'Top referrers'}
+              </h2>
+              {board.referrers.contest && (
+                <p className={styles.referralSub}>
+                  Top 3 links by presale volume brought, until {new Date(board.referrers.contest.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })} at 14:00 UTC:
+                  {' '}{board.referrers.contest.prizes.join(' / ')}.
+                </p>
+              )}
+              {board.referrers.rows.length ? (
+                <ol style={{ margin: '0 0 10px', paddingLeft: 20, color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.8 }}>
+                  {board.referrers.rows.slice(0, 3).map((r) => (
+                    <li key={r.address}>
+                      <span style={{ fontFamily: 'ui-monospace, monospace', color: '#94a3b8' }}>{shortAddr(r.address)}</span>
+                      {' '}<b className={styles.referralAccent}>{fmtNum(r.usd, 2)} USDT</b> brought
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className={styles.referralSub}>No referral purchase yet. The top spot is open.</p>
+              )}
+              <Link href="/leaderboard#referrers" className={styles.referralAccent} style={{ fontWeight: 700, fontSize: '0.88rem' }}>Full leaderboard →</Link>
+            </div>
+          )}
         </div>
       )}
 

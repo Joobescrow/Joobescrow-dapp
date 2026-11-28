@@ -46,6 +46,15 @@ function Table({ rows, cols }) {
 export default function LeaderboardClient() {
   const [d, setD] = useState(null);
   const [tab, setTab] = useState('week');
+  // #referrers ou #all ouvre l'onglet correspondant (liens depuis /presale).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const h = window.location.hash.slice(1);
+      if (h === 'referrers') setTab('ref');
+      else if (h === 'all') setTab('all');
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     let alive = true;
     fetch('/api/leaderboard')
