@@ -15,6 +15,7 @@ export const LIQUIDITY_LOCK = {
     { id: 2085954, amount: 49 },
     { id: 2088197, amount: 638.314 },
     { id: 2088213, amount: 218.1 },
+    { id: 2119430, amount: 28.2808 }, // 28/11/2026 : frais d'escrow collectes, bloques depuis le Safe
   ],
 };
 
