@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import { PRESALE_ADDRESSES, LOGS_READ_CONCURRENCY } from '../config/presale';
+import { PRESALE_ADDRESSES } from '../config/presale';
+import SNAPSHOT from '../config/presaleBuysSnapshot.json';
 import { SAFE_SIGNERS } from '../config/team';
 import { SALES_BONUS } from '../config/promo';
 
@@ -59,31 +60,11 @@ export async function fairShare(p, nowSec = Math.floor(Date.now() / 1000)) {
   const startSec = Date.parse(SALES_BONUS.start) / 1000;
   const base = { campaign: SALES_BONUS.name, joobPerUsd: SALES_BONUS.joobPerUsd, capRaisedUsd: SALES_BONUS.capRaisedUsd, start: SALES_BONUS.start };
   if (nowSec < startSec) return { ...base, entries: [], started: false };
-  const head = await p.getBlockNumber();
-  // Premier bloc a partir de `start` : fixe en config, sinon dichotomie sur l'horodatage (le temps de bloc BSC varie).
-  let lo = SALES_BONUS.startBlock ?? 0;
-  let hi = head;
-  while (!SALES_BONUS.startBlock && lo < hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if ((await p.getBlock(mid)).timestamp < startSec) lo = mid + 1; else hi = mid;
-  }
-  // Tranches lues en parallele (LOGS_READ_CONCURRENCY), remises dans l'ordre des blocs.
-  const ranges = [];
-  for (let a = lo; a <= head; a += WINDOW) ranges.push([a, Math.min(head, a + WINDOW - 1)]);
-  const parts = new Array(ranges.length);
-  let next = 0;
-  const worker = async () => {
-    while (next < ranges.length) {
-      const i = next++;
-      parts[i] = await p.getLogs({ address: PRESALE_ADDRESSES.PRESALE, topics: [TOPIC_BOUGHT], fromBlock: ranges[i][0], toBlock: ranges[i][1] });
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(LOGS_READ_CONCURRENCY, ranges.length) }, worker));
-  const logs = parts.flat();
-  const buys = logs.map((l) => ({ buyer: buyerOf(l), usd: Number(ethers.formatUnits(EVENT.parseLog({ topics: l.topics, data: l.data }).args.paid, 18)) }));
-  // Montant leve avant le premier achat de la periode = total actuel - achats de la periode.
-  const presale = new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_READ, p);
-  let raised = Number(ethers.formatUnits(await presale.totalRaised(), 18)) - buys.reduce((s, b) => s + b.usd, 0);
+  // Achats verifies (instantane + blocs suivants lus un par un, somme = totalRaised) : voir verifiedBuys.
+  const all = await verifiedBuys(p);
+  const buys = all.filter((b) => b.time >= startSec);
+  // Montant leve avant le premier achat de la periode.
+  let raised = all.filter((b) => b.time < startSec).reduce((s, b) => s + b.usd, 0);
   // Total achete par wallet depuis `start`, plafond Fair Share ignore (Airdrop Booster, config/promo.js).
   const bought = new Map();
   for (const b of buys) if (!TEAM.has(b.buyer)) bought.set(b.buyer, (bought.get(b.buyer) || 0) + b.usd);
@@ -111,14 +92,12 @@ export const BROWSER_RPCS = ['https://bsc-rpc.publicnode.com'];
 export const ARCHIVE_RPCS = () => [process.env.BSC_LOGS_RPC_URL];
 
 /**
- * Page /leaderboard (config/leaderboard.js) : classement Top Buyers de la semaine en cours, classement de
- * tous les temps et classement des liens de parrainage (concours en cours, sinon depuis le debut).
- * Equipe (Safe et signataires) exclue comme acheteur et comme parrain ; parrainage de soi-meme ignore.
+ * Tous les achats de la presale, dans l'ordre des blocs : instantane fige (config/presaleBuysSnapshot.json,
+ * scripts/leaderboard-snapshot.cjs) + blocs posterieurs lus UN PAR UN (NodeReal renvoie des listes vides,
+ * sans erreur, sur des requetes paralleles). Controle : somme = totalRaised du contrat, sinon erreur
+ * (jamais de liste fausse). Equipe comprise : chaque usage filtre avec TEAM.
  */
-export async function leaderboard(p, cfg, nowSec = Math.floor(Date.now() / 1000)) {
-  const { TOP_BUYERS, REFERRERS, SNAPSHOT } = cfg;
-  // Achats figes (config/presaleBuysSnapshot.json, scripts/leaderboard-snapshot.cjs) + blocs posterieurs,
-  // lus un par un : NodeReal renvoie des listes vides, sans erreur, sur des requetes paralleles.
+export async function verifiedBuys(p) {
   const head = await p.getBlockNumber();
   const buys = [...SNAPSHOT.buys];
   for (let a = SNAPSHOT.toBlock + 1; a <= head; a += WINDOW) {
@@ -128,9 +107,19 @@ export async function leaderboard(p, cfg, nowSec = Math.floor(Date.now() / 1000)
       buys.push({ buyer: ev.args.buyer.toLowerCase(), referrer: ev.args.referrer.toLowerCase(), usd: Number(ethers.formatUnits(ev.args.paid, 18)), time: (await p.getBlock(l.blockNumber)).timestamp });
     }
   }
-  // Controle : la somme lue doit egaler totalRaised, sinon une lecture a perdu des achats (pas de liste fausse).
   const raised = Number(ethers.formatUnits(await new ethers.Contract(PRESALE_ADDRESSES.PRESALE, PRESALE_READ, p).totalRaised(), 18));
   if (Math.abs(raised - buys.reduce((s, b) => s + b.usd, 0)) > 0.01) throw new Error('incomplete logs');
+  return buys;
+}
+
+/**
+ * Page /leaderboard (config/leaderboard.js) : classement Top Buyers de la semaine en cours, classement de
+ * tous les temps et classement des liens de parrainage (concours en cours, sinon depuis le debut).
+ * Equipe (Safe et signataires) exclue comme acheteur et comme parrain ; parrainage de soi-meme ignore.
+ */
+export async function leaderboard(p, cfg, nowSec = Math.floor(Date.now() / 1000)) {
+  const { TOP_BUYERS, REFERRERS } = cfg;
+  const buys = await verifiedBuys(p);
   const r2 = (x) => Math.round(x * 100) / 100;
   const rank = (list, key) => {
     const m = new Map();

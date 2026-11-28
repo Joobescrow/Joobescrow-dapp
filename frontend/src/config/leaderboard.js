@@ -1,9 +1,9 @@
 // Page /leaderboard : deux classements calcules depuis les achats on-chain (TokensBought), cote serveur.
 // Source unique des regles affichees. Les montants sont en USDT/USDC payes, jamais une valeur du JOOB.
 
-// Achats deja lus et verifies (somme = totalRaised), a rafraichir de temps en temps pour garder la route rapide :
-// node scripts/leaderboard-snapshot.cjs (depuis frontend/). La route ne relit que les blocs suivants.
-export { default as SNAPSHOT } from './presaleBuysSnapshot.json';
+// Achats deja lus et verifies : config/presaleBuysSnapshot.json (lu par lib/presaleLogs.js verifiedBuys,
+// aussi pour Fair Share). A rafraichir de temps en temps pour garder les routes rapides :
+// node scripts/leaderboard-snapshot.cjs (depuis frontend/). Les routes ne relisent que les blocs suivants.
 
 // Top Buyers hebdomadaire (meme regles que contracts-token/top-buyers.config.json et le worker d'alertes).
 export const TOP_BUYERS = {
