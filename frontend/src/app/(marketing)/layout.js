@@ -45,6 +45,7 @@ export default function MarketingLayout({ children }) {
             <div className={styles.footerCol}>
               <h3>JOOB token</h3>
               <Link href="/presale">Presale</Link>
+              <Link href="/leaderboard">Leaderboard</Link>
               <Link href="/tokenomics">Tokenomics</Link>
               <Link href="/roadmap">Roadmap</Link>
               <Link href="/whitepaper">Whitepaper</Link>

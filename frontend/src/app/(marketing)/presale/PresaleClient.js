@@ -928,6 +928,9 @@ export default function PresaleClient() {
                 <div className={styles.targetText}>
                   <Link href="/security#liquidity-lock" style={{ color: '#a3e635', fontWeight: 700 }}>{fmtNum(lockedTotal(), 0)} USDT already locked by the team →</Link>
                 </div>
+                <div className={styles.targetText}>
+                  <Link href="/leaderboard" style={{ color: '#a3e635', fontWeight: 700 }}>Leaderboard: top buyers and top referrers →</Link>
+                </div>
               </div>
             )}
 
